@@ -209,9 +209,7 @@
                      </goals>
                    </pluginExecutionFilter>
                    <action>
-                     <execute>
-                       <runOnIncremental>false</runOnIncremental>
-                     </execute >
+                     <execute />
                    </action>
                  </pluginExecution>
               </pluginExecutions>
