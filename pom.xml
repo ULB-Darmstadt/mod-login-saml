@@ -91,6 +91,12 @@
       <groupId>org.pac4j</groupId>
       <artifactId>pac4j-saml-opensamlv3</artifactId>
       <version>${pac4j.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>xml-apis</groupId>
+          <artifactId>xml-apis</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -195,9 +201,7 @@
                      </goals>
                    </pluginExecutionFilter>
                    <action>
-                     <execute>
-                       <runOnIncremental>false</runOnIncremental>
-                     </execute >
+                     <execute />
                    </action>
                  </pluginExecution>
               </pluginExecutions>
