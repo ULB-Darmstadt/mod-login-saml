@@ -28,6 +28,12 @@
       "type": "string",
       "required": true
     },
+    "userCreateMissing": {
+      "description": "Create local user accounts when a successful SAML authentication cannot be matched to an existing user",
+      "type": "boolean",
+      "example": false,
+      "required": true
+    },
     "okapiUrl": {
       "description": "Where to find OKAPI",
       "type": "string",
