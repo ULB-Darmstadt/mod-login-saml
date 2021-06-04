@@ -57,7 +57,7 @@ public class VertxUtils {
     }
 
     @Override
-    public Optional getTrackableSession(VertxWebContext context) {
+    public Optional<Session> getTrackableSession(VertxWebContext context) {
       return Optional.ofNullable(session);
     }
 
