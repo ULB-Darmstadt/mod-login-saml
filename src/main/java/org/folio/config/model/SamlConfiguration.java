@@ -18,6 +18,7 @@ public class SamlConfiguration {
   public static final String SAML_BINDING_CODE = "saml.binding";
   public static final String SAML_ATTRIBUTE_CODE = "saml.attribute";
   public static final String USER_PROPERTY_CODE = "user.property";
+  public static final String USER_CREATE_MISSING_CODE = "user.createMissing";
   public static final String METADATA_INVALIDATED_CODE = "metadata.invalidated";
   public static final String OKAPI_URL= "okapi.url";
 
@@ -37,7 +38,17 @@ public class SamlConfiguration {
   private String userProperty;
   @JsonProperty(METADATA_INVALIDATED_CODE)
   private String metadataInvalidated = "true";
+  @JsonProperty(USER_CREATE_MISSING_CODE)
+  private boolean userCreateMissing = false;
 
+
+  public boolean getUserCreateMissing () {
+    return userCreateMissing;
+  }
+
+  public void setUserCreateMissing (boolean userCreateMissing) {
+    this.userCreateMissing = userCreateMissing;
+  }
 
   @JsonProperty(OKAPI_URL)
   private String okapiUrl;
