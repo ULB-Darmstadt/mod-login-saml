@@ -19,11 +19,12 @@ public class ApiInitializer implements InitAPI {
 
   @Override
   public void init(Vertx vertx, Context context, Handler<AsyncResult<Boolean>> handler) {
+    
+    log.info("New version of mod-login-saml");
+    
     WebClientFactory.init(vertx);
 
-    String tacEnv = System.getenv("TRUST_ALL_CERTIFICATES");
-
-    if (tacEnv != null && tacEnv.equals("true")) {
+    if ("true".equalsIgnoreCase(System.getenv("TRUST_ALL_CERTIFICATES"))) {
       trustAllCertificates();
     }
 
