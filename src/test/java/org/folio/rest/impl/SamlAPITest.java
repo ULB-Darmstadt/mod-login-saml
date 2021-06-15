@@ -241,6 +241,7 @@ public class SamlAPITest {
         .withSamlAttribute("UserID")
         .withSamlBinding(SamlConfigRequest.SamlBinding.REDIRECT)
         .withUserProperty("externalSystemId")
+        .withUserCreateMissing(false)
         .withOkapiUrl(URI.create("http://localhost:9130"));
 
     String jsonString = Json.encode(samlConfigRequest);
@@ -316,6 +317,7 @@ public class SamlAPITest {
     SamlConfigRequest samlConfigRequest = new SamlConfigRequest()
       .withIdpUrl(URI.create("http://localhost:" + MOCK_PORT + "/xml"))
       .withSamlAttribute("UserID")
+      .withUserCreateMissing(false)
       .withSamlBinding(SamlConfigRequest.SamlBinding.POST)
       .withUserProperty("externalSystemId")
       .withOkapiUrl(URI.create("http://localhost:9130"));
