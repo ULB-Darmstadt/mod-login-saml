@@ -1,5 +1,7 @@
 package org.folio.util.model;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * POJO for Okapi headers parsing
  *
@@ -16,9 +18,11 @@ public class OkapiHeaders {
   private String token;
   private String tenant;
   private String permissions;
+  
+  private final String urlOverride = StringUtils.defaultIfBlank(System.getProperty("OKAPI_URL"), StringUtils.defaultIfBlank(System.getenv("OKAPI_URL"), null));
 
   public String getUrl() {
-    return url;
+    return StringUtils.defaultIfBlank(urlOverride, url);
   }
 
   public void setUrl(String url) {
