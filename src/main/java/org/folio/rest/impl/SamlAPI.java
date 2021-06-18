@@ -227,14 +227,18 @@ public class SamlAPI implements Saml {
                     return;
                   } else if (recordCount == 0) {
                     // No matching user was found. If we shouldn't create when missing then we should log and return.
-                    if (!configuration.getUserCreateMissing()) {
+                    if (!"true".equalsIgnoreCase(configuration.getUserCreateMissing())) {
                       String message = "No user found by " + userPropertyName + " == " + samlAttributeValue;
                       log.warn(message);
                       asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond400WithTextPlain(message)));
                       return;
                     }
                     CommonProfile profile =  credentials.getUserProfile();
-                    JsonObject userData = UserService.createUserJSON(profile.getFirstName(), profile.getFamilyName(), profile.getEmail());
+                    JsonObject userData = UserService.createUserJSON(
+                      profile.getFirstName(),
+                      profile.getFamilyName(),
+                      profile.getEmail()
+                    );
                     
                     // Also add the property which we are joining on.
                     userData.put(userPropertyName, samlAttributeValue);

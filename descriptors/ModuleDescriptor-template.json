@@ -27,7 +27,8 @@
           "modulePermissions": [
             "auth.signtoken",
             "configuration.entries.collection.get",
-            "users.collection.get"
+            "users.collection.get",
+            "users.item.post"
           ]
         },
         {

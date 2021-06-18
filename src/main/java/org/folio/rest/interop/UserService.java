@@ -36,15 +36,13 @@ public class UserService {
    */
   public static JsonObject createUserJSON(final String firstName, final String lastName, final String email) {
     final String uuid = UUID.randomUUID().toString();
-    final JsonObject personal = new JsonObject();
+    final JsonObject personal = new JsonObject()
+      // Add defaults for required properties
+      .put("firstName", StringUtils.defaultIfBlank(firstName, "SSO"))
+      .put("lastName", StringUtils.defaultIfBlank(firstName, "User"))
+    ;
     
     // Default personal info.
-    if (StringUtils.isBlank(firstName)) {
-      personal.put("firstName", firstName);
-    }
-    if (StringUtils.isBlank(lastName)) {
-      personal.put("lastName", lastName);
-    }
     if (StringUtils.isBlank(email)) {
       personal.put("email", email);
     }
