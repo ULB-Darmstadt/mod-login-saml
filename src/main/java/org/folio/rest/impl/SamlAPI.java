@@ -593,7 +593,10 @@ public class SamlAPI implements Saml {
     SamlConfig samlConfig = new SamlConfig()
       .withSamlAttribute(config.getSamlAttribute())
       .withUserProperty(config.getUserProperty())
-      .withMetadataInvalidated(Boolean.valueOf(config.getMetadataInvalidated()));
+      .withMetadataInvalidated(Boolean.valueOf(config.getMetadataInvalidated()))
+      .withUserCreateMissing(Boolean.valueOf(config.getUserCreateMissing()))
+    ;
+    
     try {
       URI uri = URI.create(config.getOkapiUrl());
       samlConfig.setOkapiUrl(uri);
