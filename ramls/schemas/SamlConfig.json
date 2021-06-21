@@ -30,7 +30,7 @@
     },
     "metadataInvalidated": {
       "type": "boolean",
-      "description": "Indicates that there is a change in configuration that can break working of module, like IdP URL or encrityon key changed.",
+      "description": "Indicates that there is a change in configuration that can break working of module, like IdP URL or encryption key changed.",
       "required": false
     },
     "okapiUrl": {
