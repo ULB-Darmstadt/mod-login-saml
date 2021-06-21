@@ -28,6 +28,12 @@
       "type": "string",
       "required": false
     },
+    "userCreateMissing": {
+      "description": "Create local user accounts when a successful SAML authentication cannot be matched to an existing user",
+      "type": "boolean",
+      "example": false,
+      "required": true
+    },
     "metadataInvalidated": {
       "type": "boolean",
       "description": "Indicates that there is a change in configuration that can break working of module, like IdP URL or encryption key changed.",
