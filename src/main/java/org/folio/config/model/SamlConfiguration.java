@@ -39,7 +39,7 @@ public class SamlConfiguration {
   @JsonProperty(METADATA_INVALIDATED_CODE)
   private String metadataInvalidated = "true";
   @JsonProperty(USER_CREATE_MISSING_CODE)
-  private String userCreateMissing = "true";
+  private String userCreateMissing = "false";
 
 
   public String getUserCreateMissing () {
