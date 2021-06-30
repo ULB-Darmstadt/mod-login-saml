@@ -406,6 +406,9 @@ public class SamlAPI implements Saml {
 
               ConfigEntryUtil.valueChanged(config.getUserProperty(), updatedConfig.getUserProperty(), userProperty ->
                 updateEntries.put(SamlConfiguration.USER_PROPERTY_CODE, userProperty));
+              
+              ConfigEntryUtil.valueChanged(config.getUserCreateMissing(), updatedConfig.getUserCreateMissing() ? "true" : "false", createMissing ->
+                updateEntries.put(SamlConfiguration.USER_CREATE_MISSING_CODE, createMissing));
 
               ConfigEntryUtil.valueChanged(config.getOkapiUrl(), updatedConfig.getOkapiUrl().toString(), okapiUrl -> {
                 updateEntries.put(SamlConfiguration.OKAPI_URL, okapiUrl);
