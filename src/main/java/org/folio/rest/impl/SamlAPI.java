@@ -32,14 +32,7 @@ import org.folio.config.SamlConfigHolder;
 import org.folio.config.model.SamlClientComposite;
 import org.folio.config.model.SamlConfiguration;
 import org.folio.rest.interop.UserService;
-import org.folio.rest.jaxrs.model.SamlCheck;
-import org.folio.rest.jaxrs.model.SamlConfig;
-import org.folio.rest.jaxrs.model.SamlConfigRequest;
-import org.folio.rest.jaxrs.model.SamlLogin;
-import org.folio.rest.jaxrs.model.SamlLoginRequest;
-import org.folio.rest.jaxrs.model.SamlRegenerateResponse;
-import org.folio.rest.jaxrs.model.SamlValidateGetType;
-import org.folio.rest.jaxrs.model.SamlValidateResponse;
+import org.folio.rest.jaxrs.model.*;
 import org.folio.rest.jaxrs.resource.Saml;
 import org.folio.rest.jaxrs.resource.Saml.PostSamlCallbackResponse.HeadersFor302;
 import org.folio.rest.tools.client.HttpClientFactory;
@@ -432,6 +425,50 @@ public class SamlAPI implements Saml {
               ConfigEntryUtil.valueChanged(config.getUserCreateMissing(), updatedConfig.getUserCreateMissing() ? "true" : "false", createMissing ->
                 updateEntries.put(SamlConfiguration.USER_CREATE_MISSING_CODE, createMissing));
 
+              SamlDefaultUser sdu = updatedConfig.getSamlDefaultUser();
+              ConfigEntryUtil.valueChanged(
+                config.getUserDefaultEmailAttribute(),
+                sdu == null ? null : sdu.getEmailAttribute(),
+                val -> updateEntries.put(SamlConfiguration.DU_EMAIL_ATT, val)
+              );
+              
+              ConfigEntryUtil.valueChanged(
+                config.getUserDefaultFirstNameAttribute(),
+                sdu == null ? null : sdu.getFirstNameAttribute(),
+                val -> updateEntries.put(SamlConfiguration.DU_FIRST_NM_ATT, val)
+              );
+              
+              ConfigEntryUtil.valueChanged(
+                config.getUserDefaultFirstNameDefault(),
+                sdu == null ? null : sdu.getFirstNameDefault(),
+                val -> updateEntries.put(SamlConfiguration.DU_FIRST_NM_DEFAULT, val)
+              );
+              
+              ConfigEntryUtil.valueChanged(
+                config.getUserDefaultLastNameAttribute(),
+                sdu == null ? null : sdu.getLastNameAttribute(),
+                val -> updateEntries.put(SamlConfiguration.DU_LAST_NM_ATT, val)
+              );
+              
+              ConfigEntryUtil.valueChanged(
+                config.getUserDefaultLastNameDefault(),
+                sdu == null ? null : sdu.getLastNameDefault(),
+                val -> updateEntries.put(SamlConfiguration.DU_LAST_NM_DEFAULT, val)
+              );
+              
+              ConfigEntryUtil.valueChanged(
+                config.getUserDefaultPatronGroup(),
+                sdu == null ? null : sdu.getPatronGroup(),
+                val -> updateEntries.put(SamlConfiguration.DU_PATRON_GRP, val)
+              );
+              
+              ConfigEntryUtil.valueChanged(
+                config.getUserDefaultUsernameAttribute(),
+                sdu == null ? null : sdu.getUsernameAttribute(),
+                val -> updateEntries.put(SamlConfiguration.DU_UN_ATT, val)
+              );
+              
+
               ConfigEntryUtil.valueChanged(config.getOkapiUrl(), updatedConfig.getOkapiUrl().toString(), okapiUrl -> {
                 updateEntries.put(SamlConfiguration.OKAPI_URL, okapiUrl);
                 updateEntries.put(SamlConfiguration.METADATA_INVALIDATED_CODE, "true");
@@ -610,6 +647,22 @@ public class SamlAPI implements Saml {
   private void registerFakeSession(RoutingContext routingContext) {
     routingContext.setSession(new NoopSession());
   }
+  
+  private SamlDefaultUser configExtractDefaultUser(SamlConfiguration config) {
+    
+    if (!config.hasDefaultUserData()) return null;
+    
+    SamlDefaultUser defaultUser = new SamlDefaultUser()
+      .withEmailAttribute(config.getUserDefaultEmailAttribute())
+      .withFirstNameAttribute(config.getUserDefaultFirstNameAttribute())
+      .withFirstNameDefault(config.getUserDefaultFirstNameDefault())
+      .withLastNameAttribute(config.getUserDefaultLastNameAttribute())
+      .withLastNameDefault(config.getUserDefaultLastNameDefault())
+      .withPatronGroup(config.getUserDefaultPatronGroup())
+      .withUsernameAttribute(config.getUserDefaultUsernameAttribute())
+    ;
+    return defaultUser;
+  }
 
   /**
    * Converts internal {@link SamlConfiguration} object to DTO, checks illegal values
@@ -620,6 +673,7 @@ public class SamlAPI implements Saml {
       .withUserProperty(config.getUserProperty())
       .withMetadataInvalidated(Boolean.valueOf(config.getMetadataInvalidated()))
       .withUserCreateMissing(Boolean.valueOf(config.getUserCreateMissing()))
+      .withSamlDefaultUser(configExtractDefaultUser(config))
     ;
     
     try {

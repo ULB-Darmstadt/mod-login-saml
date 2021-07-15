@@ -71,7 +71,7 @@ public class ConfigurationsClient {
 
       HttpClientInterface httpClient = HttpClientFactory.getHttpClient(okapiHeaders.getUrl(), okapiHeaders.getTenant());
       httpClient.setDefaultHeaders(headers);
-      httpClient.request(CONFIGURATIONS_ENTRIES_ENDPOINT_URL + "?query=" + encodedQuery) // this is ugly :/
+      httpClient.request(CONFIGURATIONS_ENTRIES_ENDPOINT_URL + "?limit=10000&query=" + encodedQuery) // this is ugly :/
         .whenComplete((Response response, Throwable throwable) -> {
           if (Response.isSuccess(response.getCode())) {
 

@@ -34,6 +34,9 @@
       "example": false,
       "required": true
     },
+    "samlDefaultUser": {
+      "$ref": "SamlDefaultUser.json"
+    },
     "metadataInvalidated": {
       "type": "boolean",
       "description": "Indicates that there is a change in configuration that can break working of module, like IdP URL or encryption key changed.",

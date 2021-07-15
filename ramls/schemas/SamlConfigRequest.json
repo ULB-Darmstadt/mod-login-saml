@@ -34,6 +34,9 @@
       "example": false,
       "required": true
     },
+    "samlDefaultUser": {
+      "$ref": "SamlDefaultUser.json"
+    },
     "okapiUrl": {
       "description": "Where to find OKAPI",
       "type": "string",
