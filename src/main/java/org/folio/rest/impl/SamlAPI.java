@@ -227,11 +227,7 @@ public class SamlAPI implements Saml {
                       return;
                     }
                     CommonProfile profile =  credentials.getUserProfile();
-                    JsonObject userData = UserService.createUserJSON(
-                      profile.getFirstName(),
-                      profile.getFamilyName(),
-                      profile.getEmail()
-                    );
+                    JsonObject userData = UserService.createUserJSON(profile, configuration);
                     
                     // Also add the property which we are joining on.
                     userData.put(userPropertyName, samlAttributeValue);

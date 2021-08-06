@@ -1,11 +1,14 @@
 package org.folio.rest.interop;
 
+import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.StringUtils;
+import org.folio.config.model.SamlConfiguration;
 import org.joda.time.Instant;
+import org.pac4j.core.profile.CommonProfile;
 
 import io.vertx.core.json.JsonObject;
 
@@ -13,7 +16,7 @@ public class UserService {
   
   private static String generateInitialUsername(final String firstName, final String lastName, final String email, @NotNull final String id) {
     String name;
-    if (StringUtils.isBlank(lastName)) {
+    if (!StringUtils.isBlank(lastName)) {
       name = lastName;
       
       // Prepend the first initial if firstname present.
@@ -34,12 +37,18 @@ public class UserService {
    * 
    * @return The user object
    */
-  public static JsonObject createUserJSON(final String firstName, final String lastName, final String email) {
-    final String uuid = UUID.randomUUID().toString();
+  public static JsonObject createUserJSON(
+      @NotNull final String uuid,
+      @NotNull final String username,
+      @NotNull final String firstName,
+      @NotNull final String lastName,
+      @NotNull final String patgronGroupId,
+      final String email) {
+    
     final JsonObject personal = new JsonObject()
       // Add defaults for required properties
-      .put("firstName", StringUtils.defaultIfBlank(firstName, "SSO"))
-      .put("lastName", StringUtils.defaultIfBlank(firstName, "User"))
+      .put("firstName", firstName)
+      .put("lastName", lastName)
     ;
     
     // Default personal info.
@@ -49,10 +58,76 @@ public class UserService {
     
     return new JsonObject()
       .put("id", uuid)
-      .put("username", generateInitialUsername(firstName, lastName, email, uuid))
+      .put("username", username)
       .put("active", true)
+      .put("patronGroup", patgronGroupId)
       .put("personal", personal)
     ;
+  }
+  
+  private static String getStrAtt(final CommonProfile profile, final String attribute) {
+    List<?> samlAttributeList = profile.getAttribute(attribute, List.class);
+    if (samlAttributeList == null || samlAttributeList.isEmpty()) {
+      return null;
+    }
+    
+    // Return the first hit.
+    return samlAttributeList.get(0).toString();
+  }
+  
+  private static String getOrDefaultAttribute(final CommonProfile profile, final String attribute, final String defaultValue) {
+    return StringUtils.defaultIfBlank(
+      getStrAtt(profile, attribute),
+      defaultValue
+    );
+  }
+
+  /**
+   * Creates a base user object from a pac4j common profile and the config for this module.
+   * {@link #createUserJSON(firstName, lastName, email) }
+   * @param configuration 
+   * @return The user object
+   */
+  public static JsonObject createUserJSON(final CommonProfile profile, final SamlConfiguration configuration) {
+    
+    final String uuid = UUID.randomUUID().toString();
+    
+    final String firstName = getOrDefaultAttribute(
+      profile,
+      configuration.getUserDefaultFirstNameAttribute(),
+      configuration.getUserDefaultFirstNameDefault()
+    );
+    
+    final String lastName = getOrDefaultAttribute(
+      profile,
+      configuration.getUserDefaultLastNameAttribute(),
+      configuration.getUserDefaultLastNameDefault()
+    );
+
+    final String email = getStrAtt(
+      profile,
+      configuration.getUserDefaultEmailAttribute());
+    
+    final String patronGroupId = configuration.getUserDefaultPatronGroup();
+
+    String username = getStrAtt(
+      profile,
+      configuration.getUserDefaultUsernameAttribute());
+    if (username == null) {
+      username = generateInitialUsername(
+        getStrAtt(
+          profile,
+          configuration.getUserDefaultUsernameAttribute()
+        ),
+        lastName,
+        email,
+        uuid
+      );
+    }
+
+    return createUserJSON(
+      uuid, username, firstName, lastName, patronGroupId, email 
+    );
   }
   
   public UserService() {
