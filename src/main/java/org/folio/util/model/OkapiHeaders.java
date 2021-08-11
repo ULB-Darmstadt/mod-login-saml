@@ -1,6 +1,9 @@
 package org.folio.util.model;
 
 import org.apache.commons.lang3.StringUtils;
+import org.folio.sso.saml.ModuleConfig.MissingHeaderException;
+
+import com.google.common.base.Strings;
 
 /**
  * POJO for Okapi headers parsing
@@ -51,5 +54,17 @@ public class OkapiHeaders {
 
   public void setPermissions(String permissions) {
     this.permissions = permissions;
+  }
+
+  public void verifyInteropValues() throws MissingHeaderException {
+    if (Strings.isNullOrEmpty(getUrl())) {
+      throw new MissingHeaderException("Missing Okapi URL");
+    }
+    if (Strings.isNullOrEmpty(getTenant())) {
+      throw new MissingHeaderException("Missing Tenant");
+    }
+    if (Strings.isNullOrEmpty(getToken())) {
+      throw new MissingHeaderException("Missing Token");
+    }
   }
 }

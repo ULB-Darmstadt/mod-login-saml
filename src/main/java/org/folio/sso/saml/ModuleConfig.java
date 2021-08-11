@@ -25,19 +25,15 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
 /**
- * Connect to mod-configuration via Okapi
+ * Module Config Object
  *
- * @author rsass
+ * @author Steve Osguthorpe<steve.osguthorpe@k-int.com>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ModuleConfig {
 
   private static final Logger log = LogManager.getLogger(ModuleConfig.class);
   private static final String CACHE_KEY = "MODULE_CONFIG";
-
-  public static final String MISSING_OKAPI_URL = "Missing Okapi URL";
-  public static final String MISSING_TENANT = "Missing Tenant";
-  public static final String MISSING_TOKEN = "Missing Token";
 
   @JsonAnySetter()
   protected final Map<String, Object> config = new ConcurrentHashMap<String,Object>();
@@ -50,20 +46,21 @@ public class ModuleConfig {
   private ModuleConfig() {
     
   }
-
-  protected static void verifyOkapiHeaders(OkapiHeaders okapiHeaders) throws MissingHeaderException {
-    if (Strings.isNullOrEmpty(okapiHeaders.getUrl())) {
-      throw new MissingHeaderException(MISSING_OKAPI_URL);
+  
+  public static ModuleConfig fromModConfigJson ( JsonArray mcjson ) {
+    final ModuleConfig mc = new ModuleConfig();
+    for (Object entry : mcjson) {
+      JsonObject jsonEntry = (JsonObject) entry;
+      
+      // Add each entry.
+      final String code = jsonEntry.getString("code");
+      final String value = jsonEntry.getString("value");
+      mc.config.put(code, value);
     }
-    if (Strings.isNullOrEmpty(okapiHeaders.getTenant())) {
-      throw new MissingHeaderException(MISSING_TENANT);
-    }
-    if (Strings.isNullOrEmpty(okapiHeaders.getToken())) {
-      throw new MissingHeaderException(MISSING_TOKEN);
-    }
+    return mc;
   }
   
-  static Future<ModuleConfig> get ( RoutingContext routingContext ) {
+  public static Future<ModuleConfig> get ( RoutingContext routingContext ) {
     
     final ModuleConfig mc_cache = routingContext.get(CACHE_KEY);
     if (mc_cache != null) return Future.succeededFuture(mc_cache);
@@ -74,7 +71,8 @@ public class ModuleConfig {
 
     try {
       Promise<ModuleConfig> promise = Promise.promise();
-      verifyOkapiHeaders(okapiHeaders);
+      okapiHeaders.verifyInteropValues();
+      
       String encodedQuery = URLEncoder.encode(query, "UTF-8");
 
       Map<String, String> headers = new HashMap<>();
@@ -87,18 +85,8 @@ public class ModuleConfig {
           if (Response.isSuccess(response.getCode())) {
 
             JsonObject responseBody = response.getBody();
-            JsonArray configs = responseBody.getJsonArray("configs");           
-            
-            final ModuleConfig mc = new ModuleConfig();
-            for (Object entry : configs) {
-              JsonObject jsonEntry = (JsonObject) entry;
-              
-              // Add each entry.
-              final String code = jsonEntry.getString("code");
-              final String value = jsonEntry.getString("value");
-              mc.config.put(code, value);
-            }
-            promise.complete(mc);
+            JsonArray configs = responseBody.getJsonArray("configs");
+            promise.complete(fromModConfigJson(configs));
             
           } else {
             log.warn("Cannot get configuration data: {}", response.getError());
