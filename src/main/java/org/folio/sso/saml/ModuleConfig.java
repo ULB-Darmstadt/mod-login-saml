@@ -2,11 +2,13 @@ package org.folio.sso.saml;
 
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.config.model.SamlConfiguration;
 import org.folio.rest.tools.client.HttpClientFactory;
 import org.folio.rest.tools.client.Response;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
@@ -30,16 +32,16 @@ import io.vertx.ext.web.RoutingContext;
  * @author Steve Osguthorpe<steve.osguthorpe@k-int.com>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ModuleConfig {
+public class ModuleConfig implements SamlConfiguration {
 
   private static final Logger log = LogManager.getLogger(ModuleConfig.class);
   private static final String CACHE_KEY = "MODULE_CONFIG";
 
   @JsonAnySetter()
-  protected final Map<String, Object> config = new ConcurrentHashMap<String,Object>();
+  protected final Map<String, String> config = new ConcurrentHashMap<String,String>();
 
   @JsonAnyGetter()
-  public Map<String, ?> getConfig() {
+  public Map<String, String> getConfig() {
     return config;
   }
   
@@ -106,5 +108,100 @@ public class ModuleConfig {
     public MissingHeaderException(String message) {
       super(message);
     }
+  }
+  
+  @Override
+  public String getIdpUrl () {
+    return config.get(Constants.Config.IDP_URL);
+  }
+
+  @Override
+  public String getKeystore () {
+    return config.get(Constants.Config.KEYSTORE_FILE);
+  }
+
+  @Override
+  public String getKeystorePassword () {
+    return config.get(Constants.Config.KEYSTORE_PASSWORD);
+  }
+
+  @Override
+  public String getMetadataInvalidated () {
+    return config.get(Constants.Config.METADATA_INVALIDATED);
+  }
+
+  @Override
+  public String getOkapiUrl () {
+    return config.get(Constants.Config.OKAPI_URL);
+  }
+
+  @Override
+  public String getPrivateKeyPassword () {
+    return config.get(Constants.Config.KEYSTORE_PRIVATEKEY_PASSWORD);
+  }
+
+  @Override
+  public String getSamlAttribute () {
+    return config.get(Constants.Config.SAML_ATTRIBUTE);
+  }
+
+  @Override
+  public String getSamlBinding () {
+    return config.get(Constants.Config.SAML_BINDING);
+  }
+
+  @Override
+  public String getUserCreateMissing () {
+    return config.get(Constants.Config.USER_CREATE_MISSING);
+  }
+
+  @Override
+  public boolean hasDefaultUserData () {
+    boolean defaultUser = false;
+    Iterator<String> keys = this.config.keySet().iterator();
+    while (!defaultUser && (keys.hasNext())) {
+      keys.next().startsWith(Constants.Config.DEFAULT_USER);
+    }
+    return defaultUser;
+  }
+
+  @Override
+  public String getUserDefaultEmailAttribute () {
+    return config.get(Constants.Config.DU_EMAIL_ATT);
+  }
+
+  @Override
+  public String getUserDefaultFirstNameAttribute () {
+    return config.get(Constants.Config.DU_FIRST_NM_ATT);
+  }
+
+  @Override
+  public String getUserDefaultFirstNameDefault () {
+    return config.get(Constants.Config.DU_FIRST_NM_DEFAULT);
+  }
+
+  @Override
+  public String getUserDefaultLastNameAttribute () {
+    return config.get(Constants.Config.DU_LAST_NM_ATT);
+  }
+
+  @Override
+  public String getUserDefaultLastNameDefault () {
+    return config.get(Constants.Config.DU_LAST_NM_DEFAULT);
+  }
+
+  @Override
+  public String getUserDefaultPatronGroup () {
+    return config.get(Constants.Config.DU_PATRON_GRP);
+  }
+
+  @Override
+  public String getUserDefaultUsernameAttribute () {
+    return config.get(Constants.Config.DU_UN_ATT);
+  }
+
+  @Override
+  public String getUserProperty () {
+    return config.get(Constants.Config.USER_PROPERTY);
   }
 }
