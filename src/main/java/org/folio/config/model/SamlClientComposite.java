@@ -1,5 +1,6 @@
 package org.folio.config.model;
 
+import org.folio.sso.saml.SamlConfiguration;
 import org.pac4j.saml.client.SAML2Client;
 import org.springframework.util.Assert;
 

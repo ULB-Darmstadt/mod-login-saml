@@ -1,5 +1,7 @@
 package org.folio.sso.saml;
 
+import static org.folio.sso.saml.Constants.*;
+
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -8,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.config.model.SamlConfiguration;
 import org.folio.rest.tools.client.HttpClientFactory;
 import org.folio.rest.tools.client.Response;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
@@ -18,7 +19,6 @@ import org.folio.util.model.OkapiHeaders;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.google.common.base.Strings;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -32,7 +32,7 @@ import io.vertx.ext.web.RoutingContext;
  * @author Steve Osguthorpe<steve.osguthorpe@k-int.com>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ModuleConfig implements SamlConfiguration {
+public class ModuleConfig implements Configuration {
 
   private static final Logger log = LogManager.getLogger(ModuleConfig.class);
   private static final String CACHE_KEY = "MODULE_CONFIG";
@@ -69,7 +69,7 @@ public class ModuleConfig implements SamlConfiguration {
     
     OkapiHeaders okapiHeaders = OkapiHelper.okapiHeaders(routingContext); 
 
-    String query = "(module==" + Constants.MODULE_NAME + " AND configName==" + Constants.Config.CONFIG_NAME + ")";
+    String query = "(module==" + MODULE_NAME + " AND configName==" + Config.CONFIG_NAME + ")";
 
     try {
       Promise<ModuleConfig> promise = Promise.promise();
@@ -82,7 +82,7 @@ public class ModuleConfig implements SamlConfiguration {
 
       HttpClientInterface httpClient = HttpClientFactory.getHttpClient(okapiHeaders.getUrl(), okapiHeaders.getTenant());
       httpClient.setDefaultHeaders(headers);
-      httpClient.request(Constants.Config.ENTRIES_ENDPOINT_URL + "?limit=10000&query=" + encodedQuery) // this is ugly :/
+      httpClient.request(Config.ENTRIES_ENDPOINT_URL + "?limit=10000&query=" + encodedQuery) // this is ugly :/
         .whenComplete((Response response, Throwable throwable) -> {
           if (Response.isSuccess(response.getCode())) {
 
@@ -112,47 +112,47 @@ public class ModuleConfig implements SamlConfiguration {
   
   @Override
   public String getIdpUrl () {
-    return config.get(Constants.Config.IDP_URL);
+    return config.get(Config.IDP_URL);
   }
 
   @Override
   public String getKeystore () {
-    return config.get(Constants.Config.KEYSTORE_FILE);
+    return config.get(Config.KEYSTORE_FILE);
   }
 
   @Override
   public String getKeystorePassword () {
-    return config.get(Constants.Config.KEYSTORE_PASSWORD);
+    return config.get(Config.KEYSTORE_PASSWORD);
   }
 
   @Override
   public String getMetadataInvalidated () {
-    return config.get(Constants.Config.METADATA_INVALIDATED);
+    return config.get(Config.METADATA_INVALIDATED);
   }
 
   @Override
   public String getOkapiUrl () {
-    return config.get(Constants.Config.OKAPI_URL);
+    return config.get(Config.OKAPI_URL);
   }
 
   @Override
   public String getPrivateKeyPassword () {
-    return config.get(Constants.Config.KEYSTORE_PRIVATEKEY_PASSWORD);
+    return config.get(Config.KEYSTORE_PRIVATEKEY_PASSWORD);
   }
 
   @Override
   public String getSamlAttribute () {
-    return config.get(Constants.Config.SAML_ATTRIBUTE);
+    return config.get(Config.SAML_ATTRIBUTE);
   }
 
   @Override
   public String getSamlBinding () {
-    return config.get(Constants.Config.SAML_BINDING);
+    return config.get(Config.SAML_BINDING);
   }
 
   @Override
   public String getUserCreateMissing () {
-    return config.get(Constants.Config.USER_CREATE_MISSING);
+    return config.get(Config.USER_CREATE_MISSING);
   }
 
   @Override
@@ -160,48 +160,48 @@ public class ModuleConfig implements SamlConfiguration {
     boolean defaultUser = false;
     Iterator<String> keys = this.config.keySet().iterator();
     while (!defaultUser && (keys.hasNext())) {
-      keys.next().startsWith(Constants.Config.DEFAULT_USER);
+      keys.next().startsWith(Config.DEFAULT_USER);
     }
     return defaultUser;
   }
 
   @Override
   public String getUserDefaultEmailAttribute () {
-    return config.get(Constants.Config.DU_EMAIL_ATT);
+    return config.get(Config.DU_EMAIL_ATT);
   }
 
   @Override
   public String getUserDefaultFirstNameAttribute () {
-    return config.get(Constants.Config.DU_FIRST_NM_ATT);
+    return config.get(Config.DU_FIRST_NM_ATT);
   }
 
   @Override
   public String getUserDefaultFirstNameDefault () {
-    return config.get(Constants.Config.DU_FIRST_NM_DEFAULT);
+    return config.get(Config.DU_FIRST_NM_DEFAULT);
   }
 
   @Override
   public String getUserDefaultLastNameAttribute () {
-    return config.get(Constants.Config.DU_LAST_NM_ATT);
+    return config.get(Config.DU_LAST_NM_ATT);
   }
 
   @Override
   public String getUserDefaultLastNameDefault () {
-    return config.get(Constants.Config.DU_LAST_NM_DEFAULT);
+    return config.get(Config.DU_LAST_NM_DEFAULT);
   }
 
   @Override
   public String getUserDefaultPatronGroup () {
-    return config.get(Constants.Config.DU_PATRON_GRP);
+    return config.get(Config.DU_PATRON_GRP);
   }
 
   @Override
   public String getUserDefaultUsernameAttribute () {
-    return config.get(Constants.Config.DU_UN_ATT);
+    return config.get(Config.DU_UN_ATT);
   }
 
   @Override
   public String getUserProperty () {
-    return config.get(Constants.Config.USER_PROPERTY);
+    return config.get(Config.USER_PROPERTY);
   }
 }

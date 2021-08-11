@@ -1,5 +1,7 @@
 package org.folio.config;
 
+
+import static org.folio.sso.saml.Constants.*;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -7,8 +9,8 @@ import java.util.Base64;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.config.model.SAML2ClientMock;
 import org.folio.config.model.SamlClientComposite;
-import org.folio.config.model.SamlConfiguration;
 import org.folio.rest.tools.client.test.HttpClientMock2;
+import org.folio.sso.saml.SamlConfiguration;
 import org.folio.util.OkapiHelper;
 import org.folio.util.model.OkapiHeaders;
 import org.opensaml.saml.common.xml.SAMLConstants;
@@ -158,10 +160,10 @@ public class SamlClientLoader {
 
           // store in mod-configuration with passwords, wait for all operations to finish
           CompositeFuture.all(
-            ConfigurationsClient.storeEntry(okapiHeaders, SamlConfiguration.KEYSTORE_FILE_CODE, encodedBytes.toString(StandardCharsets.UTF_8)),
-            ConfigurationsClient.storeEntry(okapiHeaders, SamlConfiguration.KEYSTORE_PASSWORD_CODE, keystorePassword),
-            ConfigurationsClient.storeEntry(okapiHeaders, SamlConfiguration.KEYSTORE_PRIVATEKEY_PASSWORD_CODE, privateKeyPassword),
-            ConfigurationsClient.storeEntry(okapiHeaders, SamlConfiguration.METADATA_INVALIDATED_CODE, "true") // if keystore modified, current metasata is invalid.
+            ConfigurationsClient.storeEntry(okapiHeaders, Config.KEYSTORE_FILE, encodedBytes.toString(StandardCharsets.UTF_8)),
+            ConfigurationsClient.storeEntry(okapiHeaders, Config.KEYSTORE_PASSWORD, keystorePassword),
+            ConfigurationsClient.storeEntry(okapiHeaders, Config.KEYSTORE_PRIVATEKEY_PASSWORD, privateKeyPassword),
+            ConfigurationsClient.storeEntry(okapiHeaders, Config.METADATA_INVALIDATED, "true") // if keystore modified, current metasata is invalid.
           ).onComplete(allConfigurationsStoredHandler -> {
 
             if (allConfigurationsStoredHandler.failed()) {

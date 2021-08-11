@@ -1,11 +1,11 @@
-package org.folio.config.model;
+package org.folio.sso.saml;
 
 /**
- * POJO for strongly typed configuration client
+ * Interface for configuration object.
  *
  * @author Steve Osguthorpe<steve.osguthorpe@k-int.com>
  */
-public interface SamlConfiguration {
+public interface Configuration {
 
   public String getIdpUrl();
 

@@ -9,6 +9,7 @@ import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD;
 import static io.vertx.core.http.HttpHeaders.ORIGIN;
 import static io.vertx.core.http.HttpHeaders.VARY;
 import static org.pac4j.saml.state.SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUTE;
+import static org.folio.sso.saml.Constants.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -30,7 +31,6 @@ import org.folio.config.ConfigurationsClient;
 import org.folio.config.SamlClientLoader;
 import org.folio.config.SamlConfigHolder;
 import org.folio.config.model.SamlClientComposite;
-import org.folio.config.model.SamlConfiguration;
 import org.folio.rest.interop.UserService;
 import org.folio.rest.jaxrs.model.*;
 import org.folio.rest.jaxrs.resource.Saml;
@@ -38,6 +38,7 @@ import org.folio.rest.jaxrs.resource.Saml.PostSamlCallbackResponse.HeadersFor302
 import org.folio.rest.tools.client.HttpClientFactory;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 import org.folio.session.NoopSession;
+import org.folio.sso.saml.SamlConfiguration;
 import org.folio.util.Base64Util;
 import org.folio.util.ConfigEntryUtil;
 import org.folio.util.HttpActionMapper;
@@ -282,7 +283,7 @@ public class SamlAPI implements Saml {
             .handle(Future.succeededFuture(GetSamlRegenerateResponse.respond500WithTextPlain(message)));
         } else {
 
-          ConfigurationsClient.storeEntry(OkapiHelper.okapiHeaders(okapiHeaders), SamlConfiguration.METADATA_INVALIDATED_CODE, "false")
+          ConfigurationsClient.storeEntry(OkapiHelper.okapiHeaders(okapiHeaders), Config.METADATA_INVALIDATED, "false")
             .onComplete(configurationEntryStoredEvent -> {
 
               if (configurationEntryStoredEvent.failed()) {
@@ -405,69 +406,69 @@ public class SamlAPI implements Saml {
               SamlConfiguration config = configRes.result();
 
               ConfigEntryUtil.valueChanged(config.getIdpUrl(), updatedConfig.getIdpUrl().toString(), idpUrl -> {
-                updateEntries.put(SamlConfiguration.IDP_URL_CODE, idpUrl);
-                updateEntries.put(SamlConfiguration.METADATA_INVALIDATED_CODE, "true");
+                updateEntries.put(Config.IDP_URL, idpUrl);
+                updateEntries.put(Config.METADATA_INVALIDATED, "true");
               });
 
               ConfigEntryUtil.valueChanged(config.getSamlBinding(), updatedConfig.getSamlBinding().toString(), samlBindingCode ->
-                updateEntries.put(SamlConfiguration.SAML_BINDING_CODE, samlBindingCode));
+                updateEntries.put(Config.SAML_BINDING, samlBindingCode));
 
               ConfigEntryUtil.valueChanged(config.getSamlAttribute(), updatedConfig.getSamlAttribute(), samlAttribute ->
-                updateEntries.put(SamlConfiguration.SAML_ATTRIBUTE_CODE, samlAttribute));
+                updateEntries.put(Config.SAML_ATTRIBUTE, samlAttribute));
 
               ConfigEntryUtil.valueChanged(config.getUserProperty(), updatedConfig.getUserProperty(), userProperty ->
-                updateEntries.put(SamlConfiguration.USER_PROPERTY_CODE, userProperty));
+                updateEntries.put(Config.USER_PROPERTY, userProperty));
               
               ConfigEntryUtil.valueChanged(config.getUserCreateMissing(), updatedConfig.getUserCreateMissing() ? "true" : "false", createMissing ->
-                updateEntries.put(SamlConfiguration.USER_CREATE_MISSING_CODE, createMissing));
+                updateEntries.put(Config.USER_CREATE_MISSING, createMissing));
 
               SamlDefaultUser sdu = updatedConfig.getSamlDefaultUser();
               ConfigEntryUtil.valueChanged(
                 config.getUserDefaultEmailAttribute(),
                 sdu == null ? null : sdu.getEmailAttribute(),
-                val -> updateEntries.put(SamlConfiguration.DU_EMAIL_ATT, val)
+                val -> updateEntries.put(Config.DU_EMAIL_ATT, val)
               );
               
               ConfigEntryUtil.valueChanged(
                 config.getUserDefaultFirstNameAttribute(),
                 sdu == null ? null : sdu.getFirstNameAttribute(),
-                val -> updateEntries.put(SamlConfiguration.DU_FIRST_NM_ATT, val)
+                val -> updateEntries.put(Config.DU_FIRST_NM_ATT, val)
               );
               
               ConfigEntryUtil.valueChanged(
                 config.getUserDefaultFirstNameDefault(),
                 sdu == null ? null : sdu.getFirstNameDefault(),
-                val -> updateEntries.put(SamlConfiguration.DU_FIRST_NM_DEFAULT, val)
+                val -> updateEntries.put(Config.DU_FIRST_NM_DEFAULT, val)
               );
               
               ConfigEntryUtil.valueChanged(
                 config.getUserDefaultLastNameAttribute(),
                 sdu == null ? null : sdu.getLastNameAttribute(),
-                val -> updateEntries.put(SamlConfiguration.DU_LAST_NM_ATT, val)
+                val -> updateEntries.put(Config.DU_LAST_NM_ATT, val)
               );
               
               ConfigEntryUtil.valueChanged(
                 config.getUserDefaultLastNameDefault(),
                 sdu == null ? null : sdu.getLastNameDefault(),
-                val -> updateEntries.put(SamlConfiguration.DU_LAST_NM_DEFAULT, val)
+                val -> updateEntries.put(Config.DU_LAST_NM_DEFAULT, val)
               );
               
               ConfigEntryUtil.valueChanged(
                 config.getUserDefaultPatronGroup(),
                 sdu == null ? null : sdu.getPatronGroup(),
-                val -> updateEntries.put(SamlConfiguration.DU_PATRON_GRP, val)
+                val -> updateEntries.put(Config.DU_PATRON_GRP, val)
               );
               
               ConfigEntryUtil.valueChanged(
                 config.getUserDefaultUsernameAttribute(),
                 sdu == null ? null : sdu.getUsernameAttribute(),
-                val -> updateEntries.put(SamlConfiguration.DU_UN_ATT, val)
+                val -> updateEntries.put(Config.DU_UN_ATT, val)
               );
               
 
               ConfigEntryUtil.valueChanged(config.getOkapiUrl(), updatedConfig.getOkapiUrl().toString(), okapiUrl -> {
-                updateEntries.put(SamlConfiguration.OKAPI_URL, okapiUrl);
-                updateEntries.put(SamlConfiguration.METADATA_INVALIDATED_CODE, "true");
+                updateEntries.put(Config.OKAPI_URL, okapiUrl);
+                updateEntries.put(Config.METADATA_INVALIDATED, "true");
               });
 
               storeConfigEntries(rc, asyncResultHandler, parsedHeaders, updateEntries);

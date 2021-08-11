@@ -3,7 +3,8 @@ package org.folio.config;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.folio.config.model.SamlConfiguration;
+
+import org.folio.sso.saml.SamlConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
 
