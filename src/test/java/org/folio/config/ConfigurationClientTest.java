@@ -1,12 +1,12 @@
 package org.folio.config;
 
-import static org.folio.config.ConfigurationsClient.MISSING_OKAPI_URL;
-import static org.folio.config.ConfigurationsClient.MISSING_TENANT;
-import static org.folio.config.ConfigurationsClient.MISSING_TOKEN;
+import static org.folio.sso.saml.Constants.Exceptions.MSG_MISSING_HDR_OKAPI_URL;
+import static org.folio.sso.saml.Constants.Exceptions.MSG_MISSING_HDR_TENANT;
+import static org.folio.sso.saml.Constants.Exceptions.MSG_MISSING_HDR_TOKEN;
 import static org.junit.Assert.assertEquals;
 
-import org.folio.config.ConfigurationsClient.MissingHeaderException;
 import org.folio.util.model.OkapiHeaders;
+import org.folio.util.model.OkapiHeaders.MissingHeaderException;
 import org.junit.Test;
 
 public class ConfigurationClientTest {
@@ -17,7 +17,7 @@ public class ConfigurationClientTest {
     okapiHeaders.setTenant("tenant");
     okapiHeaders.setToken("token");
     okapiHeaders.setUrl("url");
-    ConfigurationsClient.verifyOkapiHeaders(okapiHeaders);
+    okapiHeaders.verifyInteropValues();
   }
 
   @Test
@@ -26,9 +26,9 @@ public class ConfigurationClientTest {
     okapiHeaders.setTenant("tenant");
     okapiHeaders.setUrl("url");
     try {
-      ConfigurationsClient.verifyOkapiHeaders(okapiHeaders);
+      okapiHeaders.verifyInteropValues();
     } catch (MissingHeaderException e) {
-      assertEquals(MISSING_TOKEN, e.getMessage());
+      assertEquals(MSG_MISSING_HDR_TOKEN, e.getMessage());
     }
   }
 
@@ -38,9 +38,9 @@ public class ConfigurationClientTest {
     okapiHeaders.setToken("token");
     okapiHeaders.setUrl("url");
     try {
-      ConfigurationsClient.verifyOkapiHeaders(okapiHeaders);
+      okapiHeaders.verifyInteropValues();
     } catch (MissingHeaderException e) {
-      assertEquals(MISSING_TENANT, e.getMessage());
+      assertEquals(MSG_MISSING_HDR_TENANT, e.getMessage());
     }
   }
 
@@ -50,9 +50,9 @@ public class ConfigurationClientTest {
     okapiHeaders.setTenant("tenant");
     okapiHeaders.setToken("token");
     try {
-      ConfigurationsClient.verifyOkapiHeaders(okapiHeaders);
+      okapiHeaders.verifyInteropValues();
     } catch (MissingHeaderException e) {
-      assertEquals(MISSING_OKAPI_URL, e.getMessage());
+      assertEquals(MSG_MISSING_HDR_OKAPI_URL, e.getMessage());
     }
   }
 }

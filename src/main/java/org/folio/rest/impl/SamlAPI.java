@@ -315,7 +315,6 @@ public class SamlAPI implements Saml {
                       .withFileContent(base64Result.result().toString(StandardCharsets.UTF_8));
                   asyncResultHandler.handle(Future.succeededFuture(GetSamlRegenerateResponse.respond200WithApplicationJson(responseEntity)));
                 }
-
               });
             }
           });

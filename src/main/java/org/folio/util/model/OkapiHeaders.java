@@ -1,9 +1,9 @@
 package org.folio.util.model;
 
 import org.apache.commons.lang3.StringUtils;
-import org.folio.sso.saml.ModuleConfig.MissingHeaderException;
 
 import com.google.common.base.Strings;
+import static org.folio.sso.saml.Constants.Exceptions.*;
 
 /**
  * POJO for Okapi headers parsing
@@ -56,15 +56,23 @@ public class OkapiHeaders {
     this.permissions = permissions;
   }
 
+  public static class MissingHeaderException extends Exception {
+    private static final long serialVersionUID = 7340537453740028325L;
+
+    public MissingHeaderException(String message) {
+      super(message);
+    }
+  }
+  
   public void verifyInteropValues() throws MissingHeaderException {
     if (Strings.isNullOrEmpty(getUrl())) {
-      throw new MissingHeaderException("Missing Okapi URL");
+      throw new MissingHeaderException(MSG_MISSING_HDR_OKAPI_URL);
     }
     if (Strings.isNullOrEmpty(getTenant())) {
-      throw new MissingHeaderException("Missing Tenant");
+      throw new MissingHeaderException(MSG_MISSING_HDR_TENANT);
     }
     if (Strings.isNullOrEmpty(getToken())) {
-      throw new MissingHeaderException("Missing Token");
+      throw new MissingHeaderException(MSG_MISSING_HDR_TOKEN);
     }
   }
 }

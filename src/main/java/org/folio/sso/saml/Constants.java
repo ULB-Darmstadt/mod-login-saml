@@ -3,7 +3,13 @@ package org.folio.sso.saml;
 public interface Constants {
   public static final String MODULE_NAME = "LOGIN-SAML";
   
-  public interface Config {
+  public static interface Exceptions {
+    public static final String MSG_MISSING_HDR_OKAPI_URL = "Missing Okapi URL";
+    public static final String MSG_MISSING_HDR_TENANT = "Missing Tenant";
+    public static final String MSG_MISSING_HDR_TOKEN = "Missing Token";
+  }
+  
+  public static interface Config {
     public static final String ENTRIES_ENDPOINT = "/configurations/entries";
     public static final String CALLBACK_ENDPOINT = "/saml/callback";
     

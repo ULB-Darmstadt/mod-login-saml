@@ -126,14 +126,6 @@ public class ModuleConfig implements Configuration {
     }
     return future;
   }
-
-  public static class MissingHeaderException extends Exception {
-    private static final long serialVersionUID = 7340537453740028325L;
-
-    public MissingHeaderException(String message) {
-      super(message);
-    }
-  }
   
   @Override
   public String getIdpUrl () {
