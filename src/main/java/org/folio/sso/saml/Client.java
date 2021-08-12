@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.folio.config.JsonReponseSaml2RedirectActionBuilder;
 import org.folio.rest.tools.client.test.HttpClientMock2;
@@ -43,6 +45,7 @@ import io.vertx.ext.web.RoutingContext;
 
 public class Client extends SAML2Client {
   private static final Logger log = LogManager.getLogger(Client.class);
+  private static final Map<String, Future<Client>> tenantCache = new ConcurrentHashMap<String, Future<Client>>();
   
   private static final String CACHE_KEY = "SAML_CLIENT";
   private Client() {}
@@ -50,23 +53,33 @@ public class Client extends SAML2Client {
   private Client( SAML2Configuration cfg ) {
     super(cfg);
   }
-
-  public static Future<SAML2Client> get ( final RoutingContext routingContext, final boolean generateMissingKeyStore ) {    
-    Future<SAML2Client> future = routingContext.get(CACHE_KEY);
+  
+  public static Future<Client> get ( final RoutingContext routingContext, final boolean generateMissingKeyStore, final boolean reinitialize ) {
+    Future<Client> future = routingContext.get(CACHE_KEY);
     if (future != null) return future;
+
+    // Get the okapi tenant header.
+    final String tenant = OkapiHelper.okapiHeaders(routingContext).getTenant();
     
-    // Else create and cache in the request.
+    // Not in the request. Check if we already have 1 in the tenant cache.
+    if (!reinitialize) {
+      
+      future = tenantCache.get(tenant);
+      if (future != null) return future;
+    }
+    
+    // Else create and cache in the request, and the tenant cache.
     future = createClient( routingContext, generateMissingKeyStore );
     routingContext.put( CACHE_KEY, future );
     return future;
   }
     
-  public static Future<SAML2Client> createClient(final RoutingContext routingContext, final boolean generateMissingKeyStore) {
+  public static Future<Client> createClient(final RoutingContext routingContext, final boolean generateMissingKeyStore) {
     OkapiHeaders okapiHeaders = OkapiHelper.okapiHeaders(routingContext);
     final String tenantId = okapiHeaders.getTenant();
     
     return ModuleConfig.getAsync(routingContext).compose(config -> {
-      final Promise<SAML2Client> clientInstantiationFuture = Promise.promise();
+      final Promise<Client> clientInstantiationFuture = Promise.promise();
 
       final String idpUrl = config.getIdpUrl();
       final String keystore = config.getKeystore();
@@ -111,7 +124,7 @@ public class Client extends SAML2Client {
                   ByteArrayResource keystoreResource = new ByteArrayResource(keystoreBytes.getBytes());
                   try {
                     UrlResource idpUrlResource = new UrlResource(idpUrl);
-                    SAML2Client reinitedSaml2Client = get(okapiUrl, tenantId, actualKeystorePassword, actualPrivateKeyPassword, idpUrlResource, keystoreResource, samlBinding);
+                    Client reinitedSaml2Client = get(okapiUrl, tenantId, actualKeystorePassword, actualPrivateKeyPassword, idpUrlResource, keystoreResource, samlBinding);
 
                     clientInstantiationFuture.complete(reinitedSaml2Client);
                   } catch (MalformedURLException e) {
@@ -135,7 +148,7 @@ public class Client extends SAML2Client {
               ByteArrayResource keystoreResource = new ByteArrayResource(keystoreBytes.getBytes());
               try {
                 UrlResource idpUrlResource = new UrlResource(idpUrl);
-                SAML2Client saml2Client = get(okapiUrl, tenantId, keystorePassword, privateKeyPassword, idpUrlResource, keystoreResource, samlBinding);
+                Client saml2Client = get(okapiUrl, tenantId, keystorePassword, privateKeyPassword, idpUrlResource, keystoreResource, samlBinding);
 
                 clientInstantiationFuture.complete(saml2Client);
               } catch (MalformedURLException e) {
@@ -275,7 +288,7 @@ public class Client extends SAML2Client {
 
     @Override
     protected Optional<SAML2Credentials> retrieveCredentials(WebContext context) {
-      log.info("Mocking SAML2Client retrieveCredentials...");
+      log.info("Mocking Client retrieveCredentials...");
 
       assert(context.getRequestParameter("SAMLResponse").isPresent());
 
