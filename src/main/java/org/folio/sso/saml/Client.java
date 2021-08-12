@@ -56,15 +56,16 @@ public class Client extends SAML2Client {
   }
   
   public static Future<Client> get ( final RoutingContext routingContext, final boolean generateMissingKeyStore, final boolean reinitialize ) {
-    Future<Client> future = routingContext.get(CACHE_KEY);
-    if (future != null) return future;
-
+       
     // Get the okapi tenant header.
     final String tenant = OkapiHelper.okapiHeaders(routingContext).getTenant();
     
-    // Not in the request. Check if we already have 1 in the tenant cache.
+    Future<Client> future;
     if (!reinitialize) {
+      future = routingContext.get(CACHE_KEY);
+      if (future != null) return future;
       
+      // Not in the request. Check if we already have 1 in the tenant cache.
       future = tenantCache.get(tenant);
       if (future != null) return future;
     }
@@ -72,6 +73,7 @@ public class Client extends SAML2Client {
     // Else create and cache in the request, and the tenant cache.
     future = createClient( routingContext, generateMissingKeyStore );
     routingContext.put( CACHE_KEY, future );
+    tenantCache.put( tenant, future );
     return future;
   }
     
