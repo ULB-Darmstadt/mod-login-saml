@@ -36,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -78,7 +79,7 @@ public class Client extends SAML2Client {
     OkapiHeaders okapiHeaders = OkapiHelper.okapiHeaders(routingContext);
     final String tenantId = okapiHeaders.getTenant();
     
-    return ModuleConfig.getAsync(routingContext).compose(config -> {
+    return ModuleConfig.get(routingContext).compose(config -> {
       final Promise<Client> clientInstantiationFuture = Promise.promise();
 
       final String idpUrl = config.getIdpUrl();
@@ -186,39 +187,41 @@ public class Client extends SAML2Client {
           Buffer encodedBytes = resultHandler.result();
           
           // Store in mod-configuration with passwords, wait for all operations to finish.
-          final ModuleConfig config = ModuleConfig.get(routingContext);
-          CompositeFuture.all(
-            config.storeEntry(Config.KEYSTORE_FILE, encodedBytes.toString(StandardCharsets.UTF_8)),
-            config.storeEntry(Config.KEYSTORE_PASSWORD, keystorePassword),
-            config.storeEntry(Config.KEYSTORE_PRIVATEKEY_PASSWORD, privateKeyPassword),
-            config.storeEntry(Config.METADATA_INVALIDATED, "true") // if keystore modified, current metadata is invalid.
-            
-          ).onComplete(allConfigurationsStoredHandler -> {
-            
-            // We still attempt the delete no matter what.
-            vertx.fileSystem().delete(keystoreFileName, deleteResult -> {
-              Throwable failureCause = null;
+          ModuleConfig.get(routingContext).onComplete((AsyncResult<ModuleConfig> configRes) -> {
+            ModuleConfig config = configRes.result();
+            CompositeFuture.all(
+              config.updateEntry(Config.KEYSTORE_FILE, encodedBytes.toString(StandardCharsets.UTF_8)),
+              config.updateEntry(Config.KEYSTORE_PASSWORD, keystorePassword),
+              config.updateEntry(Config.KEYSTORE_PRIVATEKEY_PASSWORD, privateKeyPassword),
+              config.updateEntry(Config.METADATA_INVALIDATED, "true") // if keystore modified, current metadata is invalid.
               
-              // If the initial operation failed then fail with that cause.
-              if (allConfigurationsStoredHandler.failed()) {
-                failureCause = allConfigurationsStoredHandler.cause();
-                log.error ("Error storing configuration", failureCause);
-              }
+            ).onComplete(allConfigurationsStoredHandler -> {
               
-              // We should log the error with dlete too, to prevent it from
-              // being lost if the storage op fails.
-              if (deleteResult.failed()) {
-                Throwable deleteFailure = deleteResult.cause();
-                log.error ("Error deleteing keystore file", deleteFailure);
-                if (failureCause == null) failureCause = deleteFailure;
-              }
-
-              // Finally we shoiuld succeed or fail the future correctly.
-              if (failureCause == null) {
-                future.complete(Buffer.buffer(rawBytes));
-              } else {
-                future.fail(failureCause);
-              }
+              // We still attempt the delete no matter what.
+              vertx.fileSystem().delete(keystoreFileName, deleteResult -> {
+                Throwable failureCause = null;
+                
+                // If the initial operation failed then fail with that cause.
+                if (allConfigurationsStoredHandler.failed()) {
+                  failureCause = allConfigurationsStoredHandler.cause();
+                  log.error ("Error storing configuration", failureCause);
+                }
+                
+                // We should log the error with dlete too, to prevent it from
+                // being lost if the storage op fails.
+                if (deleteResult.failed()) {
+                  Throwable deleteFailure = deleteResult.cause();
+                  log.error ("Error deleteing keystore file", deleteFailure);
+                  if (failureCause == null) failureCause = deleteFailure;
+                }
+  
+                // Finally we shoiuld succeed or fail the future correctly.
+                if (failureCause == null) {
+                  future.complete(Buffer.buffer(rawBytes));
+                } else {
+                  future.fail(failureCause);
+                }
+              });
             });
           });
         });

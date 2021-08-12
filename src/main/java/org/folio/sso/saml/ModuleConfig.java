@@ -4,9 +4,10 @@ import static org.folio.sso.saml.Constants.*;
 
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,11 +34,16 @@ import io.vertx.ext.web.RoutingContext;
  *
  * @author Steve Osguthorpe<steve.osguthorpe@k-int.com>
  */
+/**
+ * @author sosguthorpe
+ *
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ModuleConfig implements Configuration {
 
   private static final Logger log = LogManager.getLogger(ModuleConfig.class);
   private static final String CACHE_KEY = "MODULE_CONFIG";
+  private final Set<String> invalidating_keys;
   
   private final Map<String, String> config_ids = new HashMap<String,String>();
 
@@ -53,28 +59,30 @@ public class ModuleConfig implements Configuration {
   
   private ModuleConfig( final OkapiHeaders okapiHeaders ) {
     this.okapiHeaders = okapiHeaders;
+    this.invalidating_keys = new HashSet<String>();
+    this.invalidating_keys.add(Config.IDP_URL);
+    this.invalidating_keys.add(Config.OKAPI_URL);
   }
   
   public static ModuleConfig fromModConfigJson ( final OkapiHeaders okapiHeaders, final JsonArray mcjson ) {
     final ModuleConfig mc = new ModuleConfig(okapiHeaders);
     for (Object entry : mcjson) {
-      JsonObject jsonEntry = (JsonObject) entry;
       
       // Add each entry.
-      final String code = jsonEntry.getString("code");
-      final String value = jsonEntry.getString("value");
-      final String id = jsonEntry.getString("id");
-      mc.config.put(code, value);
-      mc.config_ids.put(code, id);
+      mc.updateMapsForJsonEntry((JsonObject) entry);
     }
     return mc;
   }
   
-  public static ModuleConfig get ( RoutingContext routingContext ) {
-    return getAsync( routingContext ).result();
+  private void updateMapsForJsonEntry (JsonObject jsonEntry) {
+    final String code = jsonEntry.getString("code");
+    final String value = jsonEntry.getString("value");
+    final String id = jsonEntry.getString("id");
+    this.config.put(code, value);
+    if (id != null) this.config_ids.put(code, id);
   }
   
-  public static Future<ModuleConfig> getAsync ( RoutingContext routingContext ) {
+  public static Future<ModuleConfig> get ( RoutingContext routingContext ) {
     
     Future<ModuleConfig> future = routingContext.get(CACHE_KEY);
     if (future != null) return future;
@@ -222,7 +230,15 @@ public class ModuleConfig implements Configuration {
     return config.get(Config.USER_PROPERTY);
   }
   
-  public Future<Void> storeEntry(final String code, final String value) {
+  /**
+   * Send an entry to the configuration module if it's value has changed.
+   * Return a future that completes to true if the configuration 
+   * 
+   * @param code The Code key for the config entry
+   * @param value The value of the config entry
+   * @return A Future that indicates the suuccess or failure.
+   */
+  public Future<Void> updateEntry(final String code, final String value) {
     Assert.hasText(code, "config entry CODE is mandatory");
     
     // Grab the existing one from here...
@@ -249,7 +265,6 @@ public class ModuleConfig implements Configuration {
       .put("value", value);
 
     // decide to POST or PUT
-    
 
     // not existing -> POST, existing->PUT
     final HttpMethod httpMethod = configId == null ? HttpMethod.POST : HttpMethod.PUT;
@@ -272,15 +287,35 @@ public class ModuleConfig implements Configuration {
             }
           }
           // POST->201 created, PUT->204 no content
-          else if ((httpMethod.equals(HttpMethod.POST) && storeEntryResponse.getCode() == 201)
-            || (httpMethod.equals(HttpMethod.PUT) && storeEntryResponse.getCode() == 204)) {
-
-            result.complete();
-          } else {
-            result.fail("The response status is not 'created',instead "
-              + storeEntryResponse.getCode()
-              + " with message  "
-              + storeEntryResponse.getError());
+          else {
+            
+            final int respCode = storeEntryResponse.getCode();            
+            if ((httpMethod.equals(HttpMethod.POST) && respCode == 201)
+              || (httpMethod.equals(HttpMethod.PUT) && respCode == 204)) {
+              
+              // Update the internal references too.
+              requestBody.put("id", (configId != null ? configId :
+                storeEntryResponse.getBody().getString("id")));
+              
+              updateMapsForJsonEntry(requestBody);
+              
+              // We may need to also invalidate the metadata.
+              if (this.invalidating_keys.contains(code)) {
+                
+                // Invalidate also by recursively calling this method. And use
+                // That result for the success.
+                result.handle(updateEntry(Config.METADATA_INVALIDATED, "true"));
+              } else {
+                
+                // Otherwise, we're done.
+                result.complete();
+              }
+            } else {
+              result.fail("The response status is not 'created',instead "
+                + storeEntryResponse.getCode()
+                + " with message  "
+                + storeEntryResponse.getError());
+            }
           }
 
         });
