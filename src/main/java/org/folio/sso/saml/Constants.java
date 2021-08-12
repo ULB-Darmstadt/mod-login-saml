@@ -4,7 +4,9 @@ public interface Constants {
   public static final String MODULE_NAME = "LOGIN-SAML";
   
   public interface Config {
-    public static final String ENTRIES_ENDPOINT_URL = "/configurations/entries";
+    public static final String ENTRIES_ENDPOINT = "/configurations/entries";
+    public static final String CALLBACK_ENDPOINT = "/saml/callback";
+    
     public static final String CONFIG_NAME = "saml";
     
     public static final String DEFAULT_USER = "samlDefaultUser";

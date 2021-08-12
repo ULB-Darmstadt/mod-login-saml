@@ -29,9 +29,9 @@ import java.util.stream.Collectors;
  *
  * @author rsass
  */
-public class ConfigurationsClient {
+public class ConfigurationsClientDeprecated {
 
-  private static final Logger log = LogManager.getLogger(ConfigurationsClient.class);
+  private static final Logger log = LogManager.getLogger(ConfigurationsClientDeprecated.class);
 
   public static final String CONFIGURATIONS_ENTRIES_ENDPOINT_URL = "/configurations/entries";
   public static final String MODULE_NAME = "LOGIN-SAML";
@@ -41,7 +41,7 @@ public class ConfigurationsClient {
   public static final String MISSING_TENANT = "Missing Tenant";
   public static final String MISSING_TOKEN = "Missing Token";
 
-  private ConfigurationsClient() {
+  private ConfigurationsClientDeprecated() {
 
   }
 

@@ -6,7 +6,7 @@ import java.util.UUID;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.StringUtils;
-import org.folio.sso.saml.SamlConfiguration;
+import org.folio.sso.saml.Configuration;
 import org.joda.time.Instant;
 import org.pac4j.core.profile.CommonProfile;
 
@@ -88,7 +88,7 @@ public class UserService {
    * @param configuration 
    * @return The user object
    */
-  public static JsonObject createUserJSON(final CommonProfile profile, final SamlConfiguration configuration) {
+  public static JsonObject createUserJSON(final CommonProfile profile, final Configuration configuration) {
     
     final String uuid = UUID.randomUUID().toString();
     
