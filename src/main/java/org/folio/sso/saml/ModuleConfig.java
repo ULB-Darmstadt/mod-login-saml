@@ -185,7 +185,7 @@ public class ModuleConfig implements Configuration {
     boolean defaultUser = false;
     Iterator<String> keys = this.config.keySet().iterator();
     while (!defaultUser && (keys.hasNext())) {
-      keys.next().startsWith(Config.DEFAULT_USER);
+      defaultUser = keys.next().startsWith(Config.DEFAULT_USER + ".");
     }
     return defaultUser;
   }

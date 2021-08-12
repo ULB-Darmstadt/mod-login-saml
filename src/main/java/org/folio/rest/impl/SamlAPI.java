@@ -13,6 +13,7 @@ import static org.pac4j.saml.state.SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUT
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -404,23 +405,45 @@ public class SamlAPI implements Saml {
             PutSamlConfigurationResponse.respond500WithTextPlain(configRes.cause() != null ? configRes.cause().getMessage() : "Cannot load current configuration")));
       } else {
 
-        ModuleConfig config = configRes.result();
-        config.updateEntry(Config.IDP_URL, updatedConfig.getIdpUrl().toString());
-        config.updateEntry(Config.SAML_BINDING, updatedConfig.getSamlBinding().toString());
-        config.updateEntry(Config.SAML_ATTRIBUTE, updatedConfig.getSamlAttribute().toString());
-        config.updateEntry(Config.USER_PROPERTY, updatedConfig.getUserProperty().toString());
-        config.updateEntry(Config.OKAPI_URL, updatedConfig.getOkapiUrl().toString());
-        config.updateEntry(Config.USER_CREATE_MISSING, updatedConfig.getUserCreateMissing() ? "true" : "false");
-
+        // Get the config
+        final ModuleConfig config = configRes.result();
         // The default user is nested. Grab it.
-        SamlDefaultUser sdu = updatedConfig.getSamlDefaultUser();
-        config.updateEntry(Config.DU_EMAIL_ATT, sdu == null ? null : sdu.getEmailAttribute());
-        config.updateEntry(Config.DU_FIRST_NM_ATT, sdu == null ? null : sdu.getFirstNameAttribute());
-        config.updateEntry(Config.DU_FIRST_NM_DEFAULT, sdu == null ? null : sdu.getFirstNameDefault());
-        config.updateEntry(Config.DU_LAST_NM_ATT, sdu == null ? null : sdu.getLastNameAttribute());
-        config.updateEntry(Config.DU_LAST_NM_DEFAULT, sdu == null ? null : sdu.getLastNameDefault());
-        config.updateEntry(Config.DU_PATRON_GRP, sdu == null ? null : sdu.getPatronGroup());
-        config.updateEntry(Config.DU_UN_ATT, sdu == null ? null : sdu.getUsernameAttribute());
+        final SamlDefaultUser sdu = updatedConfig.getSamlDefaultUser();
+        
+        CompositeFuture.all(Arrays.asList(new Future[] {
+            
+          config.updateEntry(Config.IDP_URL, updatedConfig.getIdpUrl().toString()),
+          config.updateEntry(Config.SAML_BINDING, updatedConfig.getSamlBinding().toString()),
+          config.updateEntry(Config.SAML_ATTRIBUTE, updatedConfig.getSamlAttribute().toString()),
+          config.updateEntry(Config.USER_PROPERTY, updatedConfig.getUserProperty().toString()),
+          config.updateEntry(Config.OKAPI_URL, updatedConfig.getOkapiUrl().toString()),
+          config.updateEntry(Config.USER_CREATE_MISSING, updatedConfig.getUserCreateMissing() ? "true" : "false"),
+  
+          config.updateEntry(Config.DU_EMAIL_ATT, sdu == null ? null : sdu.getEmailAttribute()),
+          config.updateEntry(Config.DU_FIRST_NM_ATT, sdu == null ? null : sdu.getFirstNameAttribute()),
+          config.updateEntry(Config.DU_FIRST_NM_DEFAULT, sdu == null ? null : sdu.getFirstNameDefault()),
+          config.updateEntry(Config.DU_LAST_NM_ATT, sdu == null ? null : sdu.getLastNameAttribute()),
+          config.updateEntry(Config.DU_LAST_NM_DEFAULT, sdu == null ? null : sdu.getLastNameDefault()),
+          config.updateEntry(Config.DU_PATRON_GRP, sdu == null ? null : sdu.getPatronGroup()),
+          config.updateEntry(Config.DU_UN_ATT, sdu == null ? null : sdu.getUsernameAttribute())
+          
+        })).onComplete(updateComplete -> {
+          
+          if (updateComplete.failed()) {
+            asyncResultHandler.handle(
+              Future.succeededFuture(
+                PutSamlConfigurationResponse.respond500WithTextPlain(
+                  updateComplete.cause() != null ? updateComplete.cause().getMessage() : "Cannot save configuration"
+                )
+              )
+            );
+          } else {
+            
+            // Config is updated at the same time now.
+            SamlConfig dto = configToDto(config);
+            asyncResultHandler.handle(Future.succeededFuture(PutSamlConfigurationResponse.respond200WithApplicationJson(dto)));
+          }
+        });
       }
     });
   }
@@ -514,6 +537,7 @@ public class SamlAPI implements Saml {
 
   /**
    * Converts internal {@link SamlConfiguration} object to DTO, checks illegal values
+   * TODO: This may be better as a JSON view agains the config object itself.
    */
   private SamlConfig configToDto(ModuleConfig config) {
     SamlConfig samlConfig = new SamlConfig()
