@@ -63,14 +63,21 @@ public class Client extends SAML2Client {
     Future<Client> future;
     if (!reinitialize) {
       future = routingContext.get(CACHE_KEY);
-      if (future != null) return future;
+      if (future != null) {
+        log.debug("Returning client from request cache");
+        return future;
+      }
       
       // Not in the request. Check if we already have 1 in the tenant cache.
       future = tenantCache.get(tenant);
-      if (future != null) return future;
+      if (future != null) {
+        log.debug("Returning client from tenant cache");
+        return future;
+      }
     }
     
     // Else create and cache in the request, and the tenant cache.
+    log.debug("Creating new client");
     future = createClient( routingContext, generateMissingKeyStore );
     routingContext.put( CACHE_KEY, future );
     tenantCache.put( tenant, future );
@@ -98,10 +105,10 @@ public class Client extends SAML2Client {
       }
 
       if (StringUtils.isBlank(keystore)) {
-
         if (!generateMissingKeyStore) {
           return Future.failedFuture("No KeyStore stored in configuration and regeneration is not allowed.");
         }
+        
         // Generate new KeyStore
         final String randomId = RandomStringUtils.randomAlphanumeric(12);
         final String randomFileName = RandomStringUtils.randomAlphanumeric(12);
@@ -209,7 +216,7 @@ public class Client extends SAML2Client {
                   log.error ("Error storing configuration", failureCause);
                 }
                 
-                // We should log the error with dlete too, to prevent it from
+                // We should log the error with delete too, to prevent it from
                 // being lost if the storage op fails.
                 if (deleteResult.failed()) {
                   Throwable deleteFailure = deleteResult.cause();
@@ -217,7 +224,7 @@ public class Client extends SAML2Client {
                   if (failureCause == null) failureCause = deleteFailure;
                 }
   
-                // Finally we shoiuld succeed or fail the future correctly.
+                // Finally we should succeed or fail the future correctly.
                 if (failureCause == null) {
                   future.complete(Buffer.buffer(rawBytes));
                 } else {

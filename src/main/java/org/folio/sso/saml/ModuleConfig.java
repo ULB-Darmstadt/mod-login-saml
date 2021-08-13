@@ -34,10 +34,6 @@ import io.vertx.ext.web.RoutingContext;
  *
  * @author Steve Osguthorpe<steve.osguthorpe@k-int.com>
  */
-/**
- * @author sosguthorpe
- *
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ModuleConfig implements Configuration {
 
@@ -85,7 +81,10 @@ public class ModuleConfig implements Configuration {
   public static Future<ModuleConfig> get ( RoutingContext routingContext ) {
     
     Future<ModuleConfig> future = routingContext.get(CACHE_KEY);
-    if (future != null) return future;
+    if (future != null) {
+      log.debug("Returning config from request cache");
+      return future;
+    }
     
     // Else create and cache in the request.
     final Promise<ModuleConfig> promise = Promise.promise();
@@ -286,8 +285,15 @@ public class ModuleConfig implements Configuration {
               || (httpMethod.equals(HttpMethod.PUT) && respCode == 204)) {
               
               // Update the internal references too.
-              requestBody.put("id", (configId != null ? configId :
-                storeEntryResponse.getBody().getString("id")));
+              
+              if (configId == null) {
+                JsonObject resp = storeEntryResponse.getBody();
+                if (resp != null) {
+                  requestBody.put("id", resp.getString("id"));
+                }
+              } else {
+                requestBody.put("id", configId);
+              }
               
               updateMapsForJsonEntry(requestBody);
               
