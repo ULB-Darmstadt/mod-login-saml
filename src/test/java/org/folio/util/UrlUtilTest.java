@@ -1,10 +1,9 @@
 package org.folio.util;
 
+import static org.folio.sso.saml.Constants.Exceptions.*;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.rest.tools.utils.NetworkUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -20,8 +19,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 @RunWith(VertxUnitRunner.class)
 public class UrlUtilTest {
-
-  private static final Logger log = LogManager.getLogger(UrlUtilTest.class);
 
   public static final int MOCK_PORT = NetworkUtils.nextFreePort();
 
@@ -63,15 +60,15 @@ public class UrlUtilTest {
     UrlUtil.checkIdpUrl("http://localhost:" + port, vertx)
       .onComplete(context.asyncAssertSuccess(result -> {
           // check locale independent prefix only.
-          assertThat(result.getMessage(), startsWith("ConnectException: "));
+          assertThat(result.getMessage(), startsWith(MSG_PRE_ERROR_CONNECTION));
       }));
   }
 
   @Test
-  public void checkIdpUrlUnexpectedError(TestContext context) {
+  public void checkIdpUrlBlank(TestContext context) {
     UrlUtil.checkIdpUrl("http://localhost:" + MOCK_PORT + "/", vertx)
       .onComplete(context.asyncAssertSuccess(result -> {
-        context.assertEquals("Unexpected error: null", result.getMessage());
+        context.assertEquals(MSG_INVALID_XML_RESPONSE, result.getMessage());
       }));
   }
 
@@ -79,7 +76,23 @@ public class UrlUtilTest {
   public void checkIdpUrlJson(TestContext context) {
     UrlUtil.checkIdpUrl("http://localhost:" + MOCK_PORT + "/json", vertx)
       .onComplete(context.asyncAssertSuccess(result -> {
-        context.assertEquals("Response content-type is not XML", result.getMessage());
+        context.assertEquals(MSG_INVALID_XML_RESPONSE, result.getMessage());
+      }));
+  }
+  
+  @Test
+  public void checkIdpUrlXmlMissreportedType(TestContext context) {
+    UrlUtil.checkIdpUrl("http://localhost:" + MOCK_PORT + "/xml-incorrect-header", vertx)
+      .onComplete(context.asyncAssertSuccess(result -> {
+        context.assertEquals("", result.getMessage());
+      }));
+  }
+  
+  @Test
+  public void checkIdpUrlJsonWithXMLHeader(TestContext context) {
+    UrlUtil.checkIdpUrl("http://localhost:" + MOCK_PORT + "/json-incorrect-header", vertx)
+      .onComplete(context.asyncAssertSuccess(result -> {
+        context.assertEquals(MSG_INVALID_XML_RESPONSE, result.getMessage());
       }));
   }
 }

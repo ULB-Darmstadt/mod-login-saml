@@ -7,6 +7,9 @@ public interface Constants {
     public static final String MSG_MISSING_HDR_OKAPI_URL = "Missing Okapi URL";
     public static final String MSG_MISSING_HDR_TENANT = "Missing Tenant";
     public static final String MSG_MISSING_HDR_TOKEN = "Missing Token";
+    public static final String MSG_INVALID_XML_RESPONSE = "Response is not valid XML";
+    public static final String MSG_PRE_ERROR_CONNECTION = "Connection error: ";
+    public static final String MSG_PRE_UNEXPECTED = "Unexpected error: ";
   }
   
   public static interface Config {

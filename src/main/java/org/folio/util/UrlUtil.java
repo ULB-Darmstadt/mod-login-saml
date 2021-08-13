@@ -1,5 +1,7 @@
 package org.folio.util;
 
+import static org.folio.sso.saml.Constants.Exceptions.*;
+
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
@@ -7,14 +9,12 @@ import java.nio.charset.Charset;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.rest.impl.SamlAPI;
 import org.folio.util.model.UrlCheckResult;
-import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import io.vertx.core.Future;
@@ -40,32 +40,40 @@ public class UrlUtil {
 
     return client.getAbs(url).send()
     .map(httpResponse -> {
-      String contentType = httpResponse.getHeader("Content-Type");
-      if (! contentType.contains("xml")) {
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         try {
-          DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
           final String body = httpResponse.bodyAsString();
+          if (StringUtils.isEmpty(body)) {
+            
+          }
           
+          DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+          DocumentBuilder dBuilder;
+          dBuilder = dbFactory.newDocumentBuilder();
+        
           dBuilder.parse(IOUtils.toInputStream(body, Charset.defaultCharset()));
           
-        } catch (Exception e) {
-          return UrlCheckResult.failResult("Response content-type is not XML and we couldn't parse the document.");
-        }
+          
+          String contentType = httpResponse.getHeader("Content-Type");
+          if (! contentType.contains("xml")) {
+            log.warn("IDP content type has been parsed as XML, but the content-type is incorrectly reported as " + contentType);
+          }
+          return UrlCheckResult.emptySuccessResult();
 
-        log.warn("IDP content type has been parsed as XML, but the content-type is incorrectly reported as " + contentType);
-        
-//        return UrlCheckResult.failResult("Response content-type is not XML");
-      }
-      return UrlCheckResult.emptySuccessResult();
+        } catch (SAXException e) {
+          return UrlCheckResult.failResult(MSG_INVALID_XML_RESPONSE);
+        } catch (IOException e) {
+          return UrlCheckResult.failResult(MSG_INVALID_XML_RESPONSE);
+        } catch (Exception e) {
+          return UrlCheckResult.failResult(MSG_PRE_UNEXPECTED + e.getMessage());
+        }
     })
     .otherwise(cause -> {
       if (cause instanceof ConnectException) {
         // add locale independent prefix, Netty puts a locale dependent translation into getMessage(),
         // for example German "Verbindungsaufbau abgelehnt:" for English "Connection refused:"
-        return UrlCheckResult.failResult("ConnectException: " + cause.getMessage());
+        return UrlCheckResult.failResult(MSG_PRE_ERROR_CONNECTION + cause.getMessage());
       }
-      return UrlCheckResult.failResult("Unexpected error: " + cause.getMessage());
+      return UrlCheckResult.failResult(MSG_PRE_UNEXPECTED + cause.getMessage());
     });
   }
 }
