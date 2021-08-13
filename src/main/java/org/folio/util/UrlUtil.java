@@ -1,9 +1,22 @@
 package org.folio.util;
 
+import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
+import java.nio.charset.Charset;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.folio.rest.impl.SamlAPI;
 import org.folio.util.model.UrlCheckResult;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
@@ -13,6 +26,7 @@ import io.vertx.ext.web.client.WebClient;
  */
 public class UrlUtil {
 
+  private static final Logger log = LogManager.getLogger(UrlUtil.class);
   private UrlUtil() {
 
   }
@@ -28,7 +42,20 @@ public class UrlUtil {
     .map(httpResponse -> {
       String contentType = httpResponse.getHeader("Content-Type");
       if (! contentType.contains("xml")) {
-        return UrlCheckResult.failResult("Response content-type is not XML");
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        try {
+          DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+          final String body = httpResponse.bodyAsString();
+          
+          dBuilder.parse(IOUtils.toInputStream(body, Charset.defaultCharset()));
+          
+        } catch (Exception e) {
+          return UrlCheckResult.failResult("Response content-type is not XML and we couldn't parse the document.");
+        }
+
+        log.warn("IDP content type has been parsed as XML, but the content-type is incorrectly reported as " + contentType);
+        
+//        return UrlCheckResult.failResult("Response content-type is not XML");
       }
       return UrlCheckResult.emptySuccessResult();
     })
