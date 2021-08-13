@@ -104,7 +104,7 @@ public class SamlAPI implements Saml {
         } else {
           asyncResultHandler.handle(Future.succeededFuture(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(true))));
         }
-      });
+    });
   }
 
 
@@ -483,7 +483,7 @@ public class SamlAPI implements Saml {
     Promise<String> result = Promise.promise();
     final Vertx vertx = routingContext.vertx();
 
-    Client.get(routingContext, false, false)
+    Client.get(routingContext, false, true)
     .onComplete(handler -> {
       if (handler.failed()) {
         result.fail(handler.cause());

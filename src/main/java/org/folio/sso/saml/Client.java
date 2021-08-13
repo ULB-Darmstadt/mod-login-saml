@@ -45,10 +45,21 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.RoutingContext;
 
 public class Client extends SAML2Client {
-  private static final Logger log = LogManager.getLogger(Client.class);
-  private static final Map<String, Future<Client>> tenantCache = new ConcurrentHashMap<String, Future<Client>>();
   
   private static final String CACHE_KEY = "SAML_CLIENT";
+  private static final Logger log = LogManager.getLogger(Client.class);
+  private static final Map<String, Future<Client>> tenantCache = new ConcurrentHashMap<String, Future<Client>>();
+
+  public static void forceReinit(final String tenant) {
+    // Clear the cache for the single tenant...
+    tenantCache.remove(tenant);
+  }
+  
+  public static void forceReinit() {
+    // Clear the caches...
+    tenantCache.clear();
+  }
+  
   private Client() {}
   
   private Client( SAML2Configuration cfg ) {
@@ -57,6 +68,8 @@ public class Client extends SAML2Client {
   
   public static Future<Client> get ( final RoutingContext routingContext, final boolean generateMissingKeyStore, final boolean reinitialize ) {
        
+    // Override this value if we are testing.
+    
     // Get the okapi tenant header.
     final String tenant = OkapiHelper.okapiHeaders(routingContext).getTenant();
     
@@ -71,20 +84,27 @@ public class Client extends SAML2Client {
       // Not in the request. Check if we already have 1 in the tenant cache.
       future = tenantCache.get(tenant);
       if (future != null) {
-        log.debug("Returning client from tenant cache");
-        return future;
+        if (future.succeeded()) {
+          // clear cache to allow cleanup.
+          log.debug("Returning client from tenant cache");
+          return future;
+        }
+        
+        // Cleanup.
+        tenantCache.remove(tenant);
       }
     }
     
     // Else create and cache in the request, and the tenant cache.
     log.debug("Creating new client");
     future = createClient( routingContext, generateMissingKeyStore );
+    
     routingContext.put( CACHE_KEY, future );
     tenantCache.put( tenant, future );
     return future;
   }
     
-  public static Future<Client> createClient(final RoutingContext routingContext, final boolean generateMissingKeyStore) {
+  private static Future<Client> createClient(final RoutingContext routingContext, final boolean generateMissingKeyStore) {
     OkapiHeaders okapiHeaders = OkapiHelper.okapiHeaders(routingContext);
     final String tenantId = okapiHeaders.getTenant();
     

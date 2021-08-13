@@ -302,7 +302,7 @@ public class ModuleConfig implements Configuration {
                 
                 // Invalidate also by recursively calling this method. And use
                 // That result for the success.
-                result.handle(updateEntry(Config.METADATA_INVALIDATED, "true"));
+                result.handle(updateEntry(Config.METADATA_INVALIDATED, "true").onComplete( h -> { Client.forceReinit(okapiHeaders.getTenant()); }));
               } else {
                 
                 // Otherwise, we're done.

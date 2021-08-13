@@ -18,6 +18,7 @@ import org.folio.rest.RestVerticle;
 import org.folio.rest.jaxrs.model.SamlConfigRequest;
 import org.folio.rest.tools.client.test.HttpClientMock2;
 import org.folio.rest.tools.utils.NetworkUtils;
+import org.folio.sso.saml.Client;
 import org.folio.util.IdpMock;
 import org.folio.util.TestingClasspathResolver;
 import org.junit.After;
@@ -48,7 +49,9 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 public class SamlAPITest {
   private static final Logger log = LogManager.getLogger(SamlAPITest.class);
 
-  private static final Header TENANT_HEADER = new Header("X-Okapi-Tenant", "saml-test");
+  private static final String TENANT_NAME = "saml-test"; 
+  
+  private static final Header TENANT_HEADER = new Header("X-Okapi-Tenant", TENANT_NAME);
   private static final Header TOKEN_HEADER = new Header("X-Okapi-Token", "saml-test");
   private static final Header OKAPI_URL_HEADER = new Header("X-Okapi-Url", "http://localhost:9130");
   private static final Header JSON_CONTENT_TYPE_HEADER = new Header("Content-Type", "application/json");
@@ -73,7 +76,7 @@ public class SamlAPITest {
   @BeforeClass
   public static void setupOnce(TestContext context) {
     DeploymentOptions mockOptions = new DeploymentOptions()
-      .setConfig(new JsonObject().put("http.port", MOCK_PORT))
+      .setConfig(new JsonObject().put("http.port", MOCK_PORT).put("debug_log_package", "*"))
       .setWorker(true);
     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     mockVertx.deployVerticle(IdpMock.class.getName(), mockOptions, context.asyncAssertSuccess());
@@ -96,7 +99,7 @@ public class SamlAPITest {
     RestAssured.port = PORT;
     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
-    mock = new HttpClientMock2("http://localhost:9130", "saml-test");
+    mock = new HttpClientMock2("http://localhost:9130", TENANT_NAME);
     mock.setMockJsonContent("mock_content.json");
 
     vertx.deployVerticle(new RestVerticle(), options, context.asyncAssertSuccess());
@@ -115,6 +118,9 @@ public class SamlAPITest {
   @Test
   public void checkEndpointTests() {
 
+    // Force a reinit.
+    Client.forceReinit(TENANT_NAME);
+    
     // bad
     given()
       .get("/saml/check")
@@ -126,18 +132,18 @@ public class SamlAPITest {
       .header(TENANT_HEADER)
       .header(TOKEN_HEADER)
       .get("/saml/check")
-      .then()
+    .then()
       .statusCode(200)
       .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlCheck.json"))
       .body("active", equalTo(false));
-
+    
     // good -> "active": true
     given()
       .header(TENANT_HEADER)
       .header(TOKEN_HEADER)
       .header(OKAPI_URL_HEADER)
       .get("/saml/check")
-      .then()
+    .then()
       .statusCode(200)
       .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlCheck.json"))
       .body("active", equalTo(true));
@@ -198,7 +204,7 @@ public class SamlAPITest {
       .header(TOKEN_HEADER)
       .header(OKAPI_URL_HEADER)
       .get("/saml/regenerate")
-      .then()
+    .then()
       .contentType(ContentType.JSON)
       .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlRegenerateResponse.json"))
       .body("fileContent", matchesBase64XsdInClasspath("schemas/saml-schema-metadata-2.0.xsd", resolver))
@@ -243,127 +249,127 @@ public class SamlAPITest {
 
     assertNotEquals(metadata, regeneratedMetadata);
   }
-//
-//  @Test
-//  public void callbackEndpointTests() {
-//
-//
-//    final String testPath = "/test/path";
-//
-//    given()
-//      .header(TENANT_HEADER)
-//      .header(TOKEN_HEADER)
-//      .header(OKAPI_URL_HEADER)
-//      .formParam("SAMLResponse", "saml-response")
-//      .formParam("RelayState", STRIPES_URL + testPath)
-//      .post("/saml/callback")
-//      .then()
-//      .statusCode(302)
-//      .header("Location", containsString(URLEncoder.encode(testPath, StandardCharsets.UTF_8)))
-//      .header("x-okapi-token", "saml-token")
-//      .cookie("ssoToken", "saml-token");
-//
-//  }
-//
-//  @Test
-//  public void getConfigurationEndpoint() {
-//
-//    // GET
-//    given()
-//      .header(TENANT_HEADER)
-//      .header(TOKEN_HEADER)
-//      .header(OKAPI_URL_HEADER)
-//      .header(JSON_CONTENT_TYPE_HEADER)
-//      .get("/saml/configuration")
-//      .then()
-//      .statusCode(200)
-//      .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlConfig.json"))
-//      .body("idpUrl", equalTo("https://idp.ssocircle.com"))
-//      .body("samlBinding", equalTo("POST"))
-//      .body("metadataInvalidated", equalTo(Boolean.FALSE));
-//  }
-//
-//  @Test
-//  public void putConfigurationEndpoint(TestContext context) {
-//    SamlConfigRequest samlConfigRequest = new SamlConfigRequest()
-//      .withIdpUrl(URI.create("http://localhost:" + MOCK_PORT + "/xml"))
-//      .withSamlAttribute("UserID")
-//      .withUserCreateMissing(false)
-//      .withSamlBinding(SamlConfigRequest.SamlBinding.POST)
-//      .withUserProperty("externalSystemId")
-//      .withOkapiUrl(URI.create("http://localhost:9130"));
-//
-//    String jsonString = Json.encode(samlConfigRequest);
-//
-//    // PUT
-//    given()
-//      .header(TENANT_HEADER)
-//      .header(TOKEN_HEADER)
-//      .header(OKAPI_URL_HEADER)
-//      .header(JSON_CONTENT_TYPE_HEADER)
-//      .body(jsonString)
-//      .put("/saml/configuration")
-//      .then()
-//      .statusCode(200)
-//      .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlConfig.json"));
-//  }
-//
-//  @Test
-//  public void healthEndpointTests() {
-//
-//    // good
-//    given()
-//      .get("/admin/health")
-//      .then()
-//      .statusCode(200);
-//
-//  }
-//
-//  @Test
-//  public void testWithConfiguration400(TestContext context) throws IOException {
-//    mock.setMockJsonContent("mock_400.json");
-//
-//    // GET
-//    given()
-//        .header(TENANT_HEADER)
-//        .header(TOKEN_HEADER)
-//        .header(OKAPI_URL_HEADER)
-//        .get("/saml/configuration")
-//        .then()
-//        .statusCode(500)
-//        .contentType(ContentType.TEXT)
-//        .body(containsString("Cannot get configuration"));
-//  }
-//
-//
-//  @Test
-//  public void regenerateEndpointNoIdP() throws IOException {
-//    mock.setMockJsonContent("mock_noidp.json");
-//
-//    given()
-//        .header(TENANT_HEADER)
-//        .header(TOKEN_HEADER)
-//        .header(OKAPI_URL_HEADER)
-//        .get("/saml/regenerate")
-//        .then()
-//        .statusCode(500)
-//        .contentType(ContentType.TEXT)
-//        .body(containsString("There is no IdP configuration stored"));
-//  }
-//
-//  @Test
-//  public void regenerateEndpointNoKeystore() throws IOException {
-//    mock.setMockJsonContent("mock_nokeystore.json");
-//
-//    given()
-//        .header(TENANT_HEADER)
-//        .header(TOKEN_HEADER)
-//        .header(OKAPI_URL_HEADER)
-//        .get("/saml/regenerate")
-//        .then()
-//        .statusCode(500)
-//        .contentType(ContentType.TEXT)
-//        .body(containsString("No KeyStore stored in configuration and regeneration is not allowed"));
-//  }
+
+  @Test
+  public void callbackEndpointTests() {
+
+
+    final String testPath = "/test/path";
+
+    given()
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .formParam("SAMLResponse", "saml-response")
+      .formParam("RelayState", STRIPES_URL + testPath)
+      .post("/saml/callback")
+      .then()
+      .statusCode(302)
+      .header("Location", containsString(URLEncoder.encode(testPath, StandardCharsets.UTF_8)))
+      .header("x-okapi-token", "saml-token")
+      .cookie("ssoToken", "saml-token");
+
+  }
+
+  @Test
+  public void getConfigurationEndpoint() {
+
+    // GET
+    given()
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .header(JSON_CONTENT_TYPE_HEADER)
+      .get("/saml/configuration")
+      .then()
+      .statusCode(200)
+      .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlConfig.json"))
+      .body("idpUrl", equalTo("https://idp.ssocircle.com"))
+      .body("samlBinding", equalTo("POST"))
+      .body("metadataInvalidated", equalTo(Boolean.FALSE));
+  }
+
+  @Test
+  public void putConfigurationEndpoint(TestContext context) {
+    SamlConfigRequest samlConfigRequest = new SamlConfigRequest()
+      .withIdpUrl(URI.create("http://localhost:" + MOCK_PORT + "/xml"))
+      .withSamlAttribute("UserID")
+      .withUserCreateMissing(false)
+      .withSamlBinding(SamlConfigRequest.SamlBinding.POST)
+      .withUserProperty("externalSystemId")
+      .withOkapiUrl(URI.create("http://localhost:9130"));
+
+    String jsonString = Json.encode(samlConfigRequest);
+
+    // PUT
+    given()
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .header(JSON_CONTENT_TYPE_HEADER)
+      .body(jsonString)
+      .put("/saml/configuration")
+      .then()
+      .statusCode(200)
+      .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlConfig.json"));
+  }
+
+  @Test
+  public void healthEndpointTests() {
+
+    // good
+    given()
+      .get("/admin/health")
+      .then()
+      .statusCode(200);
+
+  }
+
+  @Test
+  public void testWithConfiguration400(TestContext context) throws IOException {
+    mock.setMockJsonContent("mock_400.json");
+
+    // GET
+    given()
+        .header(TENANT_HEADER)
+        .header(TOKEN_HEADER)
+        .header(OKAPI_URL_HEADER)
+        .get("/saml/configuration")
+        .then()
+        .statusCode(500)
+        .contentType(ContentType.TEXT)
+        .body(containsString("Cannot get configuration"));
+  }
+
+
+  @Test
+  public void regenerateEndpointNoIdP() throws IOException {
+    mock.setMockJsonContent("mock_noidp.json");
+
+    given()
+        .header(TENANT_HEADER)
+        .header(TOKEN_HEADER)
+        .header(OKAPI_URL_HEADER)
+        .get("/saml/regenerate")
+        .then()
+        .statusCode(500)
+        .contentType(ContentType.TEXT)
+        .body(containsString("There is no IdP configuration stored"));
+  }
+
+  @Test
+  public void regenerateEndpointNoKeystore() throws IOException {
+    mock.setMockJsonContent("mock_nokeystore.json");
+
+    given()
+        .header(TENANT_HEADER)
+        .header(TOKEN_HEADER)
+        .header(OKAPI_URL_HEADER)
+        .get("/saml/regenerate")
+        .then()
+        .statusCode(500)
+        .contentType(ContentType.TEXT)
+        .body(containsString("No KeyStore stored in configuration and regeneration is not allowed"));
+  }
 
 }
