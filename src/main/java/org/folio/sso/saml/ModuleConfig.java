@@ -1,7 +1,8 @@
 package org.folio.sso.saml;
 
-import static org.folio.sso.saml.Constants.*;
+import static org.folio.sso.saml.Constants.MODULE_NAME;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,9 +12,12 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.rest.jaxrs.model.SamlConfig;
+import org.folio.rest.jaxrs.model.SamlDefaultUser;
 import org.folio.rest.tools.client.HttpClientFactory;
 import org.folio.rest.tools.client.Response;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
+import org.folio.sso.saml.Constants.Config;
 import org.folio.util.OkapiHelper;
 import org.folio.util.model.OkapiHeaders;
 import org.springframework.util.Assert;
@@ -323,5 +327,61 @@ public class ModuleConfig implements Configuration {
 
 
     return result.future();
+  }
+
+  /**
+   * Converts to the RMB managed model for the DefaultUser object.
+   */
+  public SamlDefaultUser getSamlDefaultUser() {
+
+    if (!hasDefaultUserData()) return null;
+
+    SamlDefaultUser defaultUser = new SamlDefaultUser()
+        .withEmailAttribute(getUserDefaultEmailAttribute())
+        .withFirstNameAttribute(getUserDefaultFirstNameAttribute())
+        .withFirstNameDefault(getUserDefaultFirstNameDefault())
+        .withLastNameAttribute(getUserDefaultLastNameAttribute())
+        .withLastNameDefault(getUserDefaultLastNameDefault())
+        .withPatronGroup(getUserDefaultPatronGroup())
+        .withUsernameAttribute(getUserDefaultUsernameAttribute())
+        ;
+    return defaultUser;
+  }
+  
+  /**
+   * Converts to the RMB managed model for the Config.
+   */
+  public SamlConfig getSamlConfig() {
+    SamlConfig samlConfig = new SamlConfig()
+      .withSamlAttribute(getSamlAttribute())
+      .withUserProperty(getUserProperty())
+      .withMetadataInvalidated(Boolean.valueOf(getMetadataInvalidated()))
+      .withUserCreateMissing(Boolean.valueOf(getUserCreateMissing()))
+      .withSamlDefaultUser(getSamlDefaultUser())
+    ;
+
+    try {
+      URI uri = URI.create(getOkapiUrl());
+      samlConfig.setOkapiUrl(uri);
+    } catch (Exception e) {
+      log.debug("Okapi URI is in a bad format");
+      samlConfig.setOkapiUrl(URI.create(""));
+    }
+
+    try {
+      URI uri = URI.create(getIdpUrl());
+      samlConfig.setIdpUrl(uri);
+    } catch (Exception x) {
+      samlConfig.setIdpUrl(URI.create(""));
+    }
+
+    try {
+      SamlConfig.SamlBinding samlBinding = SamlConfig.SamlBinding.fromValue(getSamlBinding());
+      samlConfig.setSamlBinding(samlBinding);
+    } catch (Exception x) {
+      samlConfig.setSamlBinding(null);
+    }
+
+    return samlConfig;
   }
 }

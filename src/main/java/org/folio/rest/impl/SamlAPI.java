@@ -380,16 +380,14 @@ public class SamlAPI implements Saml {
 
     ModuleConfig.get(rc)
     .onComplete(configurationResult -> {
-
-      AsyncResult<SamlConfig> result = configurationResult.map(this::configToDto);
-
-      if (result.failed()) {
-        log.warn("Cannot load configuration", result.cause());
+      if (configurationResult.failed()) {
+        log.warn("Cannot load configuration", configurationResult.cause());
         asyncResultHandler.handle(
             Future.succeededFuture(
                 GetSamlConfigurationResponse.respond500WithTextPlain("Cannot get configuration")));
       } else {
-        asyncResultHandler.handle(Future.succeededFuture(GetSamlConfigurationResponse.respond200WithApplicationJson(result.result())));
+        asyncResultHandler.handle(Future.succeededFuture(
+          GetSamlConfigurationResponse.respond200WithApplicationJson(configurationResult.result().getSamlConfig())));
       }
     });
   }
@@ -439,7 +437,7 @@ public class SamlAPI implements Saml {
           } else {
             
             // Config is updated at the same time now.
-            SamlConfig dto = configToDto(config);
+            SamlConfig dto = config.getSamlConfig();
             asyncResultHandler.handle(Future.succeededFuture(PutSamlConfigurationResponse.respond200WithApplicationJson(dto)));
           }
         });
