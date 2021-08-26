@@ -80,6 +80,7 @@ public class SamlAPITest {
       .setWorker(true);
     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     mockVertx.deployVerticle(IdpMock.class.getName(), mockOptions, context.asyncAssertSuccess());
+    mockVertx.createHttpServer(null);
   }
 
   @AfterClass

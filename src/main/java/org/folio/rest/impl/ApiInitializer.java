@@ -1,17 +1,22 @@
 package org.folio.rest.impl;
 
-import io.vertx.core.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.folio.rest.resource.interfaces.InitAPI;
-import org.folio.util.WebClientFactory;
+import java.security.GeneralSecurityException;
+import java.security.cert.X509Certificate;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.security.GeneralSecurityException;
-import java.security.cert.X509Certificate;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.folio.rest.resource.interfaces.InitAPI;
+
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 
 public class ApiInitializer implements InitAPI {
 
@@ -21,8 +26,6 @@ public class ApiInitializer implements InitAPI {
   public void init(Vertx vertx, Context context, Handler<AsyncResult<Boolean>> handler) {
     
     log.info("New version of mod-login-saml");
-    
-    WebClientFactory.init(vertx);
 
     if ("true".equalsIgnoreCase(System.getenv("TRUST_ALL_CERTIFICATES"))) {
       trustAllCertificates();

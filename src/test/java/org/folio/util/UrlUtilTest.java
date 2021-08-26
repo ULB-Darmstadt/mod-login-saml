@@ -38,7 +38,6 @@ public class UrlUtilTest {
   @Before
   public void before(TestContext context) {
     vertx = Vertx.vertx();
-    WebClientFactory.init(vertx);
   }
 
   @AfterClass

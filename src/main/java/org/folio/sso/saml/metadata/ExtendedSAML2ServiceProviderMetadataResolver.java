@@ -2,11 +2,8 @@ package org.folio.sso.saml.metadata;
 
 import java.util.Objects;
 
-import javax.xml.namespace.QName;
-
 import org.opensaml.saml.common.SAMLObjectBuilder;
 import org.opensaml.saml.ext.idpdisco.DiscoveryResponse;
-import org.opensaml.saml.ext.idpdisco.impl.DiscoveryResponseMarshaller;
 import org.opensaml.saml.saml2.metadata.Extensions;
 import org.opensaml.saml.saml2.metadata.IndexedEndpoint;
 import org.opensaml.saml.saml2.metadata.SPSSODescriptor;
@@ -62,7 +59,8 @@ public class ExtendedSAML2ServiceProviderMetadataResolver extends SAML2ServicePr
         
         // Build and add the element to the metadata.
         
-        // Bug in SAML mod uses default metadata path instead of disco
+        // Bug in SAML mod uses default metadata path instead of disco. Specify
+        // parameters to the buildObject to prevent hitting this.
         final IndexedEndpoint discoResp = Objects.requireNonNull(discoBuilder).buildObject(
             DiscoveryResponse.DEFAULT_ELEMENT_NAME.getNamespaceURI(),
             DiscoveryResponse.DEFAULT_ELEMENT_NAME.getLocalPart(),
@@ -70,13 +68,6 @@ public class ExtendedSAML2ServiceProviderMetadataResolver extends SAML2ServicePr
         );
         discoResp.setLocation(discoUrl);
         discoResp.setBinding(DiscoveryResponse.DEFAULT_ELEMENT_NAME.getNamespaceURI());
-        
-        // Ensure we have the marshaller registered.
-//        QName qname = discoResp.getElementQName();
-//        if (qname != null && (this.marshallerFactory.getMarshaller(qname) == null)) {
-//          this.marshallerFactory.registerMarshaller(
-//              qname, new DiscoveryResponseMarshaller() );
-//        }
         
         ext.getUnknownXMLObjects().add(discoResp);
       }
