@@ -1,42 +1,41 @@
 package org.folio.util;
 
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.validation.constraints.NotNull;
 
-import org.folio.rest.tools.utils.NetworkUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import io.vertx.core.Handler;
+import io.vertx.config.ConfigRetriever;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.http.RequestOptions;
+import io.vertx.core.net.ProxyOptions;
+import io.vertx.core.net.ProxyType;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.ext.web.client.impl.ClientPhase;
-import io.vertx.ext.web.client.impl.HttpContext;
-import io.vertx.ext.web.client.impl.HttpRequestImpl;
 import io.vertx.ext.web.client.impl.WebClientInternal;
-import io.vertx.ext.web.client.impl.predicate.ResponsePredicateResultImpl;
-import io.vertx.ext.web.client.predicate.ErrorConverter;
-import io.vertx.ext.web.client.predicate.ResponsePredicate;
 
 public class WebClientFactory {
-
+  
+  private static final Logger log = LogManager.getLogger(WebClientFactory.class);
+  
   public static final int DEFAULT_TIMEOUT = 5000;
   public static final boolean DEFAULT_KEEPALIVE = false;
-  private static Map<Vertx, WebClient> clients = new ConcurrentHashMap<>();
+  
+  private static final Map<Vertx, Future<WebClient>> clients = new ConcurrentHashMap<>();
 
   /**
-   * Returns or Initializes and returns a WebClient for the provided Vertx.
+   * Returns or Initializes and returns a Future WebClient for the provided Vertx.
    * Ensures we keep 1 client per Vertx instance to benefit from pooling etc.
    *
    * @param vertx
    */
-  public static WebClient getWebClient(@NotNull Vertx vertx) {
-    WebClient client;
+  public static Future<WebClient> getWebClient(@NotNull Vertx vertx) {
+    Future<WebClient> client;
     synchronized(clients) {
       client = clients.get(vertx);
       if ( client == null ) {
@@ -51,58 +50,43 @@ public class WebClientFactory {
   private WebClientFactory() {
   }
 
-  private static WebClient init(Vertx vertx) {    
-    WebClientOptions options = new WebClientOptions();
-    options.setKeepAlive(DEFAULT_KEEPALIVE);
-    options.setConnectTimeout(DEFAULT_TIMEOUT);
-    options.setIdleTimeout(DEFAULT_TIMEOUT);
+  private static Future<WebClient> init(Vertx vertx) {
 
-    // We create and cast as the internal type as that's where we can add listeners.
-    WebClientInternal cli = (WebClientInternal)WebClient.create(vertx, options);
-
-    try {
-      cli.addInterceptor(new MockInterceptor(mockHttpTraffic()));
-    } catch (URISyntaxException e) {
-      e.printStackTrace();
-    }
-    return cli;
-  }
-
-  private static ServerMock mockHttpTraffic() throws URISyntaxException {
-
-    ServerMock sm = new ServerMock(NetworkUtils.nextFreePort());
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      public void run() {
-        sm.close();
-      }
-    });
-    return sm;
-  }
-
-  private static final class MockInterceptor implements Handler<HttpContext<?>> {
-
-    final ServerMock sm;
-    MockInterceptor(ServerMock sm) {
-      this.sm = sm;
-    }
-    
-    @Override
-    public void handle(HttpContext<?> httpContext) {
-
-      if (httpContext.phase() == ClientPhase.CREATE_REQUEST) {
-
-        // Grab the built request options...
-        if (sm.shouldProxy(httpContext)) {
-          final RequestOptions ro = httpContext.requestOptions();
-
-          // Divert.
-          ro.setSsl(false) // Always plain none ssl traffic.
-          .setHost(sm.getUri().getHost())
-          .setPort(sm.getUri().getPort());
+    ConfigRetriever configRetriever = ConfigRetriever.create(vertx);
+    return configRetriever.getConfig().compose(conf -> {
+      
+      // Initialize with default object.
+      WebClientOptions options;
+      
+      if (conf == null) {
+        options = new WebClientOptions()
+            .setKeepAlive( DEFAULT_KEEPALIVE )
+            .setConnectTimeout( DEFAULT_TIMEOUT )
+            .setIdleTimeout( DEFAULT_TIMEOUT );
+      } else {        
+        options = new WebClientOptions()
+          .setKeepAlive(conf.getBoolean("webclient.keepAlive", DEFAULT_KEEPALIVE))
+          .setConnectTimeout(conf.getInteger("webclient.connectTimeout", DEFAULT_TIMEOUT))
+          .setIdleTimeout(conf.getInteger("webclient.idleTimeout",DEFAULT_TIMEOUT));
+        
+        final String pAdd = conf.getString("webclient.proxyAddress");
+        if (pAdd != null) {
+          try {
+            URI proxyAddress = new URI(pAdd);
+            
+            log.info("Proxying traffic using proxy address {}", pAdd);
+            options.setProxyOptions(new ProxyOptions()
+              .setType(ProxyType.valueOf(proxyAddress.getScheme().toUpperCase()))
+              .setPort(proxyAddress.getPort())
+              .setHost(proxyAddress.getHost()
+            ));
+          } catch (URISyntaxException e) {
+            log.error("Error parsing proxyAddress {}", pAdd);
+          }
         }
       }
-
-      httpContext.next();
-    }
+      WebClientInternal cli = (WebClientInternal)WebClient.create(vertx, options);
+      return Future.succeededFuture(cli);
+    });
   }
 }
