@@ -41,32 +41,37 @@ public class UrlUtil {
     return WebClientFactory.getWebClient(vertx).compose(client -> {
       return client.getAbs(url).send()
           .map(httpResponse -> {
-            try {
-              final String body = httpResponse.bodyAsString();
-              if (StringUtils.isEmpty(body)) {
-
+            final int status = httpResponse.statusCode();
+            final String body = httpResponse.bodyAsString();
+            if (status >= 200 && status < 300) {
+              try {
+                if (StringUtils.isEmpty(body)) {
+  
+                }
+  
+                DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder dBuilder;
+                dBuilder = dbFactory.newDocumentBuilder();
+  
+                dBuilder.parse(IOUtils.toInputStream(body, Charset.defaultCharset()));
+  
+  
+                String contentType = httpResponse.getHeader("Content-Type");
+                if (! contentType.contains("xml")) {
+                  log.warn("IDP content type has been parsed as XML, but the content-type is incorrectly reported as " + contentType);
+                }
+                return UrlCheckResult.emptySuccessResult();
+  
+              } catch (SAXException e) {
+                return UrlCheckResult.failResult(MSG_INVALID_XML_RESPONSE);
+              } catch (IOException e) {
+                return UrlCheckResult.failResult(MSG_INVALID_XML_RESPONSE);
+              } catch (Exception e) {
+                return UrlCheckResult.failResult(MSG_PRE_UNEXPECTED + e.getMessage());
               }
-
-              DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-              DocumentBuilder dBuilder;
-              dBuilder = dbFactory.newDocumentBuilder();
-
-              dBuilder.parse(IOUtils.toInputStream(body, Charset.defaultCharset()));
-
-
-              String contentType = httpResponse.getHeader("Content-Type");
-              if (! contentType.contains("xml")) {
-                log.warn("IDP content type has been parsed as XML, but the content-type is incorrectly reported as " + contentType);
-              }
-              return UrlCheckResult.emptySuccessResult();
-
-            } catch (SAXException e) {
-              return UrlCheckResult.failResult(MSG_INVALID_XML_RESPONSE);
-            } catch (IOException e) {
-              return UrlCheckResult.failResult(MSG_INVALID_XML_RESPONSE);
-            } catch (Exception e) {
-              return UrlCheckResult.failResult(MSG_PRE_UNEXPECTED + e.getMessage());
             }
+            
+            return UrlCheckResult.failResult(MSG_PRE_UNEXPECTED + "None 2xx response code from server.");
           })
           .otherwise(cause -> {
             if (cause instanceof ConnectException) {
