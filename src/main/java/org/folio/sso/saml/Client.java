@@ -15,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.config.JsonReponseSaml2RedirectActionBuilder;
-import org.folio.rest.tools.client.test.HttpClientMock2;
 import org.folio.sso.saml.Constants.Config;
 import org.folio.sso.saml.metadata.ExtendedSAML2ServiceProviderMetadataResolver;
 import org.folio.util.OkapiHelper;
@@ -227,7 +226,7 @@ public class Client extends SAML2Client {
     // Default lifetitme.
     cfg.setMaximumAuthenticationLifetime(18000);
     
-    final boolean mock = Boolean.parseBoolean(System.getProperty(HttpClientMock2.MOCK_MODE));
+    final boolean mock = Boolean.parseBoolean(System.getProperty("mock.httpclient"));
     cfg.setAuthnRequestBindingType(
       "REDIRECT".equalsIgnoreCase(samlBinding) ? 
         SAMLConstants.SAML2_REDIRECT_BINDING_URI : 

@@ -14,11 +14,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.SamlConfig;
 import org.folio.rest.jaxrs.model.SamlDefaultUser;
-import org.folio.rest.tools.client.HttpClientFactory;
-import org.folio.rest.tools.client.Response;
-import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 import org.folio.sso.saml.Constants.Config;
+import org.folio.util.HttpUtils;
 import org.folio.util.OkapiHelper;
+import org.folio.util.WebClientFactory;
 import org.folio.util.model.OkapiHeaders;
 import org.springframework.util.Assert;
 
@@ -27,8 +26,10 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -105,24 +106,34 @@ public class ModuleConfig implements Configuration {
       
       String encodedQuery = URLEncoder.encode(query, "UTF-8");
 
-      Map<String, String> headers = new HashMap<>();
-      headers.put(OkapiHeaders.OKAPI_TOKEN_HEADER, okapiHeaders.getToken());
+      MultiMap headers = new HeadersMultiMap();
+      headers
+        .set(OkapiHeaders.OKAPI_TOKEN_HEADER, okapiHeaders.getToken())
+        .set(OkapiHeaders.OKAPI_TENANT_HEADER, okapiHeaders.getTenant());
 
-      HttpClientInterface httpClient = HttpClientFactory.getHttpClient(okapiHeaders.getUrl(), okapiHeaders.getTenant());
-      httpClient.setDefaultHeaders(headers);
-      httpClient.request(Config.ENTRIES_ENDPOINT + "?limit=10000&query=" + encodedQuery) // this is ugly :/
-        .whenComplete((Response response, Throwable throwable) -> {
-          if (Response.isSuccess(response.getCode())) {
-
-            JsonObject responseBody = response.getBody();
-            JsonArray configs = responseBody.getJsonArray("configs");
-            promise.complete(fromModConfigJson(okapiHeaders, configs));
-            
-          } else {
-            log.warn("Cannot get configuration data: {}", response.getError());
-            promise.fail(response.getException());
-          }
-        });
+      WebClientFactory.getWebClient()
+        .get(OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), Config.ENTRIES_ENDPOINT + "?limit=10000&query=" + encodedQuery)) // this is ugly :/
+        .putHeaders(headers)
+      .send()
+      
+      .onSuccess(response -> {
+        if ( !HttpUtils.isSuccess(response) ) {
+          log.warn("Cannot get configuration data: {}", response.statusMessage());
+          promise.fail(response.statusMessage());
+          return;
+        }
+        
+        JsonObject responseBody = response.bodyAsJsonObject();
+        JsonArray configs = responseBody.getJsonArray("configs");
+        promise.complete(fromModConfigJson(okapiHeaders, configs));
+        
+      })
+      
+      .onFailure(throwable -> {
+        log.warn("Cannot get configuration data: {}", throwable.getMessage());
+        promise.fail(throwable);
+      });
+      
     } catch (Exception e) {
       log.warn("Cannot get configuration data: {}", e.getMessage());
       promise.fail(e);
@@ -234,6 +245,8 @@ public class ModuleConfig implements Configuration {
    * @return A Future that indicates the suuccess or failure.
    */
   public Future<Void> updateEntry(final String code, final String value) {
+
+    
     Assert.hasText(code, "config entry CODE is mandatory");
     
     // Grab the existing one from here...
@@ -247,82 +260,102 @@ public class ModuleConfig implements Configuration {
       // Do nothing, but return successfully.
       return Future.succeededFuture();
     }
-    
-    // Add/Update the value.
-    final String configId = this.config_ids.get(code);
-
+     
     final Promise<Void> result = Promise.promise();
-
-    final JsonObject requestBody = new JsonObject()
-      .put("module", MODULE_NAME)
-      .put("configName", Config.CONFIG_NAME)
-      .put("code", code)
-      .put("value", value);
-
-    // decide to POST or PUT
-
-    // not existing -> POST, existing->PUT
-    final HttpMethod httpMethod = configId == null ? HttpMethod.POST : HttpMethod.PUT;
-    final String endpoint = Config.ENTRIES_ENDPOINT + (configId == null ? "" : "/" + configId);
-
-    Map<String, String> headers = new HashMap<>();
-    headers.put(OkapiHeaders.OKAPI_TOKEN_HEADER, okapiHeaders.getToken());
-
     try {
-      HttpClientInterface storeEntryClient = HttpClientFactory.getHttpClient(okapiHeaders.getUrl(), okapiHeaders.getTenant(), true);
-      storeEntryClient.setDefaultHeaders(headers);
-      storeEntryClient.request(httpMethod, requestBody, endpoint, null)
-        .whenComplete((storeEntryResponse, throwable) -> {
+      // Add/Update the value.
+      final String configId = this.config_ids.get(code);
+  
+      final JsonObject requestBody = new JsonObject()
+        .put("module", MODULE_NAME)
+        .put("configName", Config.CONFIG_NAME)
+        .put("code", code)
+        .put("value", value);
+  
+      // decide to POST or PUT
+  
+      // not existing -> POST, existing->PUT
+      final HttpMethod httpMethod = configId == null ? HttpMethod.POST : HttpMethod.PUT;
+      final String endpoint = Config.ENTRIES_ENDPOINT + (configId == null ? "" : "/" + configId);
+  
+      final MultiMap headers = new HeadersMultiMap();
+      headers
+        .set(OkapiHeaders.OKAPI_TOKEN_HEADER, okapiHeaders.getToken())
+        .set(OkapiHeaders.OKAPI_TENANT_HEADER, okapiHeaders.getTenant());
 
-          if (storeEntryResponse == null) {
-            if (throwable == null) {
-              result.fail("Cannot " + httpMethod.toString() + " configuration entry");
-            } else {
-              result.fail(throwable);
-            }
+      WebClientFactory.getWebClient()
+        .request(httpMethod, OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), endpoint)) // this is ugly :/
+        .putHeaders(headers)
+      .sendJsonObject(requestBody)
+      
+      .onSuccess(response -> {
+        try {
+          if ( !HttpUtils.isSuccess(response) ) {
+            log.error("Cannot {} configuration entry '{}' with value '{}': {}", httpMethod.toString(), code, value, response.statusMessage());
+            result.fail(response.statusMessage());
+            return;
           }
-          // POST->201 created, PUT->204 no content
-          else {
+          
+          final int respCode = response.statusCode();            
+          if ((httpMethod.equals(HttpMethod.POST) && respCode == 201)
+            || (httpMethod.equals(HttpMethod.PUT) && respCode == 204)) {
             
-            final int respCode = storeEntryResponse.getCode();            
-            if ((httpMethod.equals(HttpMethod.POST) && respCode == 201)
-              || (httpMethod.equals(HttpMethod.PUT) && respCode == 204)) {
-              
-              // Update the internal references too.
-              
-              if (configId == null) {
-                JsonObject resp = storeEntryResponse.getBody();
-                if (resp != null) {
-                  requestBody.put("id", resp.getString("id"));
-                }
-              } else {
-                requestBody.put("id", configId);
-              }
-              
-              updateMapsForJsonEntry(requestBody);
-              
-              // We may need to also invalidate the metadata.
-              if (this.invalidating_keys.contains(code)) {
-                
-                // Invalidate also by recursively calling this method. And use
-                // That result for the success.
-                result.handle(updateEntry(Config.METADATA_INVALIDATED, "true").onComplete( h -> { Client.forceReinit(okapiHeaders.getTenant()); }));
-              } else {
-                
-                // Otherwise, we're done.
-                result.complete();
+            // Update the internal references too.
+            
+            if (configId == null) {
+              JsonObject resp = response.bodyAsJsonObject();
+              if (resp != null) {
+                requestBody.put("id", resp.getString("id"));
               }
             } else {
-              result.fail("The response status is not 'created',instead "
-                + storeEntryResponse.getCode()
-                + " with message  "
-                + storeEntryResponse.getError());
+              requestBody.put("id", configId);
             }
-          }
+            
+            updateMapsForJsonEntry(requestBody);
+            
+            // We may need to also invalidate the metadata.
+            if (this.invalidating_keys.contains(code)) {
+              
+              // Invalidate also by recursively calling this method. And use
+              // That result for the success.
+//              result.handle(updateEntry(Config.METADATA_INVALIDATED, "true").onComplete( h -> { Client.forceReinit(okapiHeaders.getTenant()); }));
+              
 
-        });
-    } catch (Exception ex) {
-      result.fail(ex);
+              updateEntry(Config.METADATA_INVALIDATED, "true")
+                .onSuccess( h -> {
+                  Client.forceReinit(okapiHeaders.getTenant());
+                  result.complete();
+                })
+                .onFailure(t -> {
+                  result.fail(t);
+                });
+            } else {
+              
+              // Otherwise, we're done.
+              result.complete();
+            }
+          } else {
+            result.fail(
+              String.format(
+                "Unknown response code %d, with message '%s' for config %s operation",
+                response.statusCode(),
+                response.statusMessage(),
+                httpMethod.name())
+            );
+          }
+        } catch (Exception e) {
+          log.error("Cannot set configuration data: {}", e.getMessage());
+          result.fail(e);
+        }
+      })
+      
+      .onFailure(throwable -> {
+        log.error("Cannot set configuration data: {}", throwable.getMessage());
+        result.fail(throwable);
+      });
+    } catch (Throwable t) {
+      log.error("Cannot set configuration data: {}", t.getMessage());
+      result.fail(t);
     }
 
 

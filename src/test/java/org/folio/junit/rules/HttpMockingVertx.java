@@ -2,17 +2,25 @@ package org.folio.junit.rules;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
 import org.folio.rest.RestVerticle;
 import org.folio.rest.tools.utils.NetworkUtils;
 
+import com.github.jknack.handlebars.Helper;
+import com.github.jknack.handlebars.Options;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -48,6 +56,7 @@ public class HttpMockingVertx extends WireMockRule {
         .port(mockServerPort)
         .enableBrowserProxying(true)
         .notifier(new ConsoleNotifier(true))
+        .extensions(new ResponseTemplateTransformer(false, getHelpers()))
       , false);
     this.mockServerPort = mockServerPort;
     this.suppliedVertxPort = vertxPort;
@@ -62,7 +71,9 @@ public class HttpMockingVertx extends WireMockRule {
       vertx.close(h -> { wait.complete(null); });
       try {
         wait.get();
-      } catch (Exception e) { /* Silence. */ }
+      } catch (Exception e) { 
+        e.printStackTrace();
+      }
     }
   }
 
@@ -76,11 +87,14 @@ public class HttpMockingVertx extends WireMockRule {
 
     // Augment the properties if not set.
     final Properties props = System.getProperties();
+    props.put("mock.httpclient", "true");
     if (!props.containsKey("webclient.proxyAddress")) {
       props.put("webclient.proxyAddress", "http://localhost:" + mockServerPort);
     }
     
-    vertx = Vertx.vertx();
+    vertx = Vertx.vertx(new VertxOptions()
+        .setBlockedThreadCheckInterval(1000*60*60));
+    
     DeploymentOptions options = new DeploymentOptions()
       .setConfig(new JsonObject()
         .put("http.port", vertxPort)
@@ -93,4 +107,33 @@ public class HttpMockingVertx extends WireMockRule {
       e.printStackTrace();
     }
   }
+  
+  private static Map<String, Helper<?>> getHelpers() {
+    Map<String, Helper<?>> helpers = new HashMap<>();
+    helpers.put("set-value", setValue);
+    helpers.put("json", jsonString);
+    
+    return helpers;
+    
+  }
+  
+  private static Helper<Map<String,Object>> setValue = new Helper<Map<String,Object>>() {
+
+    @Override
+    public Object apply (Map<String,Object> context, Options options) throws IOException {
+      
+      final String key = options.param(0);
+      final Object value = options.param(1);
+      context.put(key, value);
+      return null;
+    }
+  };
+  
+  private static Helper<Object> jsonString = new Helper<Object>() {
+
+    @Override
+    public Object apply (Object context, Options options) throws IOException {
+      return Json.encode(context);
+    }
+  };
 }

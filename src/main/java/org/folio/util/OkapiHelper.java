@@ -1,14 +1,20 @@
 package org.folio.util;
 
-import io.vertx.ext.web.RoutingContext;
+import java.net.URI;
+import java.util.Map;
+
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.UriBuilder;
+
 import org.folio.util.model.OkapiHeaders;
 
-import java.util.Map;
+import io.vertx.ext.web.RoutingContext;
 
 /**
  * Okapi utils
  *
  * @author rsass
+ * @author Steve Osguthorpe
  */
 public class OkapiHelper {
 
@@ -36,6 +42,18 @@ public class OkapiHelper {
     routingContext.put(CACHE_KEY, headers);
     return headers;
 
+  }
+  
+  public static String toOkapiUrl( @NotNull final String okapiLocation, @NotNull final String path) {
+    final UriBuilder target = UriBuilder.fromUri(okapiLocation);
+    final URI call = UriBuilder.fromUri(path).build();
+    
+    // Merge the OKAPI path to the target.
+    target
+      .path(call.getPath()) // Append the path.
+      .replaceQuery(call.getQuery())
+    ;
+    return target.build().toString();
   }
 
   public static OkapiHeaders okapiHeaders(Map<String, String> parsedHeaders) {

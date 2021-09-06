@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 
 import javax.validation.constraints.NotNull;
 
@@ -26,7 +27,15 @@ public class WebClientFactory {
   public static final int DEFAULT_TIMEOUT = 5000;
   public static final boolean DEFAULT_KEEPALIVE = false;
   
-  private static final Map<Vertx, Future<WebClient>> clients = new ConcurrentHashMap<>();
+  private static final Map<Vertx, WebClient> clients = new ConcurrentHashMap<>();
+  
+  public static WebClient getWebClient() {
+    try {
+      return getWebClient(Vertx.currentContext().owner());
+    } catch (NullPointerException ex) {
+      throw new UnsupportedOperationException("Call to getWebClient() outside of vertx context. Try passing in a vertx instance instead.");
+    }
+  }
 
   /**
    * Returns or Initializes and returns a Future WebClient for the provided Vertx.
@@ -34,13 +43,17 @@ public class WebClientFactory {
    *
    * @param vertx
    */
-  public static Future<WebClient> getWebClient(@NotNull Vertx vertx) {
-    Future<WebClient> client;
+  public static WebClient getWebClient(@NotNull Vertx vertx) {
+    WebClient client;
     synchronized(clients) {
       client = clients.get(vertx);
       if ( client == null ) {
-        client = init(vertx);
-        clients.put(vertx, client);
+        try {
+          client = init(vertx);
+          clients.put(vertx, client);
+        } catch (Exception e) {
+          log.error("Failed to ", e);
+        }
       }
     }
 
@@ -50,7 +63,7 @@ public class WebClientFactory {
   private WebClientFactory() {
   }
 
-  private static Future<WebClient> init(Vertx vertx) {
+  private static WebClient init(Vertx vertx) throws InterruptedException, ExecutionException {
 
     ConfigRetriever configRetriever = ConfigRetriever.create(vertx);
     return configRetriever.getConfig().compose(conf -> {
@@ -87,6 +100,6 @@ public class WebClientFactory {
       }
       WebClientInternal cli = (WebClientInternal)WebClient.create(vertx, options);
       return Future.succeededFuture(cli);
-    });
+    }).toCompletionStage().toCompletableFuture().get();
   }
 }
