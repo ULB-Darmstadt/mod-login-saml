@@ -68,7 +68,6 @@ public class SamlAPITest {
   private static final Logger log = LogManager.getLogger(SamlAPITest.class);
   private static final String TENANT_NAME = "saml-test"; 
   
-  
   private static final URI okapi = UriBuilder.fromUri("http://localhost:9130").build();
   
   private static final Header TENANT_HEADER = new Header("X-Okapi-Tenant", TENANT_NAME);
@@ -430,7 +429,7 @@ public class SamlAPITest {
     // good
     given()
       .get("/admin/health")
-      .then()
+    .then()
       .statusCode(200);
 
   }
@@ -445,7 +444,7 @@ public class SamlAPITest {
       .header(OKAPI_URL_HEADER)
       .header(JSON_CONTENT_TYPE_HEADER)
       .get("/saml/configuration")
-      .then()
+    .then()
       .statusCode(200)
       .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlConfig.json"))
       .body("idpUrl", Matchers.equalTo("https://idp.ssocircle.com"))
@@ -473,7 +472,7 @@ public class SamlAPITest {
       .header(JSON_CONTENT_TYPE_HEADER)
       .body(jsonString)
       .put("/saml/configuration")
-      .then()
+    .then()
       .statusCode(200)
       .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlConfig.json"));
   }
@@ -501,6 +500,7 @@ public class SamlAPITest {
       .header(TOKEN_HEADER)
       .header(OKAPI_URL_HEADER)
       .get("/saml/configuration")
+      
     .then()
       .statusCode(500)
       .contentType(ContentType.TEXT)
@@ -510,7 +510,7 @@ public class SamlAPITest {
 
   @Test
   public void regenerateEndpointNoIdP() throws IOException {
-    
+    // Remove all mock stubs.
     reset();
     
     // No IDP in config.
@@ -529,21 +529,23 @@ public class SamlAPITest {
     );
 
     given()
-        .header(TENANT_HEADER)
-        .header(TOKEN_HEADER)
-        .header(OKAPI_URL_HEADER)
-        .get("/saml/regenerate")
-        .then()
-        .statusCode(500)
-        .contentType(ContentType.TEXT)
-        .body(Matchers.containsString("There is no IdP configuration stored"));
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .get("/saml/regenerate")
+      
+    .then()
+      .statusCode(500)
+      .contentType(ContentType.TEXT)
+      .body(Matchers.containsString("There is no IdP configuration stored"));
   }
 
   @Test
   public void regenerateEndpointNoKeystore() throws IOException {
+    // Remove all mock stubs.
     reset();
     
-    // No IDP in config.
+    // No Keystore in config.
     stubFor(
       get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
         .withHost(equalTo(okapi.getHost()))
