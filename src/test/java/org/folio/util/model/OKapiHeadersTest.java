@@ -1,4 +1,4 @@
-package org.folio.config;
+package org.folio.util.model;
 
 import static org.folio.sso.saml.Constants.Exceptions.MSG_MISSING_HDR_OKAPI_URL;
 import static org.folio.sso.saml.Constants.Exceptions.MSG_MISSING_HDR_TENANT;
@@ -9,7 +9,7 @@ import org.folio.util.model.OkapiHeaders;
 import org.folio.util.model.OkapiHeaders.MissingHeaderException;
 import org.junit.Test;
 
-public class ConfigurationClientTest {
+public class OKapiHeadersTest {
 
   @Test
   public void testVerifyOkapiHeadersAllPresent() throws MissingHeaderException {
