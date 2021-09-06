@@ -80,6 +80,9 @@ public class SamlAPITest {
   @Rule
   public TestName testName = new TestName();
   
+  // Instead of using vertx runner to run inline. We use our rule which creates
+  // a vertx instance and sets the proxy option so that all traffic is passed
+  // through the sister WireMock instance.
   @ClassRule
   public static HttpMockingVertx mock = new HttpMockingVertx();
   
