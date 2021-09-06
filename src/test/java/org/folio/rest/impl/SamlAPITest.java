@@ -1,10 +1,29 @@
 package org.folio.rest.impl;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.absent;
+import static com.github.tomakehurst.wiremock.client.WireMock.and;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.badRequest;
+import static com.github.tomakehurst.wiremock.client.WireMock.created;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.forbidden;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
+import static com.github.tomakehurst.wiremock.client.WireMock.noContent;
+import static com.github.tomakehurst.wiremock.client.WireMock.notMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
+import static com.github.tomakehurst.wiremock.client.WireMock.reset;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.unauthorized;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.folio.util.Base64AwareXsdMatcher.matchesBase64XsdInClasspath;
-import org.hamcrest.Matchers;
 import static org.junit.Assert.assertNotEquals;
 
 import java.io.IOException;
@@ -13,19 +32,15 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.junit.rules.HttpMockingVertx;
-import org.folio.rest.RestVerticle;
 import org.folio.rest.jaxrs.model.SamlConfigRequest;
-import org.folio.rest.tools.utils.NetworkUtils;
 import org.folio.sso.saml.Client;
 import org.folio.util.TestingClasspathResolver;
-import org.junit.After;
-import org.junit.AfterClass;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -33,29 +48,21 @@ import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.pac4j.core.context.HttpConstants;
 import org.w3c.dom.ls.LSResourceResolver;
 
-import com.github.tomakehurst.wiremock.matching.StringValuePattern;
-
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.http.Header;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 /**
  * @author rsass
  * @author Steve Osguthorpe
  */
-@RunWith(VertxUnitRunner.class)
 @FixMethodOrder(MethodSorters.JVM) // Preserve the ordering of declared tests.
 public class SamlAPITest {
   private static final Logger log = LogManager.getLogger(SamlAPITest.class);
@@ -77,7 +84,7 @@ public class SamlAPITest {
   public static HttpMockingVertx mock = new HttpMockingVertx();
   
   @BeforeClass
-  public static void setupGlobal(TestContext context) throws UnsupportedEncodingException {
+  public static void setupGlobal() throws UnsupportedEncodingException {
     // Use the DSL to create the test data. Mocking Vertx rule should ensure that
     // requests made from within Vertx using the WebclientFactory will proxy through
     // our mock server first.
@@ -444,7 +451,7 @@ public class SamlAPITest {
   }
 
   @Test
-  public void putConfigurationEndpoint(TestContext context) {
+  public void putConfigurationEndpoint() {
     SamlConfigRequest samlConfigRequest = new SamlConfigRequest()
       .withIdpUrl(URI.create("http://mock-idp/xml"))
       .withSamlAttribute("UserID")
@@ -469,7 +476,7 @@ public class SamlAPITest {
   }
 
   @Test
-  public void testWithConfiguration400(TestContext context) throws IOException {
+  public void testWithConfiguration400() throws IOException {
     
     // Clear the mock data.
     reset();

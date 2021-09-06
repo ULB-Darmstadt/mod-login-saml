@@ -80,20 +80,21 @@ public class HttpMockingVertx extends WireMockRule {
   @Override
   public void start () {
     super.start();
+    
     if (suppliedVertxPort == -1 && vertxPort == -1) {
       vertxPort = NetworkUtils.nextFreePort();
+    } else {
+      vertxPort = suppliedVertxPort;
     }
-    
 
     // Augment the properties if not set.
     final Properties props = System.getProperties();
     props.put("mock.httpclient", "true");
-    if (!props.containsKey("webclient.proxyAddress")) {
+//    if (!props.containsKey("webclient.proxyAddress")) {
       props.put("webclient.proxyAddress", "http://localhost:" + mockServerPort);
-    }
+//    }
     
-    vertx = Vertx.vertx(new VertxOptions()
-        .setBlockedThreadCheckInterval(1000*60*60));
+    vertx = Vertx.vertx();
     
     DeploymentOptions options = new DeploymentOptions()
       .setConfig(new JsonObject()
