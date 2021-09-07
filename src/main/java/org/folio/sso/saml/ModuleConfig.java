@@ -110,15 +110,15 @@ public class ModuleConfig implements Configuration {
       headers
         .set(OkapiHeaders.OKAPI_TOKEN_HEADER, okapiHeaders.getToken())
         .set(OkapiHeaders.OKAPI_TENANT_HEADER, okapiHeaders.getTenant());
-
+      final String theUrl = OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), Config.ENTRIES_ENDPOINT + "?limit=10000&query=" + encodedQuery); // this is ugly :/
       WebClientFactory.getWebClient()
-        .get(OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), Config.ENTRIES_ENDPOINT + "?limit=10000&query=" + encodedQuery)) // this is ugly :/
+        .getAbs(theUrl)
         .putHeaders(headers)
       .send()
       
       .onSuccess(response -> {
         if ( !HttpUtils.isSuccess(response) ) {
-          log.warn("Cannot get configuration data: {}", response.statusMessage());
+          log.warn("Cannot get configuration data. {} - {} response from {}", response.statusCode(), response.statusMessage(), theUrl);
           promise.fail(response.statusMessage());
           return;
         }
@@ -284,7 +284,7 @@ public class ModuleConfig implements Configuration {
         .set(OkapiHeaders.OKAPI_TENANT_HEADER, okapiHeaders.getTenant());
 
       WebClientFactory.getWebClient()
-        .request(httpMethod, OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), endpoint)) // this is ugly :/
+        .requestAbs(httpMethod, OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), endpoint)) // this is ugly :/
         .putHeaders(headers)
       .sendJsonObject(requestBody)
       

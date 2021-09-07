@@ -53,7 +53,8 @@ public class OkapiHelper {
       .path(call.getPath()) // Append the path.
       .replaceQuery(call.getQuery())
     ;
-    return target.build().toString();
+    final String okapiUri = target.build().toString();
+    return okapiUri;
   }
 
   public static OkapiHeaders okapiHeaders(Map<String, String> parsedHeaders) {

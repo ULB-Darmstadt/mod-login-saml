@@ -225,7 +225,7 @@ public class SamlAPI implements Saml {
             // Grab the client.
             final WebClient webClient = WebClientFactory.getWebClient();
             Future<HttpResponse<Buffer>> clientResponse = webClient
-              .get(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), userQuery))
+              .getAbs(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), userQuery))
               .putHeaders(headers)
               .send()
             ;
@@ -368,7 +368,7 @@ public class SamlAPI implements Saml {
       final JsonObject payload = new JsonObject().put("payload", new JsonObject().put("sub", userObject.getString("username")).put("user_id", userId));
 
       WebClientFactory.getWebClient()
-        .post(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/token"))
+        .postAbs(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/token"))
         .putHeaders(headers)
         .sendJsonObject(payload)
         
