@@ -41,6 +41,7 @@ import org.folio.sso.saml.Client;
 import org.folio.sso.saml.Constants.Config;
 import org.folio.sso.saml.ModuleConfig;
 import org.folio.util.Base64Util;
+import org.folio.util.FunctionalUtils;
 import org.folio.util.HttpActionMapper;
 import org.folio.util.HttpUtils;
 import org.folio.util.OkapiHelper;
@@ -101,13 +102,15 @@ public class SamlAPI implements Saml {
   public void getSamlCheck(RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    Client.get(routingContext, false, false)
-      .onComplete(samlClientHandler -> {
-        if (samlClientHandler.failed()) {
-          asyncResultHandler.handle(Future.succeededFuture(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(false))));
-        } else {
-          asyncResultHandler.handle(Future.succeededFuture(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(true))));
-        }
+    FunctionalUtils.handleThrowables(asyncResultHandler, () -> {
+      Client.get(routingContext, false, false)
+        .onComplete(samlClientHandler -> {
+          if (samlClientHandler.failed()) {
+            asyncResultHandler.handle(Future.succeededFuture(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(false))));
+          } else {
+            asyncResultHandler.handle(Future.succeededFuture(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(true))));
+          }
+      });
     });
   }
 
@@ -116,29 +119,26 @@ public class SamlAPI implements Saml {
   public void postSamlLogin(SamlLoginRequest requestEntity, RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    String csrfToken = UUID.randomUUID().toString();
-    String stripesUrl = requestEntity.getStripesUrl();
-    String relayState = stripesUrl + (stripesUrl.indexOf('?') >= 0 ? '&' : '?') + CSRF_TOKEN + '=' + csrfToken;
-    Cookie relayStateCookie = Cookie.cookie(RELAY_STATE, relayState)
-        .setPath("/").setHttpOnly(true).setSecure(true);
-    routingContext.addCookie(relayStateCookie);
-
-
-    // register non-persistent session (this request only) to overWrite relayState
-    Session session = new SharedDataSessionImpl(new PRNG(vertxContext.owner()));
-    session.put(SAML_RELAY_STATE_ATTRIBUTE, relayState);
-    routingContext.setSession(session);
-
-    Client.get(routingContext, false, false) // do not allow login, if config is missing
-      .map(saml2client -> postSamlLoginResponse(routingContext, saml2client))
-      .recover(e -> {
-        log.warn(e.getMessage(), e);
-        return Future.succeededFuture(PostSamlLoginResponse.respond500WithTextPlain("Internal Server Error"));
-      })
-      .onSuccess(response -> asyncResultHandler.handle(Future.succeededFuture(response)));
+    FunctionalUtils.handleThrowables(asyncResultHandler, () -> {
+    
+      String stripesUrl = requestEntity.getStripesUrl();
+  
+      // register non-persistent session (this request only) to overWrite relayState
+      Session session = new SharedDataSessionImpl(new PRNG(vertxContext.owner()));
+      session.put(SAML_RELAY_STATE_ATTRIBUTE, stripesUrl);
+      routingContext.setSession(session);
+  
+      Client.get(routingContext, false, false) // do not allow login, if config is missing
+        .map(saml2client -> postSamlLoginResponse(routingContext, saml2client))
+        .recover(e -> {
+          log.warn(e.getMessage(), e);
+          return Future.succeededFuture(PostSamlLoginResponse.respond500WithTextPlain("Internal Server Error"));
+        })
+        .onSuccess(response -> asyncResultHandler.handle(Future.succeededFuture(response)));
+    });
   }
 
-  private Response postSamlLoginResponse(RoutingContext routingContext, SAML2Client saml2Client) {
+  private Response postSamlLoginResponse(RoutingContext routingContext, Client saml2Client) {
     try {
       RedirectionAction redirectionAction = saml2Client
           .getRedirectionAction(VertxUtils.createWebContext(routingContext))
@@ -151,6 +151,7 @@ public class SamlAPI implements Saml {
       routingContext.response().headers().clear(); // saml2Client sets Content-Type: text/html header
       addCredentialsAndOriginHeaders(routingContext);
       return PostSamlLoginResponse.respond200WithApplicationJson(dto);
+      
     } catch (HttpAction httpAction) {
       return HttpActionMapper.toResponse(httpAction);
     }
@@ -160,7 +161,7 @@ public class SamlAPI implements Saml {
   public void postSamlCallback(RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    try {
+    FunctionalUtils.handleThrowables(asyncResultHandler, () -> {
       registerFakeSession(routingContext);
   
       final VertxWebContext webContext = VertxUtils.createWebContext(routingContext);
@@ -257,25 +258,25 @@ public class SamlAPI implements Saml {
                   userData.put(userPropertyName, samlAttributeValue);
       
                   // Attempt to create the missing user.
-                    webClient
-                      .post(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/users"))
-                      .putHeaders(headers)
-                      .sendJsonObject(userData)
-                      
-                    .onSuccess(createResponse -> {
-                      if ( !HttpUtils.isSuccess(createResponse) ) {
-                        asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(
-                            createResponse.statusMessage())));
-                        return;
-                      }
-                      
-                      getTokenForUser(asyncResultHandler, parsedHeaders, createResponse.bodyAsJsonObject(), originalUrl, stripesBaseUrl);
-                    })
-                    .onFailure(throwable -> {
-                      asyncResultHandler.handle(Future.succeededFuture(
-                        PostSamlCallbackResponse.respond500WithTextPlain(throwable.getMessage())
-                      ));
-                    });
+                  webClient
+                    .post(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/users"))
+                    .putHeaders(headers)
+                    .sendJsonObject(userData)
+                    
+                  .onSuccess(createResponse -> {
+                    if ( !HttpUtils.isSuccess(createResponse) ) {
+                      asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(
+                          createResponse.statusMessage())));
+                      return;
+                    }
+                    
+                    getTokenForUser(asyncResultHandler, parsedHeaders, createResponse.bodyAsJsonObject(), originalUrl, stripesBaseUrl);
+                  })
+                  .onFailure(throwable -> {
+                    asyncResultHandler.handle(Future.succeededFuture(
+                      PostSamlCallbackResponse.respond500WithTextPlain(throwable.getMessage())
+                    ));
+                  });
                 } else {
                   // 1 user found! Grab them and then grab a token.
                   final JsonObject userObject = resultObject.getJsonArray("users").getJsonObject(0);
@@ -300,10 +301,7 @@ public class SamlAPI implements Saml {
           asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(t.getMessage())));
         }
       });
-    } catch ( Throwable t ) {
-      // Server error.
-      asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(t.getMessage())));
-    }
+    });
   }
 
   @Override
