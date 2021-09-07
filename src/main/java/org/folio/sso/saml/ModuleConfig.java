@@ -26,10 +26,8 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import io.vertx.core.Future;
-import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -101,19 +99,11 @@ public class ModuleConfig implements Configuration {
     String query = "(module==" + MODULE_NAME + " AND configName==" + Config.CONFIG_NAME + ")";
 
     try {
-      
-      okapiHeaders.verifyInteropValues();
-      
       String encodedQuery = URLEncoder.encode(query, "UTF-8");
-
-      MultiMap headers = new HeadersMultiMap();
-      headers
-        .set(OkapiHeaders.OKAPI_TOKEN_HEADER, okapiHeaders.getToken())
-        .set(OkapiHeaders.OKAPI_TENANT_HEADER, okapiHeaders.getTenant());
       final String theUrl = OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), Config.ENTRIES_ENDPOINT + "?limit=10000&query=" + encodedQuery); // this is ugly :/
       WebClientFactory.getWebClient()
         .getAbs(theUrl)
-        .putHeaders(headers)
+        .putHeaders(okapiHeaders.securedInteropHeaders())
       .send()
       
       .onSuccess(response -> {
@@ -277,15 +267,10 @@ public class ModuleConfig implements Configuration {
       // not existing -> POST, existing->PUT
       final HttpMethod httpMethod = configId == null ? HttpMethod.POST : HttpMethod.PUT;
       final String endpoint = Config.ENTRIES_ENDPOINT + (configId == null ? "" : "/" + configId);
-  
-      final MultiMap headers = new HeadersMultiMap();
-      headers
-        .set(OkapiHeaders.OKAPI_TOKEN_HEADER, okapiHeaders.getToken())
-        .set(OkapiHeaders.OKAPI_TENANT_HEADER, okapiHeaders.getTenant());
 
       WebClientFactory.getWebClient()
         .requestAbs(httpMethod, OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), endpoint)) // this is ugly :/
-        .putHeaders(headers)
+        .putHeaders(okapiHeaders.securedInteropHeaders())
       .sendJsonObject(requestBody)
       
       .onSuccess(response -> {

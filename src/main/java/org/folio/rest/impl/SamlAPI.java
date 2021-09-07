@@ -217,10 +217,7 @@ public class SamlAPI implements Saml {
     
             OkapiHeaders parsedHeaders = OkapiHelper.okapiHeaders(okapiHeaders);
     
-            final MultiMap headers = new HeadersMultiMap();
-            headers
-              .set(OkapiHeaders.OKAPI_TOKEN_HEADER, parsedHeaders.getToken())
-              .set(OkapiHeaders.OKAPI_TENANT_HEADER, parsedHeaders.getTenant());
+            final MultiMap headers = parsedHeaders.securedInteropHeaders();
     
             // Grab the client.
             final WebClient webClient = WebClientFactory.getWebClient();
@@ -353,60 +350,58 @@ public class SamlAPI implements Saml {
   }
 
   public static void getTokenForUser(Handler<AsyncResult<Response>> asyncResultHandler, OkapiHeaders parsedHeaders, JsonObject userObject, URI originalUrl, URI stripesBaseUrl) {
-    String userId = userObject.getString("id");
-    if (!userObject.getBoolean("active")) {
-      asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond403WithTextPlain("Inactive user account!")));
-    } else {
-
-      // Current token to headers.
-      final MultiMap headers = new HeadersMultiMap();
-      headers
-        .set(OkapiHeaders.OKAPI_TOKEN_HEADER, parsedHeaders.getToken())
-        .set(OkapiHeaders.OKAPI_TENANT_HEADER, parsedHeaders.getTenant());
-      
-      
-      final JsonObject payload = new JsonObject().put("payload", new JsonObject().put("sub", userObject.getString("username")).put("user_id", userId));
-
-      WebClientFactory.getWebClient()
-        .postAbs(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/token"))
-        .putHeaders(headers)
-        .sendJsonObject(payload)
+    try {
+    
+      String userId = userObject.getString("id");
+      if (!userObject.getBoolean("active")) {
+        asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond403WithTextPlain("Inactive user account!")));
+      } else {     
         
-      .onSuccess(response -> {
-        if ( !HttpUtils.isSuccess(response) ) {
-          asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(
-              response.statusMessage())));
-          return;
-        }
-        
-        String candidateAuthToken = null;
-        if(response.statusCode() == 200) {
-          candidateAuthToken = response.headers().get(OkapiHeaders.OKAPI_TOKEN_HEADER);
-        } else {
-          //mod-authtoken v2.x returns 201, with token in JSON response body
-          try {
-            candidateAuthToken = response.bodyAsJsonObject().getString("token");
-          } catch(Exception e) {
-            asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(e.getMessage())));
+        final JsonObject payload = new JsonObject().put("payload", new JsonObject().put("sub", userObject.getString("username")).put("user_id", userId));
+  
+        WebClientFactory.getWebClient()
+          .postAbs(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/token"))
+          .putHeaders(parsedHeaders.securedInteropHeaders())
+          .sendJsonObject(payload)
+          
+        .onSuccess(response -> {
+          if ( !HttpUtils.isSuccess(response) ) {
+            asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(
+                response.statusMessage())));
+            return;
           }
-        }
-        final String authToken = candidateAuthToken;
-
-        final String location = UriBuilder.fromUri(stripesBaseUrl)
-            .path("sso-landing")
-            .queryParam("ssoToken", authToken)
-            .queryParam("fwd", originalUrl.getPath())
-            .build()
-            .toString();
-
-        final String cookie = new NewCookie("ssoToken", authToken, "", originalUrl.getHost(), "", 3600, false).toString();
-
-        HeadersFor302 headers302 = PostSamlCallbackResponse.headersFor302().withSetCookie(cookie).withXOkapiToken(authToken).withLocation(location);
-        asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond302(headers302)));
-      })
-      .onFailure(throwable -> {
-        asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(throwable.getMessage())));
-      });
+          
+          String candidateAuthToken = null;
+          if(response.statusCode() == 200) {
+            candidateAuthToken = response.headers().get(OkapiHeaders.OKAPI_TOKEN_HEADER);
+          } else {
+            //mod-authtoken v2.x returns 201, with token in JSON response body
+            try {
+              candidateAuthToken = response.bodyAsJsonObject().getString("token");
+            } catch(Exception e) {
+              asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(e.getMessage())));
+            }
+          }
+          final String authToken = candidateAuthToken;
+  
+          final String location = UriBuilder.fromUri(stripesBaseUrl)
+              .path("sso-landing")
+              .queryParam("ssoToken", authToken)
+              .queryParam("fwd", originalUrl.getPath())
+              .build()
+              .toString();
+  
+          final String cookie = new NewCookie("ssoToken", authToken, "", originalUrl.getHost(), "", 3600, false).toString();
+  
+          HeadersFor302 headers302 = PostSamlCallbackResponse.headersFor302().withSetCookie(cookie).withXOkapiToken(authToken).withLocation(location);
+          asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond302(headers302)));
+        })
+        .onFailure(throwable -> {
+          asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(throwable.getMessage())));
+        });
+      }
+    } catch (Throwable throwable) {
+      asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(throwable.getMessage())));
     }
   }
 

@@ -17,7 +17,7 @@ public class OKapiHeadersTest {
     okapiHeaders.setTenant("tenant");
     okapiHeaders.setToken("token");
     okapiHeaders.setUrl("url");
-    okapiHeaders.verifyInteropValues();
+    okapiHeaders.verifySecuredInteropValues();
   }
 
   @Test
@@ -26,7 +26,7 @@ public class OKapiHeadersTest {
     okapiHeaders.setTenant("tenant");
     okapiHeaders.setUrl("url");
     try {
-      okapiHeaders.verifyInteropValues();
+      okapiHeaders.verifySecuredInteropValues();
     } catch (MissingHeaderException e) {
       assertEquals(MSG_MISSING_HDR_TOKEN, e.getMessage());
     }
@@ -38,7 +38,7 @@ public class OKapiHeadersTest {
     okapiHeaders.setToken("token");
     okapiHeaders.setUrl("url");
     try {
-      okapiHeaders.verifyInteropValues();
+      okapiHeaders.verifySecuredInteropValues();
     } catch (MissingHeaderException e) {
       assertEquals(MSG_MISSING_HDR_TENANT, e.getMessage());
     }
@@ -50,7 +50,7 @@ public class OKapiHeadersTest {
     okapiHeaders.setTenant("tenant");
     okapiHeaders.setToken("token");
     try {
-      okapiHeaders.verifyInteropValues();
+      okapiHeaders.verifySecuredInteropValues();
     } catch (MissingHeaderException e) {
       assertEquals(MSG_MISSING_HDR_OKAPI_URL, e.getMessage());
     }

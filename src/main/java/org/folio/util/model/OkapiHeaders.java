@@ -3,6 +3,10 @@ package org.folio.util.model;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Strings;
+
+import io.vertx.core.MultiMap;
+import io.vertx.core.http.impl.headers.HeadersMultiMap;
+
 import static org.folio.sso.saml.Constants.Exceptions.*;
 
 /**
@@ -64,6 +68,14 @@ public class OkapiHeaders {
     }
   }
   
+  public void verifySecuredInteropValues() throws MissingHeaderException {
+    verifyInteropValues();
+    
+    if (Strings.isNullOrEmpty(getToken())) {
+      throw new MissingHeaderException(MSG_MISSING_HDR_TOKEN);
+    }
+  }
+  
   public void verifyInteropValues() throws MissingHeaderException {
     if (Strings.isNullOrEmpty(getUrl())) {
       throw new MissingHeaderException(MSG_MISSING_HDR_OKAPI_URL);
@@ -71,8 +83,26 @@ public class OkapiHeaders {
     if (Strings.isNullOrEmpty(getTenant())) {
       throw new MissingHeaderException(MSG_MISSING_HDR_TENANT);
     }
-    if (Strings.isNullOrEmpty(getToken())) {
-      throw new MissingHeaderException(MSG_MISSING_HDR_TOKEN);
-    }
+  }
+  
+  private MultiMap defaultHeaders() {
+    return new HeadersMultiMap()
+      .set("Accept", "application/json")
+      .set("Content-Type", "application/json");
+  }
+  
+  public MultiMap interopHeaders() throws MissingHeaderException {
+    verifyInteropValues();
+    
+    return defaultHeaders()
+      .set(OkapiHeaders.OKAPI_TENANT_HEADER, getTenant());
+  }
+  
+  public MultiMap securedInteropHeaders() throws MissingHeaderException {
+    verifySecuredInteropValues();
+    
+    return defaultHeaders()
+      .set(OkapiHeaders.OKAPI_TOKEN_HEADER, getToken())
+      .set(OkapiHeaders.OKAPI_TENANT_HEADER, getTenant());
   }
 }
