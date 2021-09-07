@@ -41,7 +41,11 @@ public class WebClientFactory {
    * Returns or Initializes and returns a Future WebClient for the provided Vertx.
    * Ensures we keep 1 client per Vertx instance to benefit from pooling etc.
    *
-   * @param vertx
+   * This method is blocking, however, only the first invocation does the asynchronous
+   * fetching of the config. Any subsequent invocations should succeed immediately
+   * as the future is cached and returned for immediate success.
+   *
+   * @param vertx The vertx instance is used as a cache key for the Client Pool 
    */
   public static WebClient getWebClient(@NotNull Vertx vertx) {
     WebClient client;
