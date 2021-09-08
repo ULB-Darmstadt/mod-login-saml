@@ -8,8 +8,9 @@ import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS;
 import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD;
 import static io.vertx.core.http.HttpHeaders.ORIGIN;
 import static io.vertx.core.http.HttpHeaders.VARY;
+import static org.folio.util.FunctionalUtils.handleThrowables;
+import static org.folio.util.FunctionalUtils.handleThrowablesWithResponse;
 import static org.pac4j.saml.state.SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUTE;
-import static org.folio.util.FunctionalUtils.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,7 +43,6 @@ import org.folio.sso.saml.Client;
 import org.folio.sso.saml.Constants.Config;
 import org.folio.sso.saml.ModuleConfig;
 import org.folio.util.Base64Util;
-import org.folio.util.FunctionalUtils;
 import org.folio.util.HttpActionMapper;
 import org.folio.util.HttpUtils;
 import org.folio.util.OkapiHelper;
@@ -50,7 +50,6 @@ import org.folio.util.UrlUtil;
 import org.folio.util.VertxUtils;
 import org.folio.util.WebClientFactory;
 import org.folio.util.model.OkapiHeaders;
-import org.folio.util.model.UrlCheckResult;
 import org.pac4j.core.exception.http.HttpAction;
 import org.pac4j.core.exception.http.OkAction;
 import org.pac4j.core.exception.http.RedirectionAction;
@@ -67,7 +66,6 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
@@ -103,7 +101,7 @@ public class SamlAPI implements Saml {
   public void getSamlCheck(RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    handleThrowables(asyncResultHandler, () -> {
+    handleThrowablesWithResponse(asyncResultHandler, () -> {
       Client.get(routingContext, false, false)
         .onComplete(samlClientHandler -> {
           asyncResultHandler.handle(Future.succeededFuture(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(!samlClientHandler.failed()))));
@@ -115,7 +113,7 @@ public class SamlAPI implements Saml {
   public void postSamlLogin(SamlLoginRequest requestEntity, RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    handleThrowables(asyncResultHandler, () -> {
+    handleThrowablesWithResponse(asyncResultHandler, () -> {
     
       String stripesUrl = requestEntity.getStripesUrl();
   
@@ -157,7 +155,7 @@ public class SamlAPI implements Saml {
   public void postSamlCallback(RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    handleThrowables(asyncResultHandler, () -> {
+    handleThrowablesWithResponse(asyncResultHandler, () -> {
       registerFakeSession(routingContext);
   
       final VertxWebContext webContext = VertxUtils.createWebContext(routingContext);
@@ -179,7 +177,7 @@ public class SamlAPI implements Saml {
           Client.get(routingContext, false, false)
       ).onComplete(compositeHandler -> {
         
-        handleThrowables(asyncResultHandler, () -> {
+        handleThrowablesWithResponse(asyncResultHandler, () -> {
         
           if (compositeHandler.failed()) {
             // Fail the request.
@@ -224,7 +222,7 @@ public class SamlAPI implements Saml {
             ;
             
             clientResponse.onSuccess(response -> {
-              handleThrowables(asyncResultHandler, () -> {
+              handleThrowablesWithResponse(asyncResultHandler, () -> {
                 if ( !HttpUtils.isSuccess(response) ) {
                   asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(
                       response.statusMessage())));
@@ -474,7 +472,7 @@ public class SamlAPI implements Saml {
       return;
     }
     
-    handleThrowables(asyncResultHandler, UrlUtil.checkIdpUrl(value, vertxContext.owner()))
+    handleThrowablesWithResponse(asyncResultHandler, UrlUtil.checkIdpUrl(value, vertxContext.owner()))
       .onSuccess(result -> {
         SamlValidateResponse response = new SamlValidateResponse();
         if (result.isSuccess()) {
@@ -502,20 +500,19 @@ public class SamlAPI implements Saml {
           stringHandler.fail(clientHandler.cause());
         } else {
           SAML2Client saml2Client = clientHandler.result();
-    
           vertx.executeBlocking(blockingCode -> {
-            SAML2Configuration cfg = saml2Client.getConfiguration();
-    
-            // force metadata generation then init
-            cfg.setForceServiceProviderMetadataGeneration(true);
-            saml2Client.init();
-            cfg.setForceServiceProviderMetadataGeneration(false);
-    
-            try {
+            
+            handleThrowables (blockingCode, () -> {
+              
+              SAML2Configuration cfg = saml2Client.getConfiguration();
+              
+              // force metadata generation then init
+              cfg.setForceServiceProviderMetadataGeneration(true);
+              saml2Client.init();
+              cfg.setForceServiceProviderMetadataGeneration(false);
+      
               blockingCode.complete(saml2Client.getServiceProviderMetadataResolver().getMetadata());
-            } catch (Exception e) {
-              blockingCode.fail(e);
-            }
+            });
           }, stringHandler);
         }
       });

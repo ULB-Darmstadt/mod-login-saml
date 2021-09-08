@@ -9,11 +9,30 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 
 /**
- *  
+ * Functional Utilities for moving common patterns to a more central and more
+ * testable location.  
+ * 
  * @author Steve Osguthorpe
  *
  */
 public class FunctionalUtils {
+  
+  /**
+   * Handles exceptions in the supplied body by failing the supplied Handler.
+   * Because vertx promises extend Handler<AsyncResult<T>>, you can also use
+   * this with promises.
+   *  
+   * @param handler
+   * @param body
+   */
+  public static <D extends Object, T extends Handler<AsyncResult<D>>> void handleThrowables (T handler, ThrowingBody body) {
+    
+    try {
+      body.exec();
+    } catch (Throwable t) {
+      handler.handle(Future.failedFuture(t));
+    }
+  }
   
   /**
    * Handles exceptions in the supplied body by succeeding the supplied Handler
@@ -22,7 +41,7 @@ public class FunctionalUtils {
    * @param handler
    * @param body
    */
-  public static void handleThrowables (Handler<AsyncResult<Response>> handler, ThrowingBody body) {
+  public static void handleThrowablesWithResponse (Handler<AsyncResult<Response>> handler, ThrowingBody body) {
     try {
       body.exec();
     } catch (Throwable t) {
@@ -42,7 +61,7 @@ public class FunctionalUtils {
    * @param handler
    * @param future
    */
-  public static <T> Future<T> handleThrowables (Handler<AsyncResult<Response>> handler, Future<T> future) {
+  public static <T> Future<T> handleThrowablesWithResponse (Handler<AsyncResult<Response>> handler, Future<T> future) {
     return future.onFailure(throwable -> {
       final String text = throwable.getMessage();
       Response.ResponseBuilder responseBuilder = Response.status(500).header("Content-Type", "text/plain");
