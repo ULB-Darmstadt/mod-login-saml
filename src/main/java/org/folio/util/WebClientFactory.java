@@ -5,6 +5,8 @@ import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.validation.constraints.NotNull;
 
@@ -70,7 +72,7 @@ public class WebClientFactory {
   private static WebClient init(Vertx vertx) throws InterruptedException, ExecutionException {
 
     ConfigRetriever configRetriever = ConfigRetriever.create(vertx);
-    return configRetriever.getConfig().compose(conf -> {
+    Future<WebClient> wcFuture = configRetriever.getConfig().compose(conf -> {
       
       // Initialize with default object.
       WebClientOptions options;
@@ -104,6 +106,12 @@ public class WebClientFactory {
       }
       WebClientInternal cli = (WebClientInternal)WebClient.create(vertx, options);
       return Future.succeededFuture(cli);
-    }).toCompletionStage().toCompletableFuture().get();
+    });
+    
+    try {
+      return wcFuture.toCompletionStage().toCompletableFuture().get(10, TimeUnit.SECONDS);
+    } catch (TimeoutException e) {
+      throw new RuntimeException("Could not create web client", e);
+    }
   }
 }
