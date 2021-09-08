@@ -25,7 +25,7 @@ public class FunctionalUtils {
    * @param handler
    * @param body
    */
-  public static <D extends Object, T extends Handler<AsyncResult<D>>> void handleThrowables (T handler, ThrowingBody body) {
+  public static <D, T extends Handler<AsyncResult<D>>> void handleThrowables (T handler, ThrowingBody body) {
     
     try {
       body.exec();

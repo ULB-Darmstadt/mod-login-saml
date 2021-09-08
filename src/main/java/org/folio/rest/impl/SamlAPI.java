@@ -251,25 +251,22 @@ public class SamlAPI implements Saml {
                   userData.put(userPropertyName, samlAttributeValue);
       
                   // Attempt to create the missing user.
-                  webClient
-                    .post(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/users"))
-                    .putHeaders(headers)
-                    .sendJsonObject(userData)
-                    
-                  .onSuccess(createResponse -> {
-                    if ( !HttpUtils.isSuccess(createResponse) ) {
-                      asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(
-                          createResponse.statusMessage())));
-                      return;
-                    }
-                    
-                    getTokenForUser(asyncResultHandler, parsedHeaders, createResponse.bodyAsJsonObject(), originalUrl, stripesBaseUrl);
-                  })
-                  .onFailure(throwable -> {
-                    asyncResultHandler.handle(Future.succeededFuture(
-                      PostSamlCallbackResponse.respond500WithTextPlain(throwable.getMessage())
-                    ));
-                  });
+                  handleThrowablesWithResponse(asyncResultHandler, 
+                    webClient
+                      .post(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/users"))
+                      .putHeaders(headers)
+                      .sendJsonObject(userData)
+                      
+                    .onSuccess(createResponse -> {
+                      if ( !HttpUtils.isSuccess(createResponse) ) {
+                        asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(
+                            createResponse.statusMessage())));
+                        return;
+                      }
+                      
+                      getTokenForUser(asyncResultHandler, parsedHeaders, createResponse.bodyAsJsonObject(), originalUrl, stripesBaseUrl);
+                    })
+                  );
                 } else {
                   // 1 user found! Grab them and then grab a token.
                   final JsonObject userObject = resultObject.getJsonArray("users").getJsonObject(0);
