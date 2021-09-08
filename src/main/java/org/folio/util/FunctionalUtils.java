@@ -7,9 +7,12 @@ import org.folio.rest.jaxrs.resource.support.ResponseDelegate;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.web.client.HttpResponse;
 
+/**
+ *  
+ * @author Steve Osguthorpe
+ *
+ */
 public class FunctionalUtils {
   
   /**
@@ -37,7 +40,7 @@ public class FunctionalUtils {
    * Adds an onFailure handler to handle the general throwable failure.
    *  
    * @param handler
-   * @param body
+   * @param future
    */
   public static <T> Future<T> handleThrowables (Handler<AsyncResult<Response>> handler, Future<T> future) {
     return future.onFailure(throwable -> {

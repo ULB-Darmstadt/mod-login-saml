@@ -9,6 +9,7 @@ import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD;
 import static io.vertx.core.http.HttpHeaders.ORIGIN;
 import static io.vertx.core.http.HttpHeaders.VARY;
 import static org.pac4j.saml.state.SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUTE;
+import static org.folio.util.FunctionalUtils.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -102,24 +103,19 @@ public class SamlAPI implements Saml {
   public void getSamlCheck(RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    FunctionalUtils.handleThrowables(asyncResultHandler, () -> {
+    handleThrowables(asyncResultHandler, () -> {
       Client.get(routingContext, false, false)
         .onComplete(samlClientHandler -> {
-          if (samlClientHandler.failed()) {
-            asyncResultHandler.handle(Future.succeededFuture(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(false))));
-          } else {
-            asyncResultHandler.handle(Future.succeededFuture(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(true))));
-          }
+          asyncResultHandler.handle(Future.succeededFuture(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(!samlClientHandler.failed()))));
       });
     });
   }
-
 
   @Override
   public void postSamlLogin(SamlLoginRequest requestEntity, RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    FunctionalUtils.handleThrowables(asyncResultHandler, () -> {
+    handleThrowables(asyncResultHandler, () -> {
     
       String stripesUrl = requestEntity.getStripesUrl();
   
@@ -161,7 +157,7 @@ public class SamlAPI implements Saml {
   public void postSamlCallback(RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    FunctionalUtils.handleThrowables(asyncResultHandler, () -> {
+    handleThrowables(asyncResultHandler, () -> {
       registerFakeSession(routingContext);
   
       final VertxWebContext webContext = VertxUtils.createWebContext(routingContext);
@@ -183,7 +179,7 @@ public class SamlAPI implements Saml {
           Client.get(routingContext, false, false)
       ).onComplete(compositeHandler -> {
         
-        try {
+        handleThrowables(asyncResultHandler, () -> {
         
           if (compositeHandler.failed()) {
             // Fail the request.
@@ -200,7 +196,7 @@ public class SamlAPI implements Saml {
             String userPropertyName = config.getUserProperty() == null ? "externalSystemId" : config.getUserProperty();
             String samlAttributeName = config.getSamlAttribute() == null ? "UserID" : config.getSamlAttribute();
     
-            SAML2Credentials credentials = client.getCredentials(webContext).orElseThrow();
+            SAML2Credentials credentials = client.getCredentials(webContext).orElseThrow(); 
     
             // Get user id
             List<?> samlAttributeList = (List<?>) credentials.getUserProfile().getAttribute(samlAttributeName);
@@ -211,8 +207,7 @@ public class SamlAPI implements Saml {
             final String samlAttributeValue = samlAttributeList.get(0).toString();
     
             final String usersCql = userPropertyName +
-                "=="
-                + QUOTATION_MARK_CHARACTER + samlAttributeValue + QUOTATION_MARK_CHARACTER;
+                "==" + '"' + samlAttributeValue + '"';
     
             final String userQuery = UriBuilder.fromPath("/users").queryParam("query", usersCql).build().toString();
     
@@ -229,7 +224,7 @@ public class SamlAPI implements Saml {
             ;
             
             clientResponse.onSuccess(response -> {
-              try {
+              handleThrowables(asyncResultHandler, () -> {
                 if ( !HttpUtils.isSuccess(response) ) {
                   asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(
                       response.statusMessage())));
@@ -283,9 +278,7 @@ public class SamlAPI implements Saml {
                   getTokenForUser(asyncResultHandler, parsedHeaders, userObject, originalUrl, stripesBaseUrl);
                 }
 
-              } catch (Throwable t ) {
-                asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(t.getMessage())));
-              }
+              });
               
             }).onFailure(throwable -> {
               
@@ -297,9 +290,7 @@ public class SamlAPI implements Saml {
               }
             });
           }
-        } catch (Throwable t ) {
-          asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(t.getMessage())));
-        }
+        });
       });
     });
   }
@@ -477,9 +468,14 @@ public class SamlAPI implements Saml {
   @Override
   public void getSamlValidate(SamlValidateGetType type, String value, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    Handler<AsyncResult<UrlCheckResult>> handler = hnd -> {
-      if (hnd.succeeded()) {
-        UrlCheckResult result = hnd.result();
+    // Bail early.
+    if (SamlValidateGetType.IDPURL != type) {
+      asyncResultHandler.handle(Future.succeededFuture(GetSamlValidateResponse.respond500WithTextPlain("unknown type: " + type.toString())));
+      return;
+    }
+    
+    handleThrowables(asyncResultHandler, UrlUtil.checkIdpUrl(value, vertxContext.owner()))
+      .onSuccess(result -> {
         SamlValidateResponse response = new SamlValidateResponse();
         if (result.isSuccess()) {
           response.setValid(true);
@@ -488,49 +484,42 @@ public class SamlAPI implements Saml {
           response.setError(result.getMessage());
         }
         asyncResultHandler.handle(Future.succeededFuture(GetSamlValidateResponse.respond200WithApplicationJson(response)));
-      } else {
-        asyncResultHandler.handle(Future.succeededFuture(GetSamlValidateResponse.respond500WithTextPlain("unknown error")));
-      }
-    };
-
-    switch (type) {
-      case IDPURL:
-        UrlUtil.checkIdpUrl(value, vertxContext.owner()).onComplete(handler);
-        break;
-      default:
-        asyncResultHandler.handle(Future.succeededFuture(GetSamlValidateResponse.respond500WithTextPlain("unknown type: " + type.toString())));
-    }
+      });
   }
 
-  private Future<String> regenerateSaml2Config(RoutingContext routingContext) {
+  private Future<String> regenerateSaml2Config(final RoutingContext routingContext) {
 
-    Promise<String> result = Promise.promise();
     final Vertx vertx = routingContext.vertx();
-
-    Client.get(routingContext, false, true)
-    .onComplete(handler -> {
-      if (handler.failed()) {
-        result.fail(handler.cause());
-      } else {
-        SAML2Client saml2Client = handler.result();
-
-        vertx.executeBlocking(blockingCode -> {
-          SAML2Configuration cfg = saml2Client.getConfiguration();
-
-          // force metadata generation then init
-          cfg.setForceServiceProviderMetadataGeneration(true);
-          saml2Client.init();
-          cfg.setForceServiceProviderMetadataGeneration(false);
-
-          try {
-            blockingCode.complete(saml2Client.getServiceProviderMetadataResolver().getMetadata());
-          } catch (Exception e) {
-            blockingCode.fail(e);
-          }
-        }, result);
-      }
+    
+    return Future.future(stringHandler -> {
+      
+      // Grab the client. Instanciates or returns from cache. 
+      Client.get(routingContext, false, true)
+      
+      .onComplete(clientHandler -> {
+        
+        if (clientHandler.failed()) {
+          stringHandler.fail(clientHandler.cause());
+        } else {
+          SAML2Client saml2Client = clientHandler.result();
+    
+          vertx.executeBlocking(blockingCode -> {
+            SAML2Configuration cfg = saml2Client.getConfiguration();
+    
+            // force metadata generation then init
+            cfg.setForceServiceProviderMetadataGeneration(true);
+            saml2Client.init();
+            cfg.setForceServiceProviderMetadataGeneration(false);
+    
+            try {
+              blockingCode.complete(saml2Client.getServiceProviderMetadataResolver().getMetadata());
+            } catch (Exception e) {
+              blockingCode.fail(e);
+            }
+          }, stringHandler);
+        }
+      });
     });
-    return result.future();
   }
 
   /**
