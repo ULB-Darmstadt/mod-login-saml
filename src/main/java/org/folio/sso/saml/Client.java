@@ -226,7 +226,7 @@ public class Client extends SAML2Client {
     // Default lifetitme.
     cfg.setMaximumAuthenticationLifetime(18000);
     
-    final boolean mock = Boolean.parseBoolean(System.getProperty("mock.httpclient"));
+    final boolean mock = Boolean.parseBoolean(System.getProperty("mock.httpclient")); // TODO: THIS SUCKS!!!
     cfg.setAuthnRequestBindingType(
       "REDIRECT".equalsIgnoreCase(samlBinding) ? 
         SAMLConstants.SAML2_REDIRECT_BINDING_URI : 

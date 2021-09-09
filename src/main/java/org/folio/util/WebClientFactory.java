@@ -79,9 +79,9 @@ public class WebClientFactory {
       
       if (conf == null) {
         options = new WebClientOptions()
-            .setKeepAlive( DEFAULT_KEEPALIVE )
-            .setConnectTimeout( DEFAULT_TIMEOUT )
-            .setIdleTimeout( DEFAULT_TIMEOUT );
+          .setKeepAlive( DEFAULT_KEEPALIVE )
+          .setConnectTimeout( DEFAULT_TIMEOUT )
+          .setIdleTimeout( DEFAULT_TIMEOUT );
       } else {        
         options = new WebClientOptions()
           .setKeepAlive(conf.getBoolean("webclient.keepAlive", DEFAULT_KEEPALIVE))
@@ -104,7 +104,17 @@ public class WebClientFactory {
           }
         }
       }
+
+      final boolean sslDisabledEnv = "true".equalsIgnoreCase(
+        System.getenv("TRUST_ALL_CERTIFICATES")
+      );
+      
+      options.setTrustAll( options.isTrustAll() || sslDisabledEnv);
+
+      options.setVerifyHost( !(options.isVerifyHost() && sslDisabledEnv));
+      
       WebClientInternal cli = (WebClientInternal)WebClient.create(vertx, options);
+      
       return Future.succeededFuture(cli);
     });
     

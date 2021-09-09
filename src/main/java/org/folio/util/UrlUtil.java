@@ -42,8 +42,7 @@ public class UrlUtil {
     WebClient client = WebClientFactory.getWebClient(vertx);
     return client.getAbs(url).send()
       .map(httpResponse -> {
-        final int status = httpResponse.statusCode();
-        if (status >= 200 && status < 300) {
+        if (HttpUtils.isSuccess(httpResponse)) {
           try {
             final String body = httpResponse.bodyAsString();
             if (StringUtils.isEmpty(body)) {
@@ -75,6 +74,9 @@ public class UrlUtil {
         return UrlCheckResult.failResult(MSG_PRE_UNEXPECTED + "None 2xx response code from server.");
       })
       .otherwise(cause -> {
+        
+        cause.printStackTrace();
+        
         if (cause instanceof ConnectException) {
           // add locale independent prefix, Netty puts a locale dependent translation into getMessage(),
           // for example German "Verbindungsaufbau abgelehnt:" for English "Connection refused:"

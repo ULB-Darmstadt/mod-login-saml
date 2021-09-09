@@ -54,7 +54,6 @@ import org.pac4j.core.exception.http.HttpAction;
 import org.pac4j.core.exception.http.OkAction;
 import org.pac4j.core.exception.http.RedirectionAction;
 import org.pac4j.core.profile.CommonProfile;
-import org.pac4j.saml.client.SAML2Client;
 import org.pac4j.saml.config.SAML2Configuration;
 import org.pac4j.saml.credentials.SAML2Credentials;
 import org.pac4j.vertx.VertxWebContext;
@@ -496,7 +495,7 @@ public class SamlAPI implements Saml {
         if (clientHandler.failed()) {
           stringHandler.fail(clientHandler.cause());
         } else {
-          SAML2Client saml2Client = clientHandler.result();
+          Client saml2Client = clientHandler.result();
           vertx.executeBlocking(blockingCode -> {
             
             handleThrowables (blockingCode, () -> {
