@@ -16,10 +16,10 @@ import io.vertx.ext.web.RoutingContext;
  * @author rsass
  * @author Steve Osguthorpe
  */
-public class OkapiHelper {
+public interface OkapiHelper {
 
 
-  private static final String CACHE_KEY = "OKAPI_HEADERS";
+  static final String CACHE_KEY = "OKAPI_HEADERS";
   
   /**
    * Extract Okapi specific headers from current routing context

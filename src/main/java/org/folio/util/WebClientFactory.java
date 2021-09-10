@@ -58,7 +58,7 @@ public class WebClientFactory {
           client = init(vertx);
           clients.put(vertx, client);
         } catch (Exception e) {
-          log.error("Failed to ", e);
+          log.error("Failed to get a web client", e);
         }
       }
     }
@@ -75,15 +75,13 @@ public class WebClientFactory {
     Future<WebClient> wcFuture = configRetriever.getConfig().compose(conf -> {
       
       // Initialize with default object.
-      WebClientOptions options;
+      final WebClientOptions options = new WebClientOptions()
+        .setKeepAlive( DEFAULT_KEEPALIVE )
+        .setConnectTimeout( DEFAULT_TIMEOUT )
+        .setIdleTimeout( DEFAULT_TIMEOUT );
       
-      if (conf == null) {
-        options = new WebClientOptions()
-          .setKeepAlive( DEFAULT_KEEPALIVE )
-          .setConnectTimeout( DEFAULT_TIMEOUT )
-          .setIdleTimeout( DEFAULT_TIMEOUT );
-      } else {        
-        options = new WebClientOptions()
+      if (conf != null) {        
+        options
           .setKeepAlive(conf.getBoolean("webclient.keepAlive", DEFAULT_KEEPALIVE))
           .setConnectTimeout(conf.getInteger("webclient.connectTimeout", DEFAULT_TIMEOUT))
           .setIdleTimeout(conf.getInteger("webclient.idleTimeout",DEFAULT_TIMEOUT));
@@ -100,7 +98,7 @@ public class WebClientFactory {
               .setHost(proxyAddress.getHost()
             ));
           } catch (URISyntaxException e) {
-            log.error("Error parsing proxyAddress {}", pAdd);
+            log.error("Cannot set proxy details. Error parsing proxyAddress {}", pAdd);
           }
         }
       }

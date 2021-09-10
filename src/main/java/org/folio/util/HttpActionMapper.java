@@ -7,6 +7,9 @@ import org.pac4j.core.exception.http.HttpAction;
  * @author rsass
  */
 public class HttpActionMapper {
+  
+  private HttpActionMapper() {}
+  
   public static Response toResponse(HttpAction httpAction) {
     return Response.status(httpAction.getCode()).entity(httpAction.getMessage()).build();
   }

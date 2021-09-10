@@ -8,8 +8,7 @@ import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS;
 import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD;
 import static io.vertx.core.http.HttpHeaders.ORIGIN;
 import static io.vertx.core.http.HttpHeaders.VARY;
-import static org.folio.util.FunctionalUtils.handleThrowables;
-import static org.folio.util.FunctionalUtils.handleThrowablesWithResponse;
+import static org.folio.util.ErrorHandlingUtils.*;
 import static org.pac4j.saml.state.SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUTE;
 
 import java.net.URI;
@@ -44,7 +43,6 @@ import org.folio.sso.saml.Constants.Config;
 import org.folio.sso.saml.ModuleConfig;
 import org.folio.util.Base64Util;
 import org.folio.util.HttpActionMapper;
-import org.folio.util.HttpUtils;
 import org.folio.util.OkapiHelper;
 import org.folio.util.UrlUtil;
 import org.folio.util.VertxUtils;
@@ -196,7 +194,7 @@ public class SamlAPI implements Saml {
             SAML2Credentials credentials = client.getCredentials(webContext).orElseThrow(); 
     
             // Get user id
-            List<?> samlAttributeList = (List<?>) credentials.getUserProfile().getAttribute(samlAttributeName);
+            List<?> samlAttributeList = (List<?>) credentials.getUserProfile().extractAttributeValues(samlAttributeName);
             if (samlAttributeList == null || samlAttributeList.isEmpty()) {
               asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond400WithTextPlain("SAML attribute doesn't exist: " + samlAttributeName)));
               return;
@@ -222,11 +220,8 @@ public class SamlAPI implements Saml {
             
             clientResponse.onSuccess(response -> {
               handleThrowablesWithResponse(asyncResultHandler, () -> {
-                if ( !HttpUtils.isSuccess(response) ) {
-                  asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(
-                      response.statusMessage())));
-                  return;
-                }
+
+                assert2xx(response, "Error querying for user.");
               
                 // Success...
                 JsonObject resultObject = response.bodyAsJsonObject();
@@ -252,16 +247,12 @@ public class SamlAPI implements Saml {
                   // Attempt to create the missing user.
                   handleThrowablesWithResponse(asyncResultHandler, 
                     webClient
-                      .post(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/users"))
+                      .postAbs(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/users"))
                       .putHeaders(headers)
                       .sendJsonObject(userData)
                       
                     .onSuccess(createResponse -> {
-                      if ( !HttpUtils.isSuccess(createResponse) ) {
-                        asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(
-                            createResponse.statusMessage())));
-                        return;
-                      }
+                      assert2xx(createResponse, "Error creating user.");
                       
                       getTokenForUser(asyncResultHandler, parsedHeaders, createResponse.bodyAsJsonObject(), originalUrl, stripesBaseUrl);
                     })
@@ -333,7 +324,8 @@ public class SamlAPI implements Saml {
   }
 
   public static void getTokenForUser(Handler<AsyncResult<Response>> asyncResultHandler, OkapiHeaders parsedHeaders, JsonObject userObject, URI originalUrl, URI stripesBaseUrl) {
-    try {
+    
+    handleThrowablesWithResponse(asyncResultHandler, () -> {
     
       String userId = userObject.getString("id");
       if (!userObject.getBoolean("active")) {
@@ -342,84 +334,73 @@ public class SamlAPI implements Saml {
         
         final JsonObject payload = new JsonObject().put("payload", new JsonObject().put("sub", userObject.getString("username")).put("user_id", userId));
   
-        WebClientFactory.getWebClient()
-          .postAbs(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/token"))
-          .putHeaders(parsedHeaders.securedInteropHeaders())
-          .sendJsonObject(payload)
-          
+        handleThrowablesWithResponse(asyncResultHandler,
+          WebClientFactory.getWebClient()
+            .postAbs(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/token"))
+            .putHeaders(parsedHeaders.securedInteropHeaders())
+            .sendJsonObject(payload)
+        ) 
         .onSuccess(response -> {
-          if ( !HttpUtils.isSuccess(response) ) {
-            asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(
-                response.statusMessage())));
-            return;
-          }
           
-          String candidateAuthToken = null;
-          if(response.statusCode() == 200) {
-            candidateAuthToken = response.headers().get(OkapiHeaders.OKAPI_TOKEN_HEADER);
-          } else {
-            //mod-authtoken v2.x returns 201, with token in JSON response body
-            try {
-              candidateAuthToken = response.bodyAsJsonObject().getString("token");
-            } catch(Exception e) {
-              asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(e.getMessage())));
+          handleThrowablesWithResponse(asyncResultHandler, () -> {
+            
+            assert2xx(response, "Error creating token.");
+            
+            String candidateAuthToken = null;
+            if(response.statusCode() == 200) {
+              candidateAuthToken = response.headers().get(OkapiHeaders.OKAPI_TOKEN_HEADER);
+            } else {
+              //mod-authtoken v2.x returns 201, with token in JSON response body
+              try {
+                candidateAuthToken = response.bodyAsJsonObject().getString("token");
+              } catch(Exception e) {
+                asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(e.getMessage())));
+              }
             }
-          }
-          final String authToken = candidateAuthToken;
-  
-          final String location = UriBuilder.fromUri(stripesBaseUrl)
-              .path("sso-landing")
-              .queryParam("ssoToken", authToken)
-              .queryParam("fwd", originalUrl.getPath())
-              .build()
-              .toString();
-  
-          final String cookie = new NewCookie("ssoToken", authToken, "", originalUrl.getHost(), "", 3600, false).toString();
-  
-          HeadersFor302 headers302 = PostSamlCallbackResponse.headersFor302().withSetCookie(cookie).withXOkapiToken(authToken).withLocation(location);
-          asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond302(headers302)));
-        })
-        .onFailure(throwable -> {
-          asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(throwable.getMessage())));
+            final String authToken = candidateAuthToken;
+    
+            final String location = UriBuilder.fromUri(stripesBaseUrl)
+                .path("sso-landing")
+                .queryParam("ssoToken", authToken)
+                .queryParam("fwd", originalUrl.getPath())
+                .build()
+                .toString();
+    
+            final String cookie = new NewCookie("ssoToken", authToken, "", originalUrl.getHost(), "", 3600, false).toString();
+    
+            HeadersFor302 headers302 = PostSamlCallbackResponse.headersFor302().withSetCookie(cookie).withXOkapiToken(authToken).withLocation(location);
+            asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond302(headers302)));
+          });
         });
       }
-    } catch (Throwable throwable) {
-      asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(throwable.getMessage())));
-    }
+    });
   }
 
   @Override
   public void getSamlConfiguration(RoutingContext rc, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    ModuleConfig.get(rc)
-    .onComplete(configurationResult -> {
-      if (configurationResult.failed()) {
-        log.warn("Cannot load configuration", configurationResult.cause());
-        asyncResultHandler.handle(
-            Future.succeededFuture(
-                GetSamlConfigurationResponse.respond500WithTextPlain("Cannot get configuration")));
-      } else {
-        asyncResultHandler.handle(Future.succeededFuture(
-          GetSamlConfigurationResponse.respond200WithApplicationJson(configurationResult.result().getSamlConfig())));
-      }
+    handleThrowablesWithResponse(asyncResultHandler,
+      ModuleConfig.get(rc)
+    )
+    .onSuccess(configurationResult -> {
+      asyncResultHandler.handle(Future.succeededFuture(
+          GetSamlConfigurationResponse.respond200WithApplicationJson(configurationResult.getSamlConfig())));
     });
   }
 
 
   @Override
   public void putSamlConfiguration(SamlConfigRequest updatedConfig, RoutingContext rc, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-
-    ModuleConfig.get(rc).onComplete((AsyncResult<ModuleConfig> configRes) -> {
-      if (configRes.failed()) {
-        asyncResultHandler.handle(Future.succeededFuture(
-            PutSamlConfigurationResponse.respond500WithTextPlain(configRes.cause() != null ? configRes.cause().getMessage() : "Cannot load current configuration")));
-      } else {
-
-        // Get the config
-        final ModuleConfig config = configRes.result();
-        // The default user is nested. Grab it.
-        final SamlDefaultUser sdu = updatedConfig.getSamlDefaultUser();
-        
+    
+    handleThrowablesWithResponse(asyncResultHandler,
+      ModuleConfig.get(rc)
+    )
+    .onSuccess(config -> {
+      
+      // The default user is nested. Grab it.
+      final SamlDefaultUser sdu = updatedConfig.getSamlDefaultUser();
+      
+      handleThrowablesWithResponse(asyncResultHandler,
         CompositeFuture.all(Arrays.asList(new Future[] {
             
           config.updateEntry(Config.IDP_URL, updatedConfig.getIdpUrl().toString()),
@@ -437,24 +418,13 @@ public class SamlAPI implements Saml {
           config.updateEntry(Config.DU_PATRON_GRP, sdu == null ? null : sdu.getPatronGroup()),
           config.updateEntry(Config.DU_UN_ATT, sdu == null ? null : sdu.getUsernameAttribute())
           
-        })).onComplete(updateComplete -> {
-          if (updateComplete.failed()) {
-            
-            asyncResultHandler.handle(
-              Future.succeededFuture(
-                PutSamlConfigurationResponse.respond500WithTextPlain(
-                  updateComplete.cause() != null ? updateComplete.cause().getMessage() : "Cannot save configuration"
-                )
-              )
-            );
-          } else {
-            
-            // Config is updated at the same time now.
-            SamlConfig dto = config.getSamlConfig();
-            asyncResultHandler.handle(Future.succeededFuture(PutSamlConfigurationResponse.respond200WithApplicationJson(dto)));
-          }
-        });
-      }
+        }))
+      )
+      .onSuccess(allUpdates -> {
+       // Config is updated at the same time now.
+        SamlConfig dto = config.getSamlConfig();
+        asyncResultHandler.handle(Future.succeededFuture(PutSamlConfigurationResponse.respond200WithApplicationJson(dto)));
+      });
     });
   }
 
@@ -468,17 +438,19 @@ public class SamlAPI implements Saml {
       return;
     }
     
-    handleThrowablesWithResponse(asyncResultHandler, UrlUtil.checkIdpUrl(value, vertxContext.owner()))
-      .onSuccess(result -> {
-        SamlValidateResponse response = new SamlValidateResponse();
-        if (result.isSuccess()) {
-          response.setValid(true);
-        } else {
-          response.setValid(false);
-          response.setError(result.getMessage());
-        }
-        asyncResultHandler.handle(Future.succeededFuture(GetSamlValidateResponse.respond200WithApplicationJson(response)));
-      });
+    handleThrowablesWithResponse(asyncResultHandler, 
+        UrlUtil.checkIdpUrl(value, vertxContext.owner())
+    )
+    .onSuccess(result -> {
+      SamlValidateResponse response = new SamlValidateResponse();
+      if (result.isSuccess()) {
+        response.setValid(true);
+      } else {
+        response.setValid(false);
+        response.setError(result.getMessage());
+      }
+      asyncResultHandler.handle(Future.succeededFuture(GetSamlValidateResponse.respond200WithApplicationJson(response)));
+    });
   }
 
   private Future<String> regenerateSaml2Config(final RoutingContext routingContext) {

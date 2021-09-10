@@ -13,8 +13,7 @@ import java.util.Base64;
  */
 public class Base64Util {
 
-  private Base64Util() {
-  }
+  private Base64Util() {}
 
   /**
    * Encodes a {@link String} with Base64, asnyc.

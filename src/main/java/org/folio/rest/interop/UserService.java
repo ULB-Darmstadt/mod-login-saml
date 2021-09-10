@@ -66,7 +66,7 @@ public class UserService {
   }
   
   private static String getStrAtt(final CommonProfile profile, final String attribute) {
-    List<?> samlAttributeList = profile.getAttribute(attribute, List.class);
+    List<?> samlAttributeList = profile.extractAttributeValues(attribute);
     if (samlAttributeList == null || samlAttributeList.isEmpty()) {
       return null;
     }

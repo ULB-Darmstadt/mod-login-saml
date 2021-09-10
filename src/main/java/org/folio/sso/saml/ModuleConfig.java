@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.SamlConfig;
 import org.folio.rest.jaxrs.model.SamlDefaultUser;
 import org.folio.sso.saml.Constants.Config;
+import static org.folio.util.ErrorHandlingUtils.*;
 import org.folio.util.HttpUtils;
 import org.folio.util.OkapiHelper;
 import org.folio.util.WebClientFactory;
@@ -98,7 +99,8 @@ public class ModuleConfig implements Configuration {
 
     String query = "(module==" + MODULE_NAME + " AND configName==" + Config.CONFIG_NAME + ")";
 
-    try {
+    handleThrowables(promise, () -> {
+    
       String encodedQuery = URLEncoder.encode(query, "UTF-8");
       final String theUrl = OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), Config.ENTRIES_ENDPOINT + "?limit=10000&query=" + encodedQuery); // this is ugly :/
       WebClientFactory.getWebClient()
@@ -107,16 +109,13 @@ public class ModuleConfig implements Configuration {
       .send()
       
       .onSuccess(response -> {
-        if ( !HttpUtils.isSuccess(response) ) {
-          log.warn("Cannot get configuration data. {} - {} response from {}", response.statusCode(), response.statusMessage(), theUrl);
-          promise.fail(response.statusMessage());
-          return;
-        }
+        handleThrowables(promise, () -> {
+          assert2xx(response, "Cannot get configuration data");
         
-        JsonObject responseBody = response.bodyAsJsonObject();
-        JsonArray configs = responseBody.getJsonArray("configs");
-        promise.complete(fromModConfigJson(okapiHeaders, configs));
-        
+          JsonObject responseBody = response.bodyAsJsonObject();
+          JsonArray configs = responseBody.getJsonArray("configs");
+          promise.complete(fromModConfigJson(okapiHeaders, configs));
+        });
       })
       
       .onFailure(throwable -> {
@@ -124,10 +123,7 @@ public class ModuleConfig implements Configuration {
         promise.fail(throwable);
       });
       
-    } catch (Exception e) {
-      log.warn("Cannot get configuration data: {}", e.getMessage());
-      promise.fail(e);
-    }
+    });
     return future;
   }
   
