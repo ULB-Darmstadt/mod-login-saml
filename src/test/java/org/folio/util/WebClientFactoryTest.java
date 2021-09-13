@@ -16,7 +16,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.WebClient;
 
 @RunWith(VertxUnitRunner.class)
-public class WebcClientFactoryTest {
+public class WebClientFactoryTest {
   
   Vertx vertx;
   
