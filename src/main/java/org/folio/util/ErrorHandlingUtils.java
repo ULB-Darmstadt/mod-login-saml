@@ -45,6 +45,21 @@ public class ErrorHandlingUtils {
   }
   
   /**
+   * Adds an onFailure handler to propegate the general throwable failure from
+   * the promise and to the other handler.
+   *  
+   * @param handler
+   * @param future
+   */
+  public static <T, D> Future<T> handleThrowables (Handler<AsyncResult<D>> handler, Future<T> future) {
+    return future.onFailure(throwable -> {
+      defaultLoggingForThrowable(throwable);
+      
+      handler.handle(Future.failedFuture(throwable));
+    });
+  }
+  
+  /**
    * Handles exceptions in the supplied body by failing the supplied Handler.
    * Because vertx promises extend Handler<AsyncResult<T>>, you can also use
    * this with promises.

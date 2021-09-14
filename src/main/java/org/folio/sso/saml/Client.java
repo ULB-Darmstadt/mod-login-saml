@@ -1,5 +1,6 @@
 package org.folio.sso.saml;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -16,8 +17,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.config.JsonReponseSaml2RedirectActionBuilder;
 import org.folio.sso.saml.Constants.Config;
+import org.folio.sso.saml.metadata.ExtendedSAML2IdentityProviderMetadataResolver;
 import org.folio.sso.saml.metadata.ExtendedSAML2ServiceProviderMetadataResolver;
+import org.folio.util.AsyncUtil;
 import org.folio.util.OkapiHelper;
+import org.folio.util.WebClientFactory;
 import org.folio.util.model.OkapiHeaders;
 import org.opensaml.saml.common.xml.SAMLConstants;
 import org.opensaml.saml.saml2.core.Attribute;
@@ -43,9 +47,20 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.RoutingContext;
+import net.shibboleth.utilities.java.support.resolver.ResolverException;
 
-public class Client extends SAML2Client {
+/**
+ * Extension of the base client from Pac4J. Allows us to properly customise the
+ * client and provide handlers that extend the base code.
+ * 
+ * @author Steve Osguthorpe
+ *
+ */
+public class Client extends SAML2Client {  
   
+  /**
+   * TODO: This needs refactoring out into something better.
+   */
   private static class MockClient extends Client {
 
     private static final Logger log = LogManager.getLogger(MockClient.class);
@@ -183,6 +198,10 @@ public class Client extends SAML2Client {
     tenantCache.remove(tenant);
   }
   
+  public static Client getSync(final RoutingContext routingContext, final boolean generateMissingKeyStore, final boolean reinitialize) throws Exception {
+    return AsyncUtil.blocking(get(routingContext, generateMissingKeyStore, reinitialize));
+  }
+  
   public static Future<Client> get ( final RoutingContext routingContext, final boolean generateMissingKeyStore, final boolean reinitialize ) {
        
     // Override this value if we are testing.
@@ -225,19 +244,24 @@ public class Client extends SAML2Client {
     
     // Default lifetitme.
     cfg.setMaximumAuthenticationLifetime(18000);
-    
-    final boolean mock = Boolean.parseBoolean(System.getProperty("mock.httpclient")); // TODO: THIS SUCKS!!!
     cfg.setAuthnRequestBindingType(
       "REDIRECT".equalsIgnoreCase(samlBinding) ? 
         SAMLConstants.SAML2_REDIRECT_BINDING_URI : 
           SAMLConstants.SAML2_POST_BINDING_URI); // POST is the default
+    
+    /* TODO: THIS SUCKS!!! Runtime (Production) code should not have mocks embedded.
+       If time we need to refactor this out and produce a mocked IDP response
+       and interract properly instead of mocking responses in this manor. */ 
+    final boolean mock = Boolean.parseBoolean(System.getProperty("mock.httpclient")); 
+    
     
     Client saml2Client = mock ? new MockClient(cfg) : new Client(cfg);
     saml2Client.setName(tenantId);
     saml2Client.setCallbackUrl(buildCallbackUrl(okapiUrl, tenantId));
     saml2Client.setRedirectionActionBuilder(new JsonReponseSaml2RedirectActionBuilder(saml2Client));
     saml2Client.setStateGenerator(new SAML2StateGenerator(saml2Client));
-
+    saml2Client.setCallbackUrlResolver(null);
+    
     return saml2Client;
   }
 
@@ -337,6 +361,18 @@ public class Client extends SAML2Client {
 
   private Client( SAML2Configuration cfg ) {
     super(cfg);
+  }
+  
+  @Override
+  protected void initIdentityProviderMetadataResolver() {
+    try {
+      ExtendedSAML2IdentityProviderMetadataResolver md = new ExtendedSAML2IdentityProviderMetadataResolver(this.configuration, getName());
+      this.idpMetadataResolver = md;
+      md.init();
+    } catch (Exception e) {
+      log.error("Error creating Saml2Client", e);
+      throw new RuntimeException("Could not create IDPMetadata resolver", e);
+    }
   }
   
   @Override

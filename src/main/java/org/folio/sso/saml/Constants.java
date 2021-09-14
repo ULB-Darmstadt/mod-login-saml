@@ -3,6 +3,8 @@ package org.folio.sso.saml;
 public interface Constants {
   public static final String MODULE_NAME = "LOGIN-SAML";
   
+  public static final int BLOCKING_OP_TIMEOUT_SECONDS = 5;
+  
   public static interface Exceptions {
     public static final String MSG_MISSING_HDR_OKAPI_URL = "Missing Okapi URL";
     public static final String MSG_MISSING_HDR_TENANT = "Missing Tenant";

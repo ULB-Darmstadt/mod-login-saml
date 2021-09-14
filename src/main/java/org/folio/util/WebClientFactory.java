@@ -4,8 +4,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import javax.validation.constraints.NotNull;
@@ -22,6 +20,12 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.impl.WebClientInternal;
 
+/**
+ * Factory class to centralize the WebClient creation to provide singleton access
+ * 
+ * @author Steve Osguthorpe
+ *
+ */
 public class WebClientFactory {
   
   private static final Logger log = LogManager.getLogger(WebClientFactory.class);
@@ -31,6 +35,11 @@ public class WebClientFactory {
   
   private static final Map<Vertx, WebClient> clients = new ConcurrentHashMap<>();
   
+  /**
+   * Create a client grabbing the owning vertx instance from the current context.
+   * 
+   * @see {@link #getWebClient(Vertx) getWebClient(Vertx vertx)}
+   */
   public static WebClient getWebClient() {
     try {
       return getWebClient(Vertx.currentContext().owner());
@@ -40,7 +49,7 @@ public class WebClientFactory {
   }
 
   /**
-   * Returns or Initializes and returns a Future WebClient for the provided Vertx.
+   * Returns or Initializes and returns a WebClient for the provided Vertx instance.
    * Ensures we keep 1 client per Vertx instance to benefit from pooling etc.
    *
    * This method is blocking, however, only the first invocation does the asynchronous
@@ -69,7 +78,7 @@ public class WebClientFactory {
   private WebClientFactory() {
   }
 
-  private static WebClient init(Vertx vertx) throws InterruptedException, ExecutionException {
+  private static WebClient init(Vertx vertx) throws Exception {
 
     ConfigRetriever configRetriever = ConfigRetriever.create(vertx);
     Future<WebClient> wcFuture = configRetriever.getConfig().compose(conf -> {
@@ -117,7 +126,8 @@ public class WebClientFactory {
     });
     
     try {
-      return wcFuture.toCompletionStage().toCompletableFuture().get(10, TimeUnit.SECONDS);
+      return AsyncUtil.blocking(wcFuture, 10);
+      
     } catch (TimeoutException e) {
       throw new RuntimeException("Could not create web client", e);
     }
