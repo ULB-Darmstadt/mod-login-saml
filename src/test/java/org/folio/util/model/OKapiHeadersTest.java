@@ -5,28 +5,34 @@ import static org.folio.sso.saml.Constants.Exceptions.MSG_MISSING_HDR_TENANT;
 import static org.folio.sso.saml.Constants.Exceptions.MSG_MISSING_HDR_TOKEN;
 import static org.junit.Assert.assertEquals;
 
-import org.folio.util.model.OkapiHeaders;
 import org.folio.util.model.OkapiHeaders.MissingHeaderException;
 import org.junit.Test;
 
 public class OKapiHeadersTest {
 
   @Test
-  public void testVerifyOkapiHeadersAllPresent() throws MissingHeaderException {
+  public void testVerifyOkapiSecuredInteropHeadersAllPresent() throws MissingHeaderException {
     OkapiHeaders okapiHeaders = new OkapiHeaders();
     okapiHeaders.setTenant("tenant");
     okapiHeaders.setToken("token");
     okapiHeaders.setUrl("url");
-    okapiHeaders.verifySecuredInteropValues();
+
+    // Both should pass.
+    okapiHeaders.interopHeaders();
+    okapiHeaders.securedInteropHeaders();
   }
 
   @Test
-  public void testVerifyOkapiHeadersMissingToken() {
+  public void testVerifyOkapiInteropHeadersMissingToken() throws MissingHeaderException {
     OkapiHeaders okapiHeaders = new OkapiHeaders();
     okapiHeaders.setTenant("tenant");
     okapiHeaders.setUrl("url");
+
+    // This should pass...
+    okapiHeaders.interopHeaders();
     try {
-      okapiHeaders.verifySecuredInteropValues();
+      // This shouldn't.
+      okapiHeaders.securedInteropHeaders();
     } catch (MissingHeaderException e) {
       assertEquals(MSG_MISSING_HDR_TOKEN, e.getMessage());
     }
@@ -38,7 +44,13 @@ public class OKapiHeadersTest {
     okapiHeaders.setToken("token");
     okapiHeaders.setUrl("url");
     try {
-      okapiHeaders.verifySecuredInteropValues();
+      okapiHeaders.interopHeaders();
+    } catch (MissingHeaderException e) {
+      assertEquals(MSG_MISSING_HDR_TENANT, e.getMessage());
+    }
+    
+    try {
+      okapiHeaders.securedInteropHeaders();
     } catch (MissingHeaderException e) {
       assertEquals(MSG_MISSING_HDR_TENANT, e.getMessage());
     }
@@ -50,7 +62,13 @@ public class OKapiHeadersTest {
     okapiHeaders.setTenant("tenant");
     okapiHeaders.setToken("token");
     try {
-      okapiHeaders.verifySecuredInteropValues();
+      okapiHeaders.interopHeaders();
+    } catch (MissingHeaderException e) {
+      assertEquals(MSG_MISSING_HDR_OKAPI_URL, e.getMessage());
+    }
+    
+    try {
+      okapiHeaders.securedInteropHeaders();
     } catch (MissingHeaderException e) {
       assertEquals(MSG_MISSING_HDR_OKAPI_URL, e.getMessage());
     }

@@ -5,7 +5,6 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.rest.jaxrs.resource.support.ResponseDelegate;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -108,11 +107,11 @@ public class ErrorHandlingUtil {
   
   private static void throwableToResponseHandler (Throwable throwable, Handler<AsyncResult<Response>> handler) {
     final String text = throwable.getMessage();
-    
-    Response.ResponseBuilder responseBuilder = Response.status(500).header("Content-Type", "text/plain");
-    responseBuilder.entity(text);
-    handler.handle(Future.succeededFuture(
-      new ResponseDelegate(responseBuilder.build(), text) {}
+    handler.handle(Future.succeededFuture(Response
+      .status(500)
+      .header("Content-Type", "text/plain")
+      .entity(text)
+        .build()
     ));
   }
   

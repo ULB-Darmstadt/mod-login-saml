@@ -68,7 +68,7 @@ public class OkapiHeaders {
     }
   }
   
-  public void verifySecuredInteropValues() throws MissingHeaderException {
+  private void verifySecuredInteropValues() throws MissingHeaderException {
     verifyInteropValues();
     
     if (Strings.isNullOrEmpty(getToken())) {
@@ -76,7 +76,7 @@ public class OkapiHeaders {
     }
   }
   
-  public void verifyInteropValues() throws MissingHeaderException {
+  private void verifyInteropValues() throws MissingHeaderException {
     if (Strings.isNullOrEmpty(getUrl())) {
       throw new MissingHeaderException(MSG_MISSING_HDR_OKAPI_URL);
     }
