@@ -2,12 +2,16 @@ package org.folio.util;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -79,25 +83,6 @@ public class WebClientFactory {
   }
 
   private static WebClient init(Vertx vertx) throws Exception {
-
-//    ssl.TrustManagerFactory.algorithm</li>
-//    *  <li>javax.net.ssl.trustStoreType</li>
-//    *  <li>javax.net.ssl.trustStore</li>
-//    *  <li>javax.net.ssl.trustStoreProvider</li>
-//    *  <li>javax.net.ssl.trustStorePassword</li>
-//    *  <li>ssl.KeyManagerFactory.algorithm</li>
-//    *  <li>javax.net.ssl.keyStoreType</li>
-//    *  <li>javax.net.ssl.keyStore</li>
-//    *  <li>javax.net.ssl.keyStoreProvider</li>
-//    *  <li>javax.net.ssl.keyStorePassword</li>
-//    *  <li>https.protocols</li>
-//    *  <li>https.cipherSuites</li>
-//    *  <li>http.proxyHost</li>
-//    *  <li>http.proxyPort</li>
-//    *  <li>http.nonProxyHosts</li>
-//    *  <li>http.keepAlive</li>
-//    *  <li>http.maxConnections</li>
-//    *  <li>http.agent</li>
     
     ConfigRetriever configRetriever = ConfigRetriever.create(vertx);
     Future<WebClient> wcFuture = configRetriever.getConfig().compose(conf -> {
@@ -108,36 +93,58 @@ public class WebClientFactory {
         .setConnectTimeout( DEFAULT_TIMEOUT )
         .setIdleTimeout( DEFAULT_TIMEOUT );
       
-      if (conf != null) {
-        options
-          .setMaxPoolSize(conf.getInteger("http.maxConnections", options.getMaxPoolSize()))
-          .setKeepAlive(conf.getBoolean("http.keepAlive", DEFAULT_KEEPALIVE))
-          .setConnectTimeout(conf.getInteger("webclient.connectTimeout", DEFAULT_TIMEOUT))
-          .setIdleTimeout(conf.getInteger("webclient.idleTimeout",DEFAULT_TIMEOUT));
-        
-        final String pAdd = conf.getString("webclient.proxyAddress");
-        if (pAdd != null) {
-          try {
-            URI proxyAddress = new URI(pAdd);
-            
-            log.info("Proxying traffic using proxy address {}", pAdd);
-            options.setProxyOptions(new ProxyOptions()
-              .setType(ProxyType.valueOf(proxyAddress.getScheme().toUpperCase()))
-              .setPort(proxyAddress.getPort())
-              .setHost(proxyAddress.getHost()
-            ));
-          } catch (URISyntaxException e) {
-            log.error("Cannot set proxy details. Error parsing proxyAddress {}", pAdd);
-          }
+      options
+        .setKeepAlive(conf.getBoolean("http.keepAlive", DEFAULT_KEEPALIVE))
+        .setConnectTimeout(conf.getInteger("http.connectTimeout", DEFAULT_TIMEOUT))
+        .setIdleTimeout(conf.getInteger("http.idleTimeout",DEFAULT_TIMEOUT))
+        .setMaxPoolSize(conf.getInteger("http.maxConnections", options.getMaxPoolSize()));
+      
+      final String httpAgent = conf.getString("http.agent");
+      if (StringUtils.isNotBlank(httpAgent)) {
+        options.setUserAgentEnabled(true)
+          .setUserAgent(httpAgent);
+      }
+      
+      final String httpsProtocols = conf.getString("https.protocols");
+      if (StringUtils.isNotBlank(httpsProtocols)) {
+        Set<String> protocolSet = new HashSet<String>();
+        protocolSet.addAll(Arrays.asList(httpsProtocols.split(",")));
+        options.setEnabledSecureTransportProtocols(protocolSet);
+      }
+      
+      final String[] ciphers = conf.getString("https.cipherSuites", "").split(",");
+      for (String cipher : ciphers) {
+        if (StringUtils.isNotBlank(cipher)) {
+          options.addEnabledCipherSuite(cipher);
+        }
+      }
+      
+      // Handle the various proxy routes.
+      String pAdd = conf.getString("http.proxyHost");
+      if (pAdd != null) {
+        pAdd = "http://" + pAdd + ":" + conf.getInteger("http.proxyPort", 80);
+      }
+      
+      // Allow a specific override for application traffic only.
+      pAdd = conf.getString("vertx.webClient.proxyAddress", pAdd);
+      if (pAdd != null) {
+        try {
+          URI proxyAddress = new URI(pAdd);
+          
+          log.info("Proxying traffic using proxy address {}", pAdd);
+          options.setProxyOptions(new ProxyOptions()
+            .setType(ProxyType.HTTP)
+            .setPort(proxyAddress.getPort())
+            .setHost(proxyAddress.getHost())
+          );
+        } catch (URISyntaxException e) {
+          log.error("Cannot set proxy details. Error parsing proxy address {}", pAdd);
         }
       }
 
-      final boolean sslDisabledEnv = "true".equalsIgnoreCase(
-        System.getenv("TRUST_ALL_CERTIFICATES")
-      );
-      
+      // Ensure we trust certs when the trust all certs flag is passed in.
+      final boolean sslDisabledEnv = conf.getBoolean("TRUST_ALL_CERTIFICATES", false);
       options.setTrustAll( options.isTrustAll() || sslDisabledEnv);
-
       options.setVerifyHost( !(options.isVerifyHost() && sslDisabledEnv));
       
       WebClientInternal cli = (WebClientInternal)WebClient.create(vertx, options);

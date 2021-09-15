@@ -19,6 +19,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 
@@ -89,11 +90,15 @@ public class HttpMockingVertx extends WireMockRule {
     // Augment the properties if not set.
     final Properties props = System.getProperties();
     props.put("mock.httpclient", "true");
+    props.put("http.proxyHost", "localhost");
+    props.put("http.proxyPort", "" + mockServerPort);
+    
 //    if (!props.containsKey("webclient.proxyAddress")) {
-      props.put("webclient.proxyAddress", "http://localhost:" + mockServerPort);
+//      props.put("http.proxyAddress", "http://localhost:" + mockServerPort);
 //    }
     
-    vertx = Vertx.vertx();
+    vertx = Vertx.vertx(new VertxOptions()
+        .setBlockedThreadCheckInterval(1000*60*60));
     
     DeploymentOptions options = new DeploymentOptions()
       .setConfig(new JsonObject()
