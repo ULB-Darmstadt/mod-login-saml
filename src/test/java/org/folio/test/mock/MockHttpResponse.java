@@ -14,7 +14,7 @@ import io.vertx.ext.web.client.HttpResponse;
 
 public class MockHttpResponse<T> implements HttpResponse<T> {
   
-  private int statusCode;
+  private int statusCode = 200;
   
   @Fluent
   public HttpResponse<T> setStatusCode(final int statusCode) {

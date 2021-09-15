@@ -19,16 +19,16 @@ import io.vertx.ext.web.client.HttpResponse;
  * @author Steve Osguthorpe
  *
  */
-public class ErrorHandlingUtils {
+public class ErrorHandlingUtil {
   
-  private ErrorHandlingUtils() {}
+  private ErrorHandlingUtil() {}
   
   @FunctionalInterface
   public static interface ThrowingBody {
     void exec() throws Throwable;
   }
   
-  private static final Logger log = LogManager.getLogger(ErrorHandlingUtils.class);
+  private static final Logger log = LogManager.getLogger(ErrorHandlingUtil.class);
   
   public static void defaultLoggingForThrowable(Throwable t) {
     
@@ -86,13 +86,7 @@ public class ErrorHandlingUtils {
   public static <T, D extends Handler<AsyncResult<Response>>> Future<T> handleThrowablesWithResponse (D handler, Future<T> future) {
     return future.onFailure(throwable -> {
       defaultLoggingForThrowable(throwable);
-      
-      final String text = throwable.getMessage();
-      Response.ResponseBuilder responseBuilder = Response.status(500).header("Content-Type", "text/plain");
-      responseBuilder.entity(text);
-      handler.handle(Future.succeededFuture(
-        new ResponseDelegate(responseBuilder.build(), text) {}
-      ));
+      throwableToResponseHandler(throwable, handler);
     });
   }
   
@@ -108,14 +102,18 @@ public class ErrorHandlingUtils {
       body.exec();
     } catch (Throwable t) {
       defaultLoggingForThrowable(t);
-      final String text = t.getMessage();
-      
-      Response.ResponseBuilder responseBuilder = Response.status(500).header("Content-Type", "text/plain");
-      responseBuilder.entity(text);
-      handler.handle(Future.succeededFuture(
-        new ResponseDelegate(responseBuilder.build(), text) {}
-      ));
+      throwableToResponseHandler(t, handler);
     }
+  }
+  
+  private static void throwableToResponseHandler (Throwable throwable, Handler<AsyncResult<Response>> handler) {
+    final String text = throwable.getMessage();
+    
+    Response.ResponseBuilder responseBuilder = Response.status(500).header("Content-Type", "text/plain");
+    responseBuilder.entity(text);
+    handler.handle(Future.succeededFuture(
+      new ResponseDelegate(responseBuilder.build(), text) {}
+    ));
   }
   
   /**
@@ -145,7 +143,11 @@ public class ErrorHandlingUtils {
     private static final long serialVersionUID = 7675771235867415725L;
 
     public CriticalDependencyException (String message) {
-      super(message);
+      this(message, null);
+    }
+    
+    public CriticalDependencyException (String message, Throwable cause) {
+      super(message, cause, true, false);
     }
   }
 }

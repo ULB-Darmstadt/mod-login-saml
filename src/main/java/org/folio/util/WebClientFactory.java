@@ -80,6 +80,25 @@ public class WebClientFactory {
 
   private static WebClient init(Vertx vertx) throws Exception {
 
+//    ssl.TrustManagerFactory.algorithm</li>
+//    *  <li>javax.net.ssl.trustStoreType</li>
+//    *  <li>javax.net.ssl.trustStore</li>
+//    *  <li>javax.net.ssl.trustStoreProvider</li>
+//    *  <li>javax.net.ssl.trustStorePassword</li>
+//    *  <li>ssl.KeyManagerFactory.algorithm</li>
+//    *  <li>javax.net.ssl.keyStoreType</li>
+//    *  <li>javax.net.ssl.keyStore</li>
+//    *  <li>javax.net.ssl.keyStoreProvider</li>
+//    *  <li>javax.net.ssl.keyStorePassword</li>
+//    *  <li>https.protocols</li>
+//    *  <li>https.cipherSuites</li>
+//    *  <li>http.proxyHost</li>
+//    *  <li>http.proxyPort</li>
+//    *  <li>http.nonProxyHosts</li>
+//    *  <li>http.keepAlive</li>
+//    *  <li>http.maxConnections</li>
+//    *  <li>http.agent</li>
+    
     ConfigRetriever configRetriever = ConfigRetriever.create(vertx);
     Future<WebClient> wcFuture = configRetriever.getConfig().compose(conf -> {
       
@@ -89,9 +108,10 @@ public class WebClientFactory {
         .setConnectTimeout( DEFAULT_TIMEOUT )
         .setIdleTimeout( DEFAULT_TIMEOUT );
       
-      if (conf != null) {        
+      if (conf != null) {
         options
-          .setKeepAlive(conf.getBoolean("webclient.keepAlive", DEFAULT_KEEPALIVE))
+          .setMaxPoolSize(conf.getInteger("http.maxConnections", options.getMaxPoolSize()))
+          .setKeepAlive(conf.getBoolean("http.keepAlive", DEFAULT_KEEPALIVE))
           .setConnectTimeout(conf.getInteger("webclient.connectTimeout", DEFAULT_TIMEOUT))
           .setIdleTimeout(conf.getInteger("webclient.idleTimeout",DEFAULT_TIMEOUT));
         
@@ -126,7 +146,7 @@ public class WebClientFactory {
     });
     
     try {
-      return AsyncUtil.blocking(wcFuture, 10);
+      return AsyncUtil.blocking(wcFuture);
       
     } catch (TimeoutException e) {
       throw new RuntimeException("Could not create web client", e);

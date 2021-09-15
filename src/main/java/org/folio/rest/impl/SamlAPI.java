@@ -8,7 +8,7 @@ import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS;
 import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD;
 import static io.vertx.core.http.HttpHeaders.ORIGIN;
 import static io.vertx.core.http.HttpHeaders.VARY;
-import static org.folio.util.ErrorHandlingUtils.*;
+import static org.folio.util.ErrorHandlingUtil.*;
 import static org.pac4j.saml.state.SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUTE;
 
 import java.net.URI;

@@ -15,7 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.SamlConfig;
 import org.folio.rest.jaxrs.model.SamlDefaultUser;
 import org.folio.sso.saml.Constants.Config;
-import static org.folio.util.ErrorHandlingUtils.*;
+import static org.folio.util.ErrorHandlingUtil.*;
 import org.folio.util.HttpUtils;
 import org.folio.util.OkapiHelper;
 import org.folio.util.WebClientFactory;
@@ -299,9 +299,6 @@ public class ModuleConfig implements Configuration {
               
               // Invalidate also by recursively calling this method. And use
               // That result for the success.
-//              result.handle(updateEntry(Config.METADATA_INVALIDATED, "true").onComplete( h -> { Client.forceReinit(okapiHeaders.getTenant()); }));
-              
-
               updateEntry(Config.METADATA_INVALIDATED, "true")
                 .onSuccess( h -> {
                   Client.forceReinit(okapiHeaders.getTenant());

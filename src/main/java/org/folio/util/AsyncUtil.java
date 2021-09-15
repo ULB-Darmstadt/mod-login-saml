@@ -60,7 +60,7 @@ public interface AsyncUtil {
       // AS these are special in that we care about the cause more than the
       // result
       // We should log the result here and rethrow the cause.
-      ErrorHandlingUtils.defaultLoggingForThrowable(exeEx);
+      ErrorHandlingUtil.defaultLoggingForThrowable(exeEx);
       final Throwable cause = exeEx.getCause();
 
       throw (cause != null && Exception.class.isAssignableFrom(cause.getClass())
