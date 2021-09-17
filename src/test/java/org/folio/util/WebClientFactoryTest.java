@@ -57,8 +57,4 @@ public class WebClientFactoryTest {
   private void withVertxConfig() {
     vertx = Vertx.vertx();
   }
-  
-  private void withVertxConfig(VertxOptions conf) {
-    vertx = Vertx.vertx(conf);
-  }
 }
