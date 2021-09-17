@@ -1,26 +1,6 @@
 package org.folio.rest.impl;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.absent;
-import static com.github.tomakehurst.wiremock.client.WireMock.and;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.badRequest;
-import static com.github.tomakehurst.wiremock.client.WireMock.created;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.forbidden;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
-import static com.github.tomakehurst.wiremock.client.WireMock.noContent;
-import static com.github.tomakehurst.wiremock.client.WireMock.notMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.put;
-import static com.github.tomakehurst.wiremock.client.WireMock.reset;
-import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.unauthorized;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.folio.util.Base64AwareXsdMatcher.matchesBase64XsdInClasspath;
@@ -51,6 +31,8 @@ import org.junit.rules.TestName;
 import org.junit.runners.MethodSorters;
 import org.pac4j.core.context.HttpConstants;
 import org.w3c.dom.ls.LSResourceResolver;
+
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -450,6 +432,33 @@ public class SamlAPITest {
       .body("idpUrl", Matchers.equalTo("https://idp.ssocircle.com"))
       .body("samlBinding", Matchers.equalTo("POST"))
       .body("metadataInvalidated", Matchers.equalTo(Boolean.FALSE));
+  }
+  
+  @Test
+  public void invalidRemoteMetadataCauses500FromRegenerateEndpoint() {
+    
+    // Mock out sso circle to return a json doc instead of XML.
+    StubMapping mockIDPMetadata = stubFor(
+      get(urlPathEqualTo("/"))
+        .withHost(equalTo("idp.ssocircle.com"))
+        .willReturn(
+          okJson("{ \"empty\": true }"))
+    );
+    
+    try {
+      given()
+        .header(TENANT_HEADER)
+        .header(TOKEN_HEADER)
+        .header(OKAPI_URL_HEADER)
+        .get("/saml/regenerate")
+      
+      .then()
+        .statusCode(500)
+      ;
+    } finally {
+      // Cleanup.
+      removeStub( mockIDPMetadata );
+    }
   }
 
   @Test

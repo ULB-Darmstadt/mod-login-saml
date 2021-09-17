@@ -10,6 +10,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.resource.interfaces.InitAPI;
@@ -51,8 +52,9 @@ public class ApiInitializer implements InitAPI {
 
     // Install the all-trusting trust manager
     try {
+      
       // Create a trust manager that does not validate certificate chains
-      TrustManager[] trustAllCerts = new TrustManager[]{
+      final TrustManager[] trustAllCerts = new TrustManager[]{
         new X509TrustManager() {
           public java.security.cert.X509Certificate[] getAcceptedIssuers() {
             return new X509Certificate[0];
@@ -69,14 +71,15 @@ public class ApiInitializer implements InitAPI {
       };
       
       // Inititalise the security manager with the new insecure trust-store.
-      SSLContext sc = SSLContext.getInstance("SSL");
+      final SSLContext sc = SSLContext.getInstance(SSLConnectionSocketFactory.TLS);
       sc.init(null, trustAllCerts, new java.security.SecureRandom());
+      
+      // Set some defaults.
+      SSLContext.setDefault(sc);
       HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-      // Allow any name in the certificate.
       HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
         public boolean verify(String hostname, SSLSession session) {
-          return true;
+          return true; // Allow any name in the certificate.
         }
       });
       

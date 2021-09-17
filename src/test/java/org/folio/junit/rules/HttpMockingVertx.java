@@ -92,13 +92,11 @@ public class HttpMockingVertx extends WireMockRule {
     props.put("mock.httpclient", "true");
     props.put("http.proxyHost", "localhost");
     props.put("http.proxyPort", "" + mockServerPort);
+    props.put("http.nonProxyHosts", ""); // blank
+    props.put("https.proxyHost", "localhost");
+    props.put("https.proxyPort", "" + mockServerPort);
     
-//    if (!props.containsKey("webclient.proxyAddress")) {
-//      props.put("http.proxyAddress", "http://localhost:" + mockServerPort);
-//    }
-    
-    vertx = Vertx.vertx(new VertxOptions()
-        .setBlockedThreadCheckInterval(1000*60*60));
+    vertx = Vertx.vertx();
     
     DeploymentOptions options = new DeploymentOptions()
       .setConfig(new JsonObject()

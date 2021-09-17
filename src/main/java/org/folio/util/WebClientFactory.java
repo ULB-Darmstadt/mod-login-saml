@@ -121,8 +121,9 @@ public class WebClientFactory {
       
       // Handle the various proxy routes.
       String pAdd = conf.getString("http.proxyHost");
-      if (pAdd != null) {
-        pAdd = "http://" + pAdd + ":" + conf.getInteger("http.proxyPort", 80);
+      if (StringUtils.isNotBlank(pAdd)) {
+        pAdd = (pAdd.matches("^http(s)?:\\/\\/.*") ? pAdd : "http://" + pAdd);
+        pAdd += ":" + conf.getInteger("http.proxyPort", 80);
       }
       
       // Allow a specific override for application traffic only.
