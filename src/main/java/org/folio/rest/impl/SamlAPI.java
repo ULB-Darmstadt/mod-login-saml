@@ -1,14 +1,9 @@
 package org.folio.rest.impl;
 
-import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS;
-import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS;
-import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS;
-import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS;
-import static io.vertx.core.http.HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD;
-import static io.vertx.core.http.HttpHeaders.ORIGIN;
-import static io.vertx.core.http.HttpHeaders.VARY;
-import static org.folio.util.ErrorHandlingUtil.*;
+import static io.vertx.core.http.HttpHeaders.*;
+import static org.folio.util.ErrorHandlingUtil.assert2xx;
+import static org.folio.util.ErrorHandlingUtil.handleThrowables;
+import static org.folio.util.ErrorHandlingUtil.handleThrowablesWithResponse;
 import static org.pac4j.saml.state.SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUTE;
 
 import java.net.URI;
@@ -17,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
@@ -26,27 +20,14 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.interop.UserService;
-import org.folio.rest.jaxrs.model.SamlCheck;
-import org.folio.rest.jaxrs.model.SamlConfig;
-import org.folio.rest.jaxrs.model.SamlConfigRequest;
-import org.folio.rest.jaxrs.model.SamlDefaultUser;
-import org.folio.rest.jaxrs.model.SamlLogin;
-import org.folio.rest.jaxrs.model.SamlLoginRequest;
-import org.folio.rest.jaxrs.model.SamlRegenerateResponse;
-import org.folio.rest.jaxrs.model.SamlValidateGetType;
-import org.folio.rest.jaxrs.model.SamlValidateResponse;
+import org.folio.rest.jaxrs.model.*;
 import org.folio.rest.jaxrs.resource.Saml;
 import org.folio.rest.jaxrs.resource.Saml.PostSamlCallbackResponse.HeadersFor302;
 import org.folio.session.NoopSession;
 import org.folio.sso.saml.Client;
 import org.folio.sso.saml.Constants.Config;
 import org.folio.sso.saml.ModuleConfig;
-import org.folio.util.Base64Util;
-import org.folio.util.HttpActionMapper;
-import org.folio.util.OkapiHelper;
-import org.folio.util.UrlUtil;
-import org.folio.util.VertxUtils;
-import org.folio.util.WebClientFactory;
+import org.folio.util.*;
 import org.folio.util.model.OkapiHeaders;
 import org.pac4j.core.exception.http.HttpAction;
 import org.pac4j.core.exception.http.OkAction;
@@ -57,17 +38,8 @@ import org.pac4j.saml.credentials.SAML2Credentials;
 import org.pac4j.vertx.VertxWebContext;
 import org.springframework.util.StringUtils;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.Cookie;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
@@ -75,9 +47,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.PRNG;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 /**
  * Main entry point of module
@@ -494,60 +466,6 @@ public class SamlAPI implements Saml {
    */
   private void registerFakeSession(RoutingContext routingContext) {
     routingContext.setSession(new NoopSession());
-  }
-
-  private SamlDefaultUser configExtractDefaultUser(ModuleConfig config) {
-
-    if (!config.hasDefaultUserData()) return null;
-
-    SamlDefaultUser defaultUser = new SamlDefaultUser()
-        .withEmailAttribute(config.getUserDefaultEmailAttribute())
-        .withFirstNameAttribute(config.getUserDefaultFirstNameAttribute())
-        .withFirstNameDefault(config.getUserDefaultFirstNameDefault())
-        .withLastNameAttribute(config.getUserDefaultLastNameAttribute())
-        .withLastNameDefault(config.getUserDefaultLastNameDefault())
-        .withPatronGroup(config.getUserDefaultPatronGroup())
-        .withUsernameAttribute(config.getUserDefaultUsernameAttribute())
-        ;
-    return defaultUser;
-  }
-
-  /**
-   * Converts internal {@link SamlConfiguration} object to DTO, checks illegal values
-   * TODO: This may be better as a JSON view agains the config object itself.
-   */
-  private SamlConfig configToDto(ModuleConfig config) {
-    SamlConfig samlConfig = new SamlConfig()
-        .withSamlAttribute(config.getSamlAttribute())
-        .withUserProperty(config.getUserProperty())
-        .withMetadataInvalidated(Boolean.valueOf(config.getMetadataInvalidated()))
-        .withUserCreateMissing(Boolean.valueOf(config.getUserCreateMissing()))
-        .withSamlDefaultUser(configExtractDefaultUser(config))
-        ;
-
-    try {
-      URI uri = URI.create(config.getOkapiUrl());
-      samlConfig.setOkapiUrl(uri);
-    } catch (Exception e) {
-      log.debug("Okapi URI is in a bad format");
-      samlConfig.setOkapiUrl(URI.create(""));
-    }
-
-    try {
-      URI uri = URI.create(config.getIdpUrl());
-      samlConfig.setIdpUrl(uri);
-    } catch (Exception x) {
-      samlConfig.setIdpUrl(URI.create(""));
-    }
-
-    try {
-      SamlConfig.SamlBinding samlBinding = SamlConfig.SamlBinding.fromValue(config.getSamlBinding());
-      samlConfig.setSamlBinding(samlBinding);
-    } catch (Exception x) {
-      samlConfig.setSamlBinding(null);
-    }
-
-    return samlConfig;
   }
 
   @Override
