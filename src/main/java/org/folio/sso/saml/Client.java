@@ -1,14 +1,8 @@
 package org.folio.sso.saml;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -21,7 +15,6 @@ import org.folio.sso.saml.metadata.ExtendedSAML2IdentityProviderMetadataResolver
 import org.folio.sso.saml.metadata.ExtendedSAML2ServiceProviderMetadataResolver;
 import org.folio.util.AsyncUtil;
 import org.folio.util.OkapiHelper;
-import org.folio.util.WebClientFactory;
 import org.folio.util.model.OkapiHeaders;
 import org.opensaml.saml.common.xml.SAMLConstants;
 import org.opensaml.saml.saml2.core.Attribute;
@@ -40,14 +33,9 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.RoutingContext;
-import net.shibboleth.utilities.java.support.resolver.ResolverException;
 
 /**
  * Extension of the base client from Pac4J. Allows us to properly customise the
