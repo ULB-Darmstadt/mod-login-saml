@@ -1,12 +1,12 @@
 package org.folio.sso.saml.metadata;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nullable;
 import javax.net.ssl.HttpsURLConnection;
@@ -39,67 +39,149 @@ import net.shibboleth.utilities.java.support.component.ComponentInitializationEx
 import net.shibboleth.utilities.java.support.resolver.CriteriaSet;
 import net.shibboleth.utilities.java.support.resolver.ResolverException;
 
-public class ExtendedSAML2IdentityProviderMetadataResolver implements SAML2MetadataResolver {
 
+/**
+ * Pac4j's internal implementations have a 1:1 relationship with the SamlClient
+ * and the IDP metadata resolver. This means if we cache the clients we'll end
+ * up caching the IDP MD provider too. Given we want to support multiple IDPs
+ * then we need to be able to instantiate a new Resolver every request, which in
+ * turn means we need to instantiate a client every time.
+ * 
+ * This class is a replacement designed to be instantiated every request, whilst
+ * maintaining a cache of the internal OpenSaml Metadata provider. This enables
+ * us to still keep the expensive operations around remote metadata kept in the
+ * background while also allowing the relatively inexpensive instances of the
+ * client created every time.
+ * 
+ * @author Steve Osguthorpe
+ *
+ */
+public class ExtendedSAML2IdentityProviderMetadataResolver implements SAML2MetadataResolver {
+  
   //Ensure we only take into account the IDP listings by using a filter.
   private static final EntityRoleFilter IDPOnlyFilter = new EntityRoleFilter(
       Arrays.asList(new QName[] {IDPSSODescriptor.DEFAULT_ELEMENT_NAME}));
+
+  private static final Map<String,FileBackedHTTPMetadataResolver> RESOLVER_CACHE =
+      new ConcurrentHashMap<>();
   
-  protected final Logger logger = LoggerFactory.getLogger(getClass());
-
-  private final Resource idpMetadataResource;
-  private String idpEntityId;
-  private FileBackedHTTPMetadataResolver idpMetadataProvider;
+  public static void clearCache( final String key ) {
+    FileBackedHTTPMetadataResolver res;
+    
+    synchronized (RESOLVER_CACHE) {
+      res = RESOLVER_CACHE.remove(key);
+    }
+    
+    if (res != null) {
+      res.destroy();
+    }
+  }
   
-  private final String namePrefix;
-
-  public ExtendedSAML2IdentityProviderMetadataResolver(final SAML2Configuration conf, final String namePrefix) {
-    this(conf.getIdentityProviderMetadataResource(), conf.getServiceProviderEntityId(), namePrefix);
+  public static void clearCache() {
+    synchronized (RESOLVER_CACHE) {
+      Set<String> keysCopy = new HashSet<>(RESOLVER_CACHE.keySet());
+      for (final String instId : keysCopy) {
+        clearCache(instId);
+      }
+    }
   }
-
-  public ExtendedSAML2IdentityProviderMetadataResolver(final Resource idpMetadataResource, @Nullable final String idpEntityId, final String namePrefix) {
-    CommonHelper.assertNotNull("idpMetadataResource", idpMetadataResource);
-    CommonHelper.assertNotNull("namePrefix", namePrefix);
-    this.namePrefix = namePrefix;
-    this.idpMetadataResource = idpMetadataResource;
-    this.idpEntityId = idpEntityId;
-  }
-
-  public void init() {
-    assert (idpMetadataResource instanceof UrlResource);
-    this.idpMetadataProvider = buildMetadata();
-  }
-
-  @Override
-  public final MetadataResolver resolve() {
-    return idpMetadataProvider;
-  }
-
-  protected FileBackedHTTPMetadataResolver buildMetadata() {
-    try {      
-      final FileBackedHTTPMetadataResolver resolver;
-      try {
-        final File tmpHandle = File.createTempFile(this.namePrefix, ".xml");
-        
+  
+  private FileBackedHTTPMetadataResolver getOrCreateRemoteMetadataResolver() throws ResolverException, IOException, NoSuchAlgorithmException, ComponentInitializationException {
+    synchronized (RESOLVER_CACHE) {
+      FileBackedHTTPMetadataResolver remoteResolver = RESOLVER_CACHE.get(instanceName);
+      if ( remoteResolver == null ) {
         final HttpClient client = HttpClients.custom()
           .useSystemProperties()
           .setSSLHostnameVerifier(HttpsURLConnection.getDefaultHostnameVerifier())
           .setSSLContext(SSLContext.getDefault())
         .build();
         
-        final String metadataUrl = idpMetadataResource.getURI().toASCIIString();
+        final String metadataUrl = remoteMetadataResource.getURI().toASCIIString();
         logger.info("Using URL: {}", metadataUrl);
-        resolver = new FileBackedHTTPMetadataResolver(
-            client, metadataUrl, tmpHandle.getAbsolutePath());
         
-        resolver.setIndexes(Collections.singleton(new RoleMetadataIndex()));
-        resolver.setParserPool(Configuration.getParserPool());
-        resolver.setFailFastInitialization(true);
-        resolver.setRequireValidMetadata(true);
-        resolver.setMetadataFilter(IDPOnlyFilter);
-        resolver.setId(resolver.getClass().getCanonicalName());
-        resolver.setInitializeFromBackupFile(false);
-        resolver.initialize();
+        final Path tmpFile = Files.createTempFile("metadata", ".xml");
+        
+        remoteResolver = new FileBackedHTTPMetadataResolver(
+          client, metadataUrl, tmpFile.toAbsolutePath().toString());
+        
+        remoteResolver.setIndexes(Collections.singleton(new RoleMetadataIndex()));
+        remoteResolver.setParserPool(Configuration.getParserPool());
+        remoteResolver.setFailFastInitialization(true);
+        remoteResolver.setRequireValidMetadata(true);
+        remoteResolver.setMetadataFilter(IDPOnlyFilter);
+        remoteResolver.setId(
+            instanceName + ":" + remoteResolver.getClass().getCanonicalName());
+        remoteResolver.setInitializeFromBackupFile(false);
+        remoteResolver.initialize();
+        
+        RESOLVER_CACHE.put(instanceName, remoteResolver);
+      }
+      
+      return remoteResolver;
+    }
+  }
+  
+  private String idpEntityId;
+
+  private final String instanceName;
+  protected final Logger logger = LoggerFactory.getLogger(getClass());
+  
+  private MetadataResolver remoteMetadataProvider;
+
+  private final Resource remoteMetadataResource;
+
+  public ExtendedSAML2IdentityProviderMetadataResolver(final Resource idpMetadataResource, @Nullable final String idpEntityId, final String instanceName) {
+    CommonHelper.assertNotNull("idpMetadataResource", idpMetadataResource);
+    CommonHelper.assertNotNull("namePrefix", instanceName);
+    this.instanceName = instanceName;
+    this.remoteMetadataResource = idpMetadataResource;
+    this.idpEntityId = idpEntityId;
+  }
+  
+  public ExtendedSAML2IdentityProviderMetadataResolver(final SAML2Configuration conf, final String instanceName) {
+    this(conf.getIdentityProviderMetadataResource(), conf.getServiceProviderEntityId(), instanceName);
+  }
+
+  @Override
+  public XMLObject getEntityDescriptorElement() {
+    try {
+      return resolve().resolveSingle(new CriteriaSet(new EntityIdCriterion(this.idpEntityId)));
+    } catch (final ResolverException e) {
+      throw new SAMLException("Error initializing IDPMetadata resolver", e);
+    }
+  }
+
+  @Override
+  public String getEntityId() {
+    final XMLObject md = getEntityDescriptorElement();
+    if (md instanceof EntitiesDescriptor) {
+      return ((EntitiesDescriptor) md).getEntityDescriptors().get(0).getEntityID();
+    } else if (md instanceof EntityDescriptor) {
+      return ((EntityDescriptor) md).getEntityID();
+    }
+    throw new SAMLException("No idp entityId found");
+  }
+
+  @Override
+  public String getMetadata() {
+    if (getEntityDescriptorElement() != null) {
+      return Configuration.serializeSamlObject(getEntityDescriptorElement()).toString();
+    }
+    throw new TechnicalException("Metadata cannot be retrieved because entity descriptor is null");
+  }
+
+  public void init() {
+    assert (remoteMetadataResource instanceof UrlResource);
+    remoteMetadataProvider = initializeRemoteResolver();
+  }
+
+  protected FileBackedHTTPMetadataResolver initializeRemoteResolver() {
+    try {      
+      final FileBackedHTTPMetadataResolver resolver;
+      try {
+        
+        resolver = getOrCreateRemoteMetadataResolver();
+        
       } catch (final FileNotFoundException e) {
         throw new TechnicalException("Error loading idp Metadata");
       }
@@ -131,30 +213,7 @@ public class ExtendedSAML2IdentityProviderMetadataResolver implements SAML2Metad
   }
 
   @Override
-  public String getEntityId() {
-    final XMLObject md = getEntityDescriptorElement();
-    if (md instanceof EntitiesDescriptor) {
-      return ((EntitiesDescriptor) md).getEntityDescriptors().get(0).getEntityID();
-    } else if (md instanceof EntityDescriptor) {
-      return ((EntityDescriptor) md).getEntityID();
-    }
-    throw new SAMLException("No idp entityId found");
-  }
-
-  @Override
-  public String getMetadata() {
-    if (getEntityDescriptorElement() != null) {
-      return Configuration.serializeSamlObject(getEntityDescriptorElement()).toString();
-    }
-    throw new TechnicalException("Metadata cannot be retrieved because entity descriptor is null");
-  }
-
-  @Override
-  public XMLObject getEntityDescriptorElement() {
-    try {
-      return resolve().resolveSingle(new CriteriaSet(new EntityIdCriterion(this.idpEntityId)));
-    } catch (final ResolverException e) {
-      throw new SAMLException("Error initializing IDPMetadata resolver", e);
-    }
+  public final MetadataResolver resolve() {
+    return remoteMetadataProvider;
   }
 }

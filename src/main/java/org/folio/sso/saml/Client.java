@@ -3,7 +3,6 @@ package org.folio.sso.saml;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -104,7 +103,7 @@ public class Client extends SAML2Client {
       final Vertx vertx = routingContext.vertx();
 
       if (StringUtils.isBlank(idpUrl)) {
-        return Future.failedFuture("There is no IdP configuration stored!");
+        return Future.failedFuture("There is no metadata configuration stored!");
       }
 
       if (StringUtils.isBlank(keystore)) {
@@ -174,15 +173,15 @@ public class Client extends SAML2Client {
     });
   }
   
-//  public static void forceReinit() {
-//    // Clear the caches...
-//    tenantCache.clear();
-//  }
-//  
-//  public static void forceReinit(final String tenant) {
-//    // Clear the cache for the single tenant...
-//    tenantCache.remove(tenant);
-//  }
+  public static void forceReinit() {
+    // Clear the caches...
+    ExtendedSAML2IdentityProviderMetadataResolver.clearCache();
+  }
+  
+  public static void forceReinit(final String tenant) {
+    // Clear the cache for the single tenant...
+    ExtendedSAML2IdentityProviderMetadataResolver.clearCache(tenant);
+  }
   
   public static Client getSync(final RoutingContext routingContext, final boolean generateMissingKeyStore, final boolean reinitialize) throws Exception {
     return AsyncUtil.blocking(get(routingContext, generateMissingKeyStore, reinitialize));
@@ -190,11 +189,6 @@ public class Client extends SAML2Client {
   
   public static Future<Client> get ( final RoutingContext routingContext, final boolean generateMissingKeyStore, final boolean reinitialize ) {
        
-    // Override this value if we are testing.
-    
-    // Get the okapi tenant header.
-    final String tenant = OkapiHelper.okapiHeaders(routingContext).getTenant();
-    
     Future<Client> future;
     if (!reinitialize) {
       future = routingContext.get(CACHE_KEY);
@@ -202,27 +196,13 @@ public class Client extends SAML2Client {
         log.debug("Returning client from request cache");
         return future;
       }
-      
-      // Not in the request. Check if we already have 1 in the tenant cache.
-//      future = tenantCache.get(tenant);
-//      if (future != null) {
-//        if (future.succeeded()) {
-//          // clear cache to allow cleanup.
-//          log.debug("Returning client from tenant cache");
-//          return future;
-//        }
-//        
-//        // Cleanup.
-//        tenantCache.remove(tenant);
-//      }
     }
     
-    // Else create and cache in the request, and the tenant cache.
+    // Else create and cache in the request.
     log.debug("Creating new client");
     future = createClient( routingContext, generateMissingKeyStore );
     
     routingContext.put( CACHE_KEY, future );
-//    tenantCache.put( tenant, future );
     return future;
   }
     
@@ -235,9 +215,9 @@ public class Client extends SAML2Client {
         SAMLConstants.SAML2_REDIRECT_BINDING_URI : 
           SAMLConstants.SAML2_POST_BINDING_URI); // POST is the default
     
-    /* TODO: THIS SUCKS!!! Runtime (Production) code should not have mocks embedded.
+    /* TODO: THIS SUCKS!!! Production code should not have mocks embedded.
        If time we need to refactor this out and produce a mocked IDP response
-       and interract properly instead of mocking responses in this manor. */ 
+       and interact properly instead of mocking responses in this manor. */ 
     final boolean mock = Boolean.parseBoolean(System.getProperty("mock.httpclient")); 
     
     

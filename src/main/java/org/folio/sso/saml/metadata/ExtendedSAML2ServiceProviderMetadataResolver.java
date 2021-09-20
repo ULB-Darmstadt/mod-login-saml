@@ -29,7 +29,7 @@ public class ExtendedSAML2ServiceProviderMetadataResolver extends SAML2ServicePr
   }
   
   private void addDiscoInfo (ExtendedSAML2MetadataGenerator metadataGenerator) {
-    // ADd the discovery service.
+    // Add the discovery service.
     metadataGenerator.setDiscoUrl("https://local.disco.service");
   }
 

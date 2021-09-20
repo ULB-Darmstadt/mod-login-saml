@@ -47,9 +47,9 @@ import io.vertx.core.json.JsonObject;
 public class SamlAPITest {
   private static final Logger log = LogManager.getLogger(SamlAPITest.class);
   private static final String TENANT_NAME = "saml-test"; 
-  
+
   private static final URI okapi = UriBuilder.fromUri("http://localhost:9130").build();
-  
+
   private static final Header TENANT_HEADER = new Header("X-Okapi-Tenant", TENANT_NAME);
   private static final Header TOKEN_HEADER = new Header("X-Okapi-Token", "saml-test");
   private static final Header OKAPI_URL_HEADER = new Header("X-Okapi-Url", okapi.toString());
@@ -58,199 +58,199 @@ public class SamlAPITest {
 
   @Rule
   public TestName testName = new TestName();
-  
+
   // Instead of using vertx runner to run inline. We use our rule which creates
   // a vertx instance and sets the proxy option so that all traffic is passed
   // through the sister WireMock instance.
   @ClassRule
   public static HttpMockingVertx mock = new HttpMockingVertx();
-  
+
   static {
     // In order to proxy https traffic the proxy needs to act as a man
     // in the middle. We enable the trust of all certs for this reason here.
-    
+
     // Class rule runs before our @BeforeClass, so we set in a static block here.
     System.setProperty("TRUST_ALL_CERTIFICATES", "true");
   }
-  
+
   @AfterClass
   public static void teardownGlobal() {
     System.clearProperty("TRUST_ALL_CERTIFICATES");
   }
-  
+
   @BeforeClass
   public static void setupGlobal() throws UnsupportedEncodingException {
-    
+
     // Use the DSL to create the test data. Mocking Vertx rule should ensure that
     // requests made from within Vertx using the WebclientFactory will proxy through
     // our mock server first.
     stubFor(
-      any(urlPathMatching(okapi.getPath() + "/.*"))
+        any(urlPathMatching(okapi.getPath() + "/.*"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
         .withHeader( TENANT_HEADER.getName(), notMatching(TENANT_HEADER.getValue()).or(absent()) )
-      .willReturn(serverError().withStatusMessage("Invalid or missing tenant"))
-    );
+        .willReturn(serverError().withStatusMessage("Invalid or missing tenant"))
+        );
     stubFor(
-      any(urlPathMatching(okapi.getPath() + "/.*"))
+        any(urlPathMatching(okapi.getPath() + "/.*"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
         .withHeader(TOKEN_HEADER.getName(), absent() )
-      .willReturn(unauthorized())
-    );
+        .willReturn(unauthorized())
+        );
     stubFor(
-      any(urlPathMatching(okapi.getPath() + "/.*"))
+        any(urlPathMatching(okapi.getPath() + "/.*"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
         .withHeader(TOKEN_HEADER.getName(), notMatching(TOKEN_HEADER.getValue()) )
-      .willReturn(forbidden())
-    );
-      
+        .willReturn(forbidden())
+        );
+
     stubFor(
-      get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
+        get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
         .withQueryParam("limit", equalTo("10000"))
         .withQueryParam("query", equalTo("(module==LOGIN-SAML AND configName==saml)"))
-        
-      .willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBodyFile("_mod-config-saml.json")
-      )
-    );
-    
+
+        .willReturn(
+            aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBodyFile("_mod-config-saml.json")
+            )
+        );
+
     stubFor(
-      get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
+        get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
         .withQueryParam("query", equalTo("(module==LOGIN-SAML AND configName==saml AND code== saml.attribute)"))
-        
-      .willReturn(
-        okJson(new JsonObject()
-          .put("totalRecords", 0)
-          .put("configs", new JsonArray()).encode()
-      ))
-    );
-    
+
+        .willReturn(
+            okJson(new JsonObject()
+                .put("totalRecords", 0)
+                .put("configs", new JsonArray()).encode()
+                ))
+        );
+
     stubFor(
-      get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
+        get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
         .withQueryParam("query", equalTo("(module==LOGIN-SAML AND configName==saml AND code== idp.url)"))
-        
-      .willReturn(
-        okJson(new JsonObject()
-          .put("totalRecords", 1)
-          .put("configs", new JsonArray()
-            .add(new JsonObject()
-              .put("id", "60eead4f-de97-437c-9cb7-09966ce50e49")
-              .put("module", "LOGIN-SAML")
-              .put("configName", "saml")
-              .put("code", "idp.url")
-              .put("value", "https://idp.ssocircle.com" ))).encode()
-      ))
-    );
-    
+
+        .willReturn(
+            okJson(new JsonObject()
+                .put("totalRecords", 1)
+                .put("configs", new JsonArray()
+                    .add(new JsonObject()
+                        .put("id", "60eead4f-de97-437c-9cb7-09966ce50e49")
+                        .put("module", "LOGIN-SAML")
+                        .put("configName", "saml")
+                        .put("code", "idp.url")
+                        .put("value", "https://idp.ssocircle.com" ))).encode()
+                ))
+        );
+
     stubFor(
-      get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
+        get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
         .withQueryParam("query", equalTo("(module==LOGIN-SAML AND configName==saml AND code== metadata.invalidated)"))
-        
-      .willReturn(
-        okJson(new JsonObject()
-          .put("totalRecords", 1)
-          .put("configs", new JsonArray()
-            .add(new JsonObject()
-              .put("id", "717bf1d1-a5a3-460f-a0de-29e6b70a0027")
-              .put("module", "LOGIN-SAML")
-              .put("configName", "saml")
-              .put("code", "metadata.invalidated")
-              .put("value", "false" ))).encode()
-      ))
-    );
-    
+
+        .willReturn(
+            okJson(new JsonObject()
+                .put("totalRecords", 1)
+                .put("configs", new JsonArray()
+                    .add(new JsonObject()
+                        .put("id", "717bf1d1-a5a3-460f-a0de-29e6b70a0027")
+                        .put("module", "LOGIN-SAML")
+                        .put("configName", "saml")
+                        .put("code", "metadata.invalidated")
+                        .put("value", "false" ))).encode()
+                ))
+        );
+
     stubFor(
-      get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
+        get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
         .withQueryParam("query", equalTo("(module==LOGIN-SAML AND configName==saml AND code== user.property)"))
-        
-      .willReturn(
-        okJson(new JsonObject()
-          .put("totalRecords", 0)
-          .put("configs", new JsonArray()).encode()
-      ))
-    );
-    
+
+        .willReturn(
+            okJson(new JsonObject()
+                .put("totalRecords", 0)
+                .put("configs", new JsonArray()).encode()
+                ))
+        );
+
     stubFor(
-      get(urlPathMatching(okapi.getPath() + "/users"))
+        get(urlPathMatching(okapi.getPath() + "/users"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
         .withQueryParam("query", equalTo("externalSystemId==\"saml-user-id\""))
-        
-      .willReturn(
-        okJson(new JsonObject()
-          .put("totalRecords", 1)
-          .put("users", new JsonArray()
-            .add(new JsonObject()
-              .put("id", "saml-user")
-              .put("username", "samluser")
-              .put("active", true))).encode()
-      ))
-    );
-    
+
+        .willReturn(
+            okJson(new JsonObject()
+                .put("totalRecords", 1)
+                .put("users", new JsonArray()
+                    .add(new JsonObject()
+                        .put("id", "saml-user")
+                        .put("username", "samluser")
+                        .put("active", true))).encode()
+                ))
+        );
+
     stubFor(
-      post(urlPathMatching(okapi.getPath() + "/token"))
+        post(urlPathMatching(okapi.getPath() + "/token"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
         .withRequestBody(
-          and(
-            matchingJsonPath("$.payload[?(@.sub=='samluser')]"),
-            matchingJsonPath("$.payload[?(@.user_id=='saml-user')]")
-          )
-        )
-      .willReturn(
-        created()
-          .withBody(new JsonObject()
-            .put("token", "saml-token").encode()
-      ))
-    );
-    
+            and(
+                matchingJsonPath("$.payload[?(@.sub=='samluser')]"),
+                matchingJsonPath("$.payload[?(@.user_id=='saml-user')]")
+                )
+            )
+        .willReturn(
+            created()
+            .withBody(new JsonObject()
+                .put("token", "saml-token").encode()
+                ))
+        );
+
     // Return the correct code. No persistence happens here, but we should be able
     // to replace the entries in the mock to reflect the new state.
     stubFor(
-      put(urlPathMatching(okapi.getPath() + "/configurations/entries/.*"))
+        put(urlPathMatching(okapi.getPath() + "/configurations/entries/.*"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
-        
-      .willReturn(
-        noContent()
-      )
-    );
-    
+
+        .willReturn(
+            noContent()
+            )
+        );
+
     stubFor(
-      post(urlPathMatching(okapi.getPath() + "/configurations/entries"))
+        post(urlPathMatching(okapi.getPath() + "/configurations/entries"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
-      .willReturn(
-        created()
-          .withBody(
-            "{{parseJson request.body 'bodyMap'}}" +
-            "{{set-value bodyMap 'id' (randomValue type='UUID')}}" +
-            "{{{json bodyMap}}}").withTransformers("response-template")
-      )
-    );
-    
+        .willReturn(
+            created()
+            .withBody(
+                "{{parseJson request.body 'bodyMap'}}" +
+                    "{{set-value bodyMap 'id' (randomValue type='UUID')}}" +
+                "{{{json bodyMap}}}").withTransformers("response-template")
+            )
+        );
+
     stubFor(
-      get(urlEqualTo("/xml"))
+        get(urlEqualTo("/xml"))
         .withHost(equalTo("mock-idp"))
         .willReturn(
-          aResponse()
+            aResponse()
             .withBodyFile("meta-idp.xml")
             .withHeader("Content-Type", "application/xml")));
-    
+
 
     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     RestAssured.port = mock.vertxPort;
@@ -266,33 +266,33 @@ public class SamlAPITest {
 
     // Force a reinit.
     Client.forceReinit(TENANT_NAME);
-    
+
     // bad
     given()
-      .get("/saml/check")
-      .then()
-      .statusCode(400);
+    .get("/saml/check")
+    .then()
+    .statusCode(400);
 
     // missing OKAPI_URL_HEADER -> "active": false
     given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .get("/saml/check")
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .get("/saml/check")
     .then()
-      .statusCode(200)
-      .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlCheck.json"))
-      .body("active", Matchers.equalTo(false));
-    
+    .statusCode(200)
+    .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlCheck.json"))
+    .body("active", Matchers.equalTo(false));
+
     // good -> "active": true
     given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .get("/saml/check")
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .header(OKAPI_URL_HEADER)
+    .get("/saml/check")
     .then()
-      .statusCode(200)
-      .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlCheck.json"))
-      .body("active", Matchers.equalTo(true));
+    .statusCode(200)
+    .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlCheck.json"))
+    .body("active", Matchers.equalTo(true));
 
   }
 
@@ -300,31 +300,31 @@ public class SamlAPITest {
   public void loginEndpointTestsBad() {
     // empty body
     given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .header(JSON_CONTENT_TYPE_HEADER)
-      .post("/saml/login")
-      .then()
-      .statusCode(400);
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .header(OKAPI_URL_HEADER)
+    .header(JSON_CONTENT_TYPE_HEADER)
+    .post("/saml/login")
+    .then()
+    .statusCode(400);
   }
 
   @Test
   public void loginEndpointTestsGood() {
     // good
     ExtractableResponse<Response> resp = given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .header(JSON_CONTENT_TYPE_HEADER)
-      .body("{\"stripesUrl\":\"" + STRIPES_URL + "\"}")
-      .post("/saml/login")
-    .then()
-      .contentType(ContentType.JSON)
-      .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlLogin.json"))
-      .body("bindingMethod", Matchers.equalTo("POST"))
-      .statusCode(200)
-      .extract();
+        .header(TENANT_HEADER)
+        .header(TOKEN_HEADER)
+        .header(OKAPI_URL_HEADER)
+        .header(JSON_CONTENT_TYPE_HEADER)
+        .body("{\"stripesUrl\":\"" + STRIPES_URL + "\"}")
+        .post("/saml/login")
+        .then()
+        .contentType(ContentType.JSON)
+        .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlLogin.json"))
+        .body("bindingMethod", Matchers.equalTo("POST"))
+        .statusCode(200)
+        .extract();
 
     String cookie = resp.cookie(COOKIE_RELAY_STATE);
     String relayState = resp.body().jsonPath().getString(COOKIE_RELAY_STATE);
@@ -332,18 +332,18 @@ public class SamlAPITest {
 
     // stripesUrl w/ query args
     resp = given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .header(JSON_CONTENT_TYPE_HEADER)
-      .body("{\"stripesUrl\":\"" + STRIPES_URL + "?foo=bar\"}")
-      .post("/saml/login")
-      .then()
-      .contentType(ContentType.JSON)
-      .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlLogin.json"))
-      .body("bindingMethod", Matchers.equalTo("POST"))
-      .statusCode(200)
-      .extract();
+        .header(TENANT_HEADER)
+        .header(TOKEN_HEADER)
+        .header(OKAPI_URL_HEADER)
+        .header(JSON_CONTENT_TYPE_HEADER)
+        .body("{\"stripesUrl\":\"" + STRIPES_URL + "?foo=bar\"}")
+        .post("/saml/login")
+        .then()
+        .contentType(ContentType.JSON)
+        .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlLogin.json"))
+        .body("bindingMethod", Matchers.equalTo("POST"))
+        .statusCode(200)
+        .extract();
 
     cookie = resp.cookie(COOKIE_RELAY_STATE);
     relayState = resp.body().jsonPath().getString("relayState");
@@ -351,18 +351,18 @@ public class SamlAPITest {
 
     // AJAX 401
     given()
-      .header(HttpConstants.AJAX_HEADER_NAME, HttpConstants.AJAX_HEADER_VALUE)
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .header(JSON_CONTENT_TYPE_HEADER)
-      .body("{\"stripesUrl\":\"" + STRIPES_URL + "\"}")
-      .post("/saml/login")
-      .then()
-      .statusCode(401);
+    .header(HttpConstants.AJAX_HEADER_NAME, HttpConstants.AJAX_HEADER_VALUE)
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .header(OKAPI_URL_HEADER)
+    .header(JSON_CONTENT_TYPE_HEADER)
+    .body("{\"stripesUrl\":\"" + STRIPES_URL + "\"}")
+    .post("/saml/login")
+    .then()
+    .statusCode(401);
   }
 
-  
+
 
   @Test
   public void regenerateEndpointTests() throws IOException {
@@ -371,16 +371,16 @@ public class SamlAPITest {
     LSResourceResolver resolver = new TestingClasspathResolver("schemas/");
 
     String metadata = given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .get("/saml/regenerate")
-    .then()
-      .contentType(ContentType.JSON)
-      .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlRegenerateResponse.json"))
-      .body("fileContent", matchesBase64XsdInClasspath("schemas/saml-schema-metadata-2.0.xsd", resolver))
-      .statusCode(200)
-      .extract().asString();
+        .header(TENANT_HEADER)
+        .header(TOKEN_HEADER)
+        .header(OKAPI_URL_HEADER)
+        .get("/saml/regenerate")
+        .then()
+        .contentType(ContentType.JSON)
+        .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlRegenerateResponse.json"))
+        .body("fileContent", matchesBase64XsdInClasspath("schemas/saml-schema-metadata-2.0.xsd", resolver))
+        .statusCode(200)
+        .extract().asString();
 
     // Update the config
     SamlConfigRequest samlConfigRequest = new SamlConfigRequest()
@@ -394,28 +394,28 @@ public class SamlAPITest {
     String jsonString = Json.encode(samlConfigRequest);
 
     given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .header(JSON_CONTENT_TYPE_HEADER)
-      .body(jsonString)
-      .put("/saml/configuration")
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .header(OKAPI_URL_HEADER)
+    .header(JSON_CONTENT_TYPE_HEADER)
+    .body(jsonString)
+    .put("/saml/configuration")
     .then()
-      .statusCode(200)
-      .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlConfig.json"));
+    .statusCode(200)
+    .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlConfig.json"));
 
     // Get metadata, ensure it's changed
     String regeneratedMetadata = given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .get("/saml/regenerate")
-      .then()
-      .contentType(ContentType.JSON)
-      .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlRegenerateResponse.json"))
-      .body("fileContent", matchesBase64XsdInClasspath("schemas/saml-schema-metadata-2.0.xsd", resolver))
-      .statusCode(200)
-      .extract().asString();
+        .header(TENANT_HEADER)
+        .header(TOKEN_HEADER)
+        .header(OKAPI_URL_HEADER)
+        .get("/saml/regenerate")
+        .then()
+        .contentType(ContentType.JSON)
+        .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlRegenerateResponse.json"))
+        .body("fileContent", matchesBase64XsdInClasspath("schemas/saml-schema-metadata-2.0.xsd", resolver))
+        .statusCode(200)
+        .extract().asString();
 
     assertNotEquals(metadata, regeneratedMetadata);
   }
@@ -426,18 +426,18 @@ public class SamlAPITest {
 
     log.info("=== Setup - POST /saml/login - need relayState and cookie ===");
     ExtractableResponse<Response> resp = given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .header(JSON_CONTENT_TYPE_HEADER)
-      .body("{\"stripesUrl\":\"" + STRIPES_URL + testPath + "\"}")
-      .post("/saml/login")
-      .then()
-      .contentType(ContentType.JSON)
-      .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlLogin.json"))
-      .body("bindingMethod", Matchers.equalTo("POST"))
-      .statusCode(200)
-      .extract();
+        .header(TENANT_HEADER)
+        .header(TOKEN_HEADER)
+        .header(OKAPI_URL_HEADER)
+        .header(JSON_CONTENT_TYPE_HEADER)
+        .body("{\"stripesUrl\":\"" + STRIPES_URL + testPath + "\"}")
+        .post("/saml/login")
+        .then()
+        .contentType(ContentType.JSON)
+        .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlLogin.json"))
+        .body("bindingMethod", Matchers.equalTo("POST"))
+        .statusCode(200)
+        .extract();
 
     String cookie = resp.cookie(COOKIE_RELAY_STATE);
     String relayState = resp.body().jsonPath().getString(COOKIE_RELAY_STATE);
@@ -451,7 +451,8 @@ public class SamlAPITest {
       .formParam("SAMLResponse", "saml-response")
       .formParam("RelayState", relayState)
       .post("/saml/callback")
-      .then()
+      
+    .then()
       .statusCode(302)
       .header("Location", Matchers.containsString(URLEncoder.encode(testPath, "UTF-8")))
       .header("x-okapi-token", "saml-token")
@@ -459,38 +460,38 @@ public class SamlAPITest {
 
     log.info("=== Test - POST /saml/callback - failure (wrong cookie) ===");
     given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .cookie(COOKIE_RELAY_STATE, "bad" + cookie)
-      .formParam("SAMLResponse", "saml-response")
-      .formParam("RelayState", relayState)
-      .post("/saml/callback")
-      .then()
-      .statusCode(403);
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .header(OKAPI_URL_HEADER)
+    .cookie(COOKIE_RELAY_STATE, "bad" + cookie)
+    .formParam("SAMLResponse", "saml-response")
+    .formParam("RelayState", relayState)
+    .post("/saml/callback")
+    .then()
+    .statusCode(403);
 
     log.info("=== Test - POST /saml/callback - failure (wrong relay) ===");
     given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .cookie(COOKIE_RELAY_STATE, cookie)
-      .formParam("SAMLResponse", "saml-response")
-      .formParam("RelayState", relayState.replace("localhost", "demo"))
-      .post("/saml/callback")
-      .then()
-      .statusCode(403);
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .header(OKAPI_URL_HEADER)
+    .cookie(COOKIE_RELAY_STATE, cookie)
+    .formParam("SAMLResponse", "saml-response")
+    .formParam("RelayState", relayState.replace("localhost", "demo"))
+    .post("/saml/callback")
+    .then()
+    .statusCode(403);
 
     log.info("=== Test - POST /saml/callback - failure (no cookie) ===");
     given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .formParam("SAMLResponse", "saml-response")
-      .formParam("RelayState", relayState)
-      .post("/saml/callback")
-      .then()
-      .statusCode(403);
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .header(OKAPI_URL_HEADER)
+    .formParam("SAMLResponse", "saml-response")
+    .formParam("RelayState", relayState)
+    .post("/saml/callback")
+    .then()
+    .statusCode(403);
   }
 
   @Test
@@ -498,39 +499,43 @@ public class SamlAPITest {
 
     // GET
     given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .header(JSON_CONTENT_TYPE_HEADER)
-      .get("/saml/configuration")
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .header(OKAPI_URL_HEADER)
+    .header(JSON_CONTENT_TYPE_HEADER)
+    .get("/saml/configuration")
     .then()
-      .statusCode(200)
-      .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlConfig.json"))
-      .body("idpUrl", Matchers.equalTo("https://idp.ssocircle.com"))
-      .body("samlBinding", Matchers.equalTo("POST"))
-      .body("metadataInvalidated", Matchers.equalTo(Boolean.FALSE));
+    .statusCode(200)
+    .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlConfig.json"))
+    .body("idpUrl", Matchers.equalTo("https://idp.ssocircle.com"))
+    .body("samlBinding", Matchers.equalTo("POST"))
+    .body("metadataInvalidated", Matchers.equalTo(Boolean.FALSE));
   }
-  
+
   @Test
-  public void invalidRemoteMetadataCauses500FromRegenerateEndpoint() {
+  public void invalidRemoteMetadataCauses500() {
+
+    // MD is cached. Clear it first.
+    Client.forceReinit(TENANT_NAME);
     
     // Mock out sso circle to return a json doc instead of XML.
     StubMapping mockIDPMetadata = stubFor(
-      get(urlPathEqualTo("/"))
+        get(urlPathEqualTo("/"))
         .withHost(equalTo("idp.ssocircle.com"))
         .willReturn(
-          okJson("{ \"empty\": true }"))
-    );
-    
+            okJson("{ \"empty\": true }"))
+        );
+
+    // We can use any endpoint that uses the remote metadata here.
     try {
       given()
-        .header(TENANT_HEADER)
-        .header(TOKEN_HEADER)
-        .header(OKAPI_URL_HEADER)
-        .get("/saml/regenerate")
-      
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .get("/saml/regenerate")
+
       .then()
-        .statusCode(500)
+      .statusCode(500)
       ;
     } finally {
       // Cleanup.
@@ -541,26 +546,26 @@ public class SamlAPITest {
   @Test
   public void putConfigurationEndpoint() {
     SamlConfigRequest samlConfigRequest = new SamlConfigRequest()
-      .withIdpUrl(URI.create("http://mock-idp/xml"))
-      .withSamlAttribute("UserID")
-      .withUserCreateMissing(false)
-      .withSamlBinding(SamlConfigRequest.SamlBinding.POST)
-      .withUserProperty("externalSystemId")
-      .withOkapiUrl(URI.create("http://localhost:9130"));
+        .withIdpUrl(URI.create("http://mock-idp/xml"))
+        .withSamlAttribute("UserID")
+        .withUserCreateMissing(false)
+        .withSamlBinding(SamlConfigRequest.SamlBinding.POST)
+        .withUserProperty("externalSystemId")
+        .withOkapiUrl(URI.create("http://localhost:9130"));
 
     String jsonString = Json.encode(samlConfigRequest);
 
     // PUT
     given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .header(JSON_CONTENT_TYPE_HEADER)
-      .body(jsonString)
-      .put("/saml/configuration")
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .header(OKAPI_URL_HEADER)
+    .header(JSON_CONTENT_TYPE_HEADER)
+    .body(jsonString)
+    .put("/saml/configuration")
     .then()
-      .statusCode(200)
-      .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlConfig.json"));
+    .statusCode(200)
+    .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlConfig.json"));
   }
 
   @Test
@@ -568,40 +573,40 @@ public class SamlAPITest {
 
     // good
     given()
-      .get("/admin/health")
-      .then()
-      .statusCode(200);
+    .get("/admin/health")
+    .then()
+    .statusCode(200);
 
   }
 
   @Test
   public void testWithConfiguration400() throws IOException {
-    
+
     // Clear the mock data.
     reset();
     stubFor(
-      get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
+        get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
         .withQueryParam("limit", equalTo("10000"))
         .withQueryParam("query", equalTo("(module==LOGIN-SAML AND configName==saml)"))
-        
-      .willReturn(
-        badRequest().withStatusMessage("Simulated error response")
-      )
-    );
+
+        .willReturn(
+            badRequest().withStatusMessage("Simulated error response")
+            )
+        );
 
     // GET
     given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .get("/saml/configuration")
-      
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .header(OKAPI_URL_HEADER)
+    .get("/saml/configuration")
+
     .then()
-      .statusCode(500)
-      .contentType(ContentType.TEXT)
-      .body(Matchers.containsString("Cannot get configuration"));
+    .statusCode(500)
+    .contentType(ContentType.TEXT)
+    .body(Matchers.containsString("Cannot get configuration"));
   }
 
 
@@ -609,62 +614,62 @@ public class SamlAPITest {
   public void regenerateEndpointNoIdP() throws IOException {
     // Remove all mock stubs.
     reset();
-    
+
     // No IDP in config.
     stubFor(
-      get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
+        get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
         .withQueryParam("limit", equalTo("10000"))
         .withQueryParam("query", equalTo("(module==LOGIN-SAML AND configName==saml)"))
-        
-      .willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBodyFile("_mod-config-saml-no-idp.json")
-      )
-    );
+
+        .willReturn(
+            aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBodyFile("_mod-config-saml-no-idp.json")
+            )
+        );
 
     given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .get("/saml/regenerate")
-      
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .header(OKAPI_URL_HEADER)
+    .get("/saml/regenerate")
+
     .then()
-      .statusCode(500)
-      .contentType(ContentType.TEXT)
-      .body(Matchers.containsString("There is no IdP configuration stored"));
+    .statusCode(500)
+    .contentType(ContentType.TEXT)
+    .body(Matchers.containsString("There is no metadata configuration stored"));
   }
 
   @Test
   public void regenerateEndpointNoKeystore() throws IOException {
     // Remove all mock stubs.
     reset();
-    
+
     // No Keystore in config.
     stubFor(
-      get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
+        get(urlPathMatching(okapi.getPath() + "/configurations/entries"))
         .withHost(equalTo(okapi.getHost()))
         .withPort(okapi.getPort())
         .withQueryParam("limit", equalTo("10000"))
         .withQueryParam("query", equalTo("(module==LOGIN-SAML AND configName==saml)"))
-        
-      .willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBodyFile("_mod-config-saml-no-keystore.json")
-      )
-    );
+
+        .willReturn(
+            aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBodyFile("_mod-config-saml-no-keystore.json")
+            )
+        );
 
     given()
-      .header(TENANT_HEADER)
-      .header(TOKEN_HEADER)
-      .header(OKAPI_URL_HEADER)
-      .get("/saml/regenerate")
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .header(OKAPI_URL_HEADER)
+    .get("/saml/regenerate")
     .then()
-      .statusCode(500)
-      .contentType(ContentType.TEXT)
-      .body(Matchers.containsString("No KeyStore stored in configuration and regeneration is not allowed"));
+    .statusCode(500)
+    .contentType(ContentType.TEXT)
+    .body(Matchers.containsString("No KeyStore stored in configuration and regeneration is not allowed"));
   }
 }
