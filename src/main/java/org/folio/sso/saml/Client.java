@@ -44,7 +44,7 @@ import io.vertx.ext.web.RoutingContext;
  * @author Steve Osguthorpe
  *
  */
-public class Client extends SAML2Client {  
+public class Client extends SAML2Client {
   
   /**
    * TODO: This needs refactoring out into something better.
@@ -82,8 +82,6 @@ public class Client extends SAML2Client {
   
   private static final String CACHE_KEY = "SAML_CLIENT";
   private static final Logger log = LogManager.getLogger(Client.class);
-
-  private static final Map<String, Future<Client>> tenantCache = new ConcurrentHashMap<String, Future<Client>>();
   
   private static String buildCallbackUrl(String okapiUrl, String tenantId) {
     return okapiUrl + "/_/invoke/tenant/" + CommonHelper.urlEncode(tenantId) + Config.ENDPOINT_CALLBACK;
@@ -176,15 +174,15 @@ public class Client extends SAML2Client {
     });
   }
   
-  public static void forceReinit() {
-    // Clear the caches...
-    tenantCache.clear();
-  }
-  
-  public static void forceReinit(final String tenant) {
-    // Clear the cache for the single tenant...
-    tenantCache.remove(tenant);
-  }
+//  public static void forceReinit() {
+//    // Clear the caches...
+//    tenantCache.clear();
+//  }
+//  
+//  public static void forceReinit(final String tenant) {
+//    // Clear the cache for the single tenant...
+//    tenantCache.remove(tenant);
+//  }
   
   public static Client getSync(final RoutingContext routingContext, final boolean generateMissingKeyStore, final boolean reinitialize) throws Exception {
     return AsyncUtil.blocking(get(routingContext, generateMissingKeyStore, reinitialize));
@@ -206,17 +204,17 @@ public class Client extends SAML2Client {
       }
       
       // Not in the request. Check if we already have 1 in the tenant cache.
-      future = tenantCache.get(tenant);
-      if (future != null) {
-        if (future.succeeded()) {
-          // clear cache to allow cleanup.
-          log.debug("Returning client from tenant cache");
-          return future;
-        }
-        
-        // Cleanup.
-        tenantCache.remove(tenant);
-      }
+//      future = tenantCache.get(tenant);
+//      if (future != null) {
+//        if (future.succeeded()) {
+//          // clear cache to allow cleanup.
+//          log.debug("Returning client from tenant cache");
+//          return future;
+//        }
+//        
+//        // Cleanup.
+//        tenantCache.remove(tenant);
+//      }
     }
     
     // Else create and cache in the request, and the tenant cache.
@@ -224,7 +222,7 @@ public class Client extends SAML2Client {
     future = createClient( routingContext, generateMissingKeyStore );
     
     routingContext.put( CACHE_KEY, future );
-    tenantCache.put( tenant, future );
+//    tenantCache.put( tenant, future );
     return future;
   }
     
@@ -354,7 +352,10 @@ public class Client extends SAML2Client {
   @Override
   protected void initIdentityProviderMetadataResolver() {
     try {
-      ExtendedSAML2IdentityProviderMetadataResolver md = new ExtendedSAML2IdentityProviderMetadataResolver(this.configuration, getName());
+      ExtendedSAML2IdentityProviderMetadataResolver md = new ExtendedSAML2IdentityProviderMetadataResolver(
+          this.configuration,
+          getName()
+      );
       this.idpMetadataResolver = md;
       md.init();
     } catch (Exception e) {

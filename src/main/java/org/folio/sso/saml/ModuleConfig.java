@@ -301,7 +301,7 @@ public class ModuleConfig implements Configuration {
               // That result for the success.
               updateEntry(Config.METADATA_INVALIDATED, "true")
                 .onSuccess( h -> {
-                  Client.forceReinit(okapiHeaders.getTenant());
+//                  Client.forceReinit(okapiHeaders.getTenant());
                   result.complete();
                 })
                 .onFailure(t -> {
