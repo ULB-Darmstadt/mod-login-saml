@@ -2,8 +2,9 @@ package org.folio.sso.saml;
 
 public interface Constants {
   public static final String MODULE_NAME = "LOGIN-SAML";
-  
   public static final int BLOCKING_OP_TIMEOUT_SECONDS = 5;
+  public static final String COOKIE_RELAY_STATE = "relayState";
+  public static final String QUERY_PARAM_CSRF_TOKEN = "csrfToken";
   
   public static interface Exceptions {
     public static final String MSG_MISSING_HDR_OKAPI_URL = "Missing Okapi URL";
@@ -15,8 +16,8 @@ public interface Constants {
   }
   
   public static interface Config {
-    public static final String ENTRIES_ENDPOINT = "/configurations/entries";
-    public static final String CALLBACK_ENDPOINT = "/saml/callback";
+    public static final String ENDPOINT_ENTRIES = "/configurations/entries";
+    public static final String ENDPOINT_CALLBACK = "/saml/callback";
     
     public static final String CONFIG_NAME = "saml";
     

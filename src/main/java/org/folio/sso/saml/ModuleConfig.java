@@ -102,7 +102,7 @@ public class ModuleConfig implements Configuration {
     handleThrowables(promise, () -> {
     
       String encodedQuery = URLEncoder.encode(query, "UTF-8");
-      final String theUrl = OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), Config.ENTRIES_ENDPOINT + "?limit=10000&query=" + encodedQuery); // this is ugly :/
+      final String theUrl = OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), Config.ENDPOINT_ENTRIES + "?limit=10000&query=" + encodedQuery); // this is ugly :/
       WebClientFactory.getWebClient()
         .getAbs(theUrl)
         .putHeaders(okapiHeaders.securedInteropHeaders())
@@ -262,7 +262,7 @@ public class ModuleConfig implements Configuration {
   
       // not existing -> POST, existing->PUT
       final HttpMethod httpMethod = configId == null ? HttpMethod.POST : HttpMethod.PUT;
-      final String endpoint = Config.ENTRIES_ENDPOINT + (configId == null ? "" : "/" + configId);
+      final String endpoint = Config.ENDPOINT_ENTRIES + (configId == null ? "" : "/" + configId);
 
       WebClientFactory.getWebClient()
         .requestAbs(httpMethod, OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), endpoint)) // this is ugly :/

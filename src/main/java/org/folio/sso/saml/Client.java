@@ -86,7 +86,7 @@ public class Client extends SAML2Client {
   private static final Map<String, Future<Client>> tenantCache = new ConcurrentHashMap<String, Future<Client>>();
   
   private static String buildCallbackUrl(String okapiUrl, String tenantId) {
-    return okapiUrl + "/_/invoke/tenant/" + CommonHelper.urlEncode(tenantId) + Config.CALLBACK_ENDPOINT;
+    return okapiUrl + "/_/invoke/tenant/" + CommonHelper.urlEncode(tenantId) + Config.ENDPOINT_CALLBACK;
   }
   
   private static Future<Client> createClient(final RoutingContext routingContext, final boolean generateMissingKeyStore) {

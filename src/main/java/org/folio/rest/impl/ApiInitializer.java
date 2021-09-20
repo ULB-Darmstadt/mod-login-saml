@@ -30,7 +30,8 @@ public class ApiInitializer implements InitAPI {
     
     log.info("New version of mod-login-saml");
 
-    if ("true".equalsIgnoreCase(System.getenv("TRUST_ALL_CERTIFICATES"))) {
+    if ("true".equalsIgnoreCase(System.getenv("TRUST_ALL_CERTIFICATES")) ||
+        ("true".equalsIgnoreCase(System.getProperty("TRUST_ALL_CERTIFICATES")))) {
       trustAllCertificates();
     }
 

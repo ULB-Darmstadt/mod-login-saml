@@ -87,9 +87,10 @@ public class ExtendedSAML2IdentityProviderMetadataResolver implements SAML2Metad
           .setSSLContext(SSLContext.getDefault())
         .build();
         
-        final String metaDataUrl = idpMetadataResource.getURI().toASCIIString();
+        final String metadataUrl = idpMetadataResource.getURI().toASCIIString();
+        logger.info("Using URL: {}", metadataUrl);
         resolver = new FileBackedHTTPMetadataResolver(
-            client, metaDataUrl, tmpHandle.getAbsolutePath());
+            client, metadataUrl, tmpHandle.getAbsolutePath());
         
         resolver.setIndexes(Collections.singleton(new RoleMetadataIndex()));
         resolver.setParserPool(Configuration.getParserPool());

@@ -3,14 +3,15 @@ package org.folio.rest.impl;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
+import static org.folio.sso.saml.Constants.COOKIE_RELAY_STATE;
 import static org.folio.util.Base64AwareXsdMatcher.matchesBase64XsdInClasspath;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -32,6 +33,8 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.http.Header;
+import io.restassured.response.ExtractableResponse;
+import io.restassured.response.Response;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -62,8 +65,22 @@ public class SamlAPITest {
   @ClassRule
   public static HttpMockingVertx mock = new HttpMockingVertx();
   
+  static {
+    // In order to proxy https traffic the proxy needs to act as a man
+    // in the middle. We enable the trust of all certs for this reason here.
+    
+    // Class rule runs before our @BeforeClass, so we set in a static block here.
+    System.setProperty("TRUST_ALL_CERTIFICATES", "true");
+  }
+  
+  @AfterClass
+  public static void teardownGlobal() {
+    System.clearProperty("TRUST_ALL_CERTIFICATES");
+  }
+  
   @BeforeClass
   public static void setupGlobal() throws UnsupportedEncodingException {
+    
     // Use the DSL to create the test data. Mocking Vertx rule should ensure that
     // requests made from within Vertx using the WebclientFactory will proxy through
     // our mock server first.
@@ -295,7 +312,7 @@ public class SamlAPITest {
   @Test
   public void loginEndpointTestsGood() {
     // good
-    given()
+    ExtractableResponse<Response> resp = given()
       .header(TENANT_HEADER)
       .header(TOKEN_HEADER)
       .header(OKAPI_URL_HEADER)
@@ -304,10 +321,33 @@ public class SamlAPITest {
       .post("/saml/login")
     .then()
       .contentType(ContentType.JSON)
-      .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlLogin.json"))
+      .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlLogin.json"))
       .body("bindingMethod", Matchers.equalTo("POST"))
-      .body("relayState", Matchers.equalTo(STRIPES_URL))
-      .statusCode(200);
+      .statusCode(200)
+      .extract();
+
+    String cookie = resp.cookie(COOKIE_RELAY_STATE);
+    String relayState = resp.body().jsonPath().getString(COOKIE_RELAY_STATE);
+    assertEquals(cookie, relayState);
+
+    // stripesUrl w/ query args
+    resp = given()
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .header(JSON_CONTENT_TYPE_HEADER)
+      .body("{\"stripesUrl\":\"" + STRIPES_URL + "?foo=bar\"}")
+      .post("/saml/login")
+      .then()
+      .contentType(ContentType.JSON)
+      .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlLogin.json"))
+      .body("bindingMethod", Matchers.equalTo("POST"))
+      .statusCode(200)
+      .extract();
+
+    cookie = resp.cookie(COOKIE_RELAY_STATE);
+    relayState = resp.body().jsonPath().getString("relayState");
+    assertEquals(cookie, relayState);
 
     // AJAX 401
     given()
@@ -321,6 +361,8 @@ public class SamlAPITest {
       .then()
       .statusCode(401);
   }
+
+  
 
   @Test
   public void regenerateEndpointTests() throws IOException {
@@ -379,36 +421,76 @@ public class SamlAPITest {
   }
 
   @Test
-  public void callbackEndpointTests() {
-
-
+  public void callbackEndpointTests() throws IOException {
     final String testPath = "/test/path";
 
+    log.info("=== Setup - POST /saml/login - need relayState and cookie ===");
+    ExtractableResponse<Response> resp = given()
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .header(JSON_CONTENT_TYPE_HEADER)
+      .body("{\"stripesUrl\":\"" + STRIPES_URL + testPath + "\"}")
+      .post("/saml/login")
+      .then()
+      .contentType(ContentType.JSON)
+      .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlLogin.json"))
+      .body("bindingMethod", Matchers.equalTo("POST"))
+      .statusCode(200)
+      .extract();
+
+    String cookie = resp.cookie(COOKIE_RELAY_STATE);
+    String relayState = resp.body().jsonPath().getString(COOKIE_RELAY_STATE);
+
+    log.info("=== Test - POST /saml/callback - success ===");
+    given()
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .cookie(COOKIE_RELAY_STATE, cookie)
+      .formParam("SAMLResponse", "saml-response")
+      .formParam("RelayState", relayState)
+      .post("/saml/callback")
+      .then()
+      .statusCode(302)
+      .header("Location", Matchers.containsString(URLEncoder.encode(testPath, "UTF-8")))
+      .header("x-okapi-token", "saml-token")
+      .cookie("ssoToken", "saml-token");
+
+    log.info("=== Test - POST /saml/callback - failure (wrong cookie) ===");
+    given()
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .cookie(COOKIE_RELAY_STATE, "bad" + cookie)
+      .formParam("SAMLResponse", "saml-response")
+      .formParam("RelayState", relayState)
+      .post("/saml/callback")
+      .then()
+      .statusCode(403);
+
+    log.info("=== Test - POST /saml/callback - failure (wrong relay) ===");
+    given()
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .cookie(COOKIE_RELAY_STATE, cookie)
+      .formParam("SAMLResponse", "saml-response")
+      .formParam("RelayState", relayState.replace("localhost", "demo"))
+      .post("/saml/callback")
+      .then()
+      .statusCode(403);
+
+    log.info("=== Test - POST /saml/callback - failure (no cookie) ===");
     given()
       .header(TENANT_HEADER)
       .header(TOKEN_HEADER)
       .header(OKAPI_URL_HEADER)
       .formParam("SAMLResponse", "saml-response")
-      .formParam("RelayState", STRIPES_URL + testPath)
+      .formParam("RelayState", relayState)
       .post("/saml/callback")
-      
-    .then()
-      .statusCode(302)
-      .header("Location", Matchers.containsString(URLEncoder.encode(testPath, StandardCharsets.UTF_8)))
-      .header("x-okapi-token", "saml-token")
-      .cookie("ssoToken", "saml-token");
-
-  }
-
-  @Test
-  public void healthEndpointTests() {
-
-    // good
-    given()
-      .get("/admin/health")
-    .then()
-      .statusCode(200);
-
+      .then()
+      .statusCode(403);
   }
 
   @Test
@@ -478,7 +560,18 @@ public class SamlAPITest {
       .put("/saml/configuration")
     .then()
       .statusCode(200)
-      .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlConfig.json"));
+      .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlConfig.json"));
+  }
+
+  @Test
+  public void healthEndpointTests() {
+
+    // good
+    given()
+      .get("/admin/health")
+      .then()
+      .statusCode(200);
+
   }
 
   @Test
