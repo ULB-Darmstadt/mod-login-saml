@@ -129,6 +129,12 @@ public class DiscoAwareIdentityProviderMetadataResolver implements SAML2Metadata
   private MetadataResolver remoteMetadataProvider;
 
   private final Resource remoteMetadataResource;
+  
+  private int totalNumOfIdps = -1;
+  
+  public boolean hassMultipleIdpsConfigure() {
+    return totalNumOfIdps > 1;
+  }
 
   public DiscoAwareIdentityProviderMetadataResolver(final Resource idpMetadataResource, @Nullable final String idpEntityId, final String instanceName) {
     CommonHelper.assertNotNull("idpMetadataResource", idpMetadataResource);
@@ -203,16 +209,15 @@ public class DiscoAwareIdentityProviderMetadataResolver implements SAML2Metadata
       // If only 1 is present in then we can make other assumptions.
       
       // If no idpEntityId declared, select first EntityDescriptor entityId as our IDP entityId
-      if (this.idpEntityId == null) {
-        final Iterator<EntityDescriptor> it = resolver.iterator();
+      final Iterator<EntityDescriptor> it = resolver.iterator();
 
-        while (it.hasNext()) {
-          final EntityDescriptor entityDescriptor = it.next();
-          if (this.idpEntityId == null) {
-            this.idpEntityId = entityDescriptor.getEntityID();
-          }
-        }
+      totalNumOfIdps = 0;
+      while (it.hasNext()) {
+        final EntityDescriptor entityDescriptor = it.next();
+        totalNumOfIdps++;
+        this.idpEntityId = entityDescriptor.getEntityID();
       }
+      
 
       if (this.idpEntityId == null) {
         throw new SAMLException("No idp entityId found");
