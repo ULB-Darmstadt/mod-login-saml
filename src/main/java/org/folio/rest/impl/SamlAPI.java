@@ -175,7 +175,7 @@ public class SamlAPI implements Saml {
             String userPropertyName = config.getUserProperty() == null ? "externalSystemId" : config.getUserProperty();
             String samlAttributeName = config.getSamlAttribute() == null ? "UserID" : config.getSamlAttribute();
     
-            SAML2Credentials credentials = client.getCredentials(webContext).orElseThrow(); 
+            SAML2Credentials credentials = client.getCredentials(webContext).orElseThrow();
     
             // Get user id
             List<?> samlAttributeList = (List<?>) credentials.getUserProfile().extractAttributeValues(samlAttributeName);

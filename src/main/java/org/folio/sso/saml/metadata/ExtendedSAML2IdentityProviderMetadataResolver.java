@@ -139,7 +139,7 @@ public class ExtendedSAML2IdentityProviderMetadataResolver implements SAML2Metad
   }
   
   public ExtendedSAML2IdentityProviderMetadataResolver(final SAML2Configuration conf, final String instanceName) {
-    this(conf.getIdentityProviderMetadataResource(), conf.getServiceProviderEntityId(), instanceName);
+    this(conf.getIdentityProviderMetadataResource(), conf.getIdentityProviderEntityId(), instanceName);
   }
 
   @Override

@@ -265,7 +265,7 @@ public class ModuleConfig implements Configuration {
       final String endpoint = Config.ENDPOINT_ENTRIES + (configId == null ? "" : "/" + configId);
 
       WebClientFactory.getWebClient()
-        .requestAbs(httpMethod, OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), endpoint)) // this is ugly :/
+        .requestAbs(httpMethod, OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), endpoint))
         .putHeaders(okapiHeaders.securedInteropHeaders())
       .sendJsonObject(requestBody)
       

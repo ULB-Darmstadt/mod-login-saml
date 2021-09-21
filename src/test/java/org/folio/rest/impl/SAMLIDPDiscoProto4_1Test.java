@@ -3,6 +3,10 @@
  */
 package org.folio.rest.impl;
 
+import static org.junit.Assert.assertTrue;
+
+import org.folio.junit.rules.HttpMockingVertx;
+import org.junit.Rule;
 import org.junit.Test;
 
 /**
@@ -13,16 +17,21 @@ import org.junit.Test;
  */
 public class SAMLIDPDiscoProto4_1Test {
 
+  @Rule
+  public HttpMockingVertx mock = new HttpMockingVertx();
+  
   @Test
   public void loginEndpointFromValidOrigin() {
     // Redirect to discovery initiator
     // - If single IDP or only 1 selected in Config,
     //   then isPassive=true.
+    assertTrue(false);
   }
   
   @Test
   public void loginEndpointInvalidOrigin() {
     // Error invalid origin. Access denied 403 error.
+    assertTrue(false);
   }
   
   @Test
@@ -31,6 +40,7 @@ public class SAMLIDPDiscoProto4_1Test {
     
     // Test missing. - 400 bad request, Mandatory parameter
     // Test invalid or unknown. - 403 bad request, Invalid value
+    assertTrue(false);
   }
 
   @Test
@@ -51,12 +61,13 @@ public class SAMLIDPDiscoProto4_1Test {
     //    Note: Our implementation should force a default (home) institution. If no previous selection via cookie is known then
     //    we will always use that.
     
-    // The inclusion 
+    assertTrue(false);
   }
 
   @Test
   public void validServiceProviderEntityIDInvalidOriginHeader() {
     // Error invalid origin. Access denied 403 error.
+    assertTrue(false);
   }
 
   @Test
@@ -68,11 +79,13 @@ public class SAMLIDPDiscoProto4_1Test {
     // Returns a redirect to value specified.
     
     // isPassive=true : Now value of default IDP and not return.
+    assertTrue(false);
   }
 
   @Test
   public void invalidReturnSepcified() {
-    // Error
+    // Error 403
+    assertTrue(false);
   }
 
   @Test
@@ -80,10 +93,12 @@ public class SAMLIDPDiscoProto4_1Test {
     // Must be equate to value of "urn:oasis:names:tc:SAML:profiles:SSO:idp-discovery-protocol:single".
     
     // Returns a redirect to Disco
+    assertTrue(false);
   }
 
   @Test
   public void invalidPolicySepcified() {
-    // Error
+    // Error 403
+    assertTrue(false);
   }
 }
