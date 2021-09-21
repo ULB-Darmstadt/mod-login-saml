@@ -70,12 +70,12 @@ public class SamlAPI implements Saml {
   public void getSamlCheck(RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    handleThrowablesWithResponse(asyncResultHandler, () -> {
+    handleThrowablesWithResponse(asyncResultHandler,
       Client.get(routingContext, false, false)
         .onComplete(samlClientHandler -> {
           asyncResultHandler.handle(Future.succeededFuture(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(!samlClientHandler.failed()))));
-      });
-    });
+        })
+    );
   }
 
   @Override
@@ -175,7 +175,7 @@ public class SamlAPI implements Saml {
             String userPropertyName = config.getUserProperty() == null ? "externalSystemId" : config.getUserProperty();
             String samlAttributeName = config.getSamlAttribute() == null ? "UserID" : config.getSamlAttribute();
     
-            SAML2Credentials credentials = client.getCredentials(webContext).orElseThrow(); 
+            SAML2Credentials credentials = client.getCredentials(webContext).orElseThrow();
     
             // Get user id
             List<?> samlAttributeList = (List<?>) credentials.getUserProfile().extractAttributeValues(samlAttributeName);

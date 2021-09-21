@@ -56,7 +56,7 @@ import net.shibboleth.utilities.java.support.resolver.ResolverException;
  * @author Steve Osguthorpe
  *
  */
-public class ExtendedSAML2IdentityProviderMetadataResolver implements SAML2MetadataResolver {
+public class DiscoAwareIdentityProviderMetadataResolver implements SAML2MetadataResolver {
   
   //Ensure we only take into account the IDP listings by using a filter.
   private static final EntityRoleFilter IDPOnlyFilter = new EntityRoleFilter(
@@ -130,7 +130,7 @@ public class ExtendedSAML2IdentityProviderMetadataResolver implements SAML2Metad
 
   private final Resource remoteMetadataResource;
 
-  public ExtendedSAML2IdentityProviderMetadataResolver(final Resource idpMetadataResource, @Nullable final String idpEntityId, final String instanceName) {
+  public DiscoAwareIdentityProviderMetadataResolver(final Resource idpMetadataResource, @Nullable final String idpEntityId, final String instanceName) {
     CommonHelper.assertNotNull("idpMetadataResource", idpMetadataResource);
     CommonHelper.assertNotNull("namePrefix", instanceName);
     this.instanceName = instanceName;
@@ -138,10 +138,15 @@ public class ExtendedSAML2IdentityProviderMetadataResolver implements SAML2Metad
     this.idpEntityId = idpEntityId;
   }
   
-  public ExtendedSAML2IdentityProviderMetadataResolver(final SAML2Configuration conf, final String instanceName) {
-    this(conf.getIdentityProviderMetadataResource(), conf.getServiceProviderEntityId(), instanceName);
+  public DiscoAwareIdentityProviderMetadataResolver(final SAML2Configuration conf, final String instanceName) {
+    this(conf.getIdentityProviderMetadataResource(), conf.getIdentityProviderEntityId(), instanceName);
   }
 
+  /**
+   * Currently active IDP metadata element.
+   * 
+   * Derived from the current request.
+   */
   @Override
   public XMLObject getEntityDescriptorElement() {
     try {
@@ -151,6 +156,9 @@ public class ExtendedSAML2IdentityProviderMetadataResolver implements SAML2Metad
     }
   }
 
+  /**
+   * Selected IDP entity ID.
+   */
   @Override
   public String getEntityId() {
     final XMLObject md = getEntityDescriptorElement();
@@ -162,6 +170,10 @@ public class ExtendedSAML2IdentityProviderMetadataResolver implements SAML2Metad
     throw new SAMLException("No idp entityId found");
   }
 
+  
+  /**
+   * Serialize the active IDP metadata element, and return it as a string.
+   */
   @Override
   public String getMetadata() {
     if (getEntityDescriptorElement() != null) {
@@ -185,6 +197,11 @@ public class ExtendedSAML2IdentityProviderMetadataResolver implements SAML2Metad
       } catch (final FileNotFoundException e) {
         throw new TechnicalException("Error loading idp Metadata");
       }
+      
+      // We now accept multiple IDP entries.
+      // If there are multiples present in MD, then we should flag multiple.
+      // If only 1 is present in then we can make other assumptions.
+      
       // If no idpEntityId declared, select first EntityDescriptor entityId as our IDP entityId
       if (this.idpEntityId == null) {
         final Iterator<EntityDescriptor> it = resolver.iterator();

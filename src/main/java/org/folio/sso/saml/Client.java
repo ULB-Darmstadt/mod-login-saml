@@ -10,9 +10,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.config.JsonReponseSaml2RedirectActionBuilder;
 import org.folio.sso.saml.Constants.Config;
-import org.folio.sso.saml.metadata.ExtendedSAML2IdentityProviderMetadataResolver;
-import org.folio.sso.saml.metadata.ExtendedSAML2ServiceProviderMetadataResolver;
-import org.folio.util.AsyncUtil;
+import org.folio.sso.saml.metadata.DiscoAwareIdentityProviderMetadataResolver;
+import org.folio.sso.saml.metadata.DiscoAwareServiceProviderMetadataResolver;
 import org.folio.util.OkapiHelper;
 import org.folio.util.model.OkapiHeaders;
 import org.opensaml.saml.common.xml.SAMLConstants;
@@ -175,16 +174,12 @@ public class Client extends SAML2Client {
   
   public static void forceReinit() {
     // Clear the caches...
-    ExtendedSAML2IdentityProviderMetadataResolver.clearCache();
+    DiscoAwareIdentityProviderMetadataResolver.clearCache();
   }
   
   public static void forceReinit(final String tenant) {
     // Clear the cache for the single tenant...
-    ExtendedSAML2IdentityProviderMetadataResolver.clearCache(tenant);
-  }
-  
-  public static Client getSync(final RoutingContext routingContext, final boolean generateMissingKeyStore, final boolean reinitialize) throws Exception {
-    return AsyncUtil.blocking(get(routingContext, generateMissingKeyStore, reinitialize));
+    DiscoAwareIdentityProviderMetadataResolver.clearCache(tenant);
   }
   
   public static Future<Client> get ( final RoutingContext routingContext, final boolean generateMissingKeyStore, final boolean reinitialize ) {
@@ -332,7 +327,7 @@ public class Client extends SAML2Client {
   @Override
   protected void initIdentityProviderMetadataResolver() {
     try {
-      ExtendedSAML2IdentityProviderMetadataResolver md = new ExtendedSAML2IdentityProviderMetadataResolver(
+      DiscoAwareIdentityProviderMetadataResolver md = new DiscoAwareIdentityProviderMetadataResolver(
           this.configuration,
           getName()
       );
@@ -346,7 +341,7 @@ public class Client extends SAML2Client {
   
   @Override
   protected void initServiceProviderMetadataResolver() {
-    this.spMetadataResolver = new ExtendedSAML2ServiceProviderMetadataResolver(this.configuration,
+    this.spMetadataResolver = new DiscoAwareServiceProviderMetadataResolver(this.configuration,
         computeFinalCallbackUrl(null),
         this.credentialProvider);
     this.spMetadataResolver.resolve();

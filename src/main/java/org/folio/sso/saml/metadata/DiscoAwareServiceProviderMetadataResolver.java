@@ -13,27 +13,27 @@ import org.pac4j.saml.metadata.SAML2MetadataGenerator;
 import org.pac4j.saml.metadata.SAML2ServiceProviderMetadataResolver;
 import org.pac4j.saml.metadata.SAMLMetadataGenerator;
 
-public class ExtendedSAML2ServiceProviderMetadataResolver extends SAML2ServiceProviderMetadataResolver {
+public class DiscoAwareServiceProviderMetadataResolver extends SAML2ServiceProviderMetadataResolver {
 
-  public ExtendedSAML2ServiceProviderMetadataResolver (SAML2Configuration configuration,
+  public DiscoAwareServiceProviderMetadataResolver (SAML2Configuration configuration,
       String callbackUrl, CredentialProvider credentialProvider) {
     super(configuration, callbackUrl, credentialProvider);
   }
   
   @Override
   protected SAMLMetadataGenerator buildMetadataGenerator() {
-    final ExtendedSAML2MetadataGenerator metadataGenerator = new ExtendedSAML2MetadataGenerator();
+    final DiscoAwareServiceProviderMetadataGenerator metadataGenerator = new DiscoAwareServiceProviderMetadataGenerator();
     super.fillSAML2MetadataGenerator(metadataGenerator);
     addDiscoInfo(metadataGenerator);
     return metadataGenerator;
   }
   
-  private void addDiscoInfo (ExtendedSAML2MetadataGenerator metadataGenerator) {
+  private void addDiscoInfo (DiscoAwareServiceProviderMetadataGenerator metadataGenerator) {
     // Add the discovery service.
     metadataGenerator.setDiscoUrl("https://local.disco.service");
   }
 
-  private static class ExtendedSAML2MetadataGenerator extends SAML2MetadataGenerator {
+  private static class DiscoAwareServiceProviderMetadataGenerator extends SAML2MetadataGenerator {
 
     private String discoUrl = null;
 
