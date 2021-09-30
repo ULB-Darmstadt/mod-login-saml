@@ -28,8 +28,6 @@ public class ApiInitializer implements InitAPI {
   @Override
   public void init(Vertx vertx, Context context, Handler<AsyncResult<Boolean>> handler) {
     
-    log.info("New version of mod-login-saml");
-
     if ("true".equalsIgnoreCase(System.getenv("TRUST_ALL_CERTIFICATES")) ||
         ("true".equalsIgnoreCase(System.getProperty("TRUST_ALL_CERTIFICATES")))) {
       trustAllCertificates();

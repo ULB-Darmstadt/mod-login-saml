@@ -526,4 +526,18 @@ public class SamlAPI implements Saml {
     return origin == null || origin.isBlank() || origin.trim().contentEquals("*");
   }
 
+  @Override
+  public void getSamlMetadata (Map<String, String> okapiHeaders,
+      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    
+  }
+
+  @Override
+  public void getSamlDiscoInit (String entityID,
+      SamlDiscoInitGetReturnIDParam returnIDParam, String policy,
+      boolean isPassive, Map<String, String> okapiHeaders,
+      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    // TODO Auto-generated method stub
+    
+  }
 }

@@ -233,6 +233,8 @@ public class Client extends SAML2Client {
       keystorePassword,
       actualPrivateKeyPassword,
       idpUrl);
+    
+    cfg.setCertificateExpirationPeriod(Config.CERTIFICATE_VALIDITY);
 
     return get(okapiUrl, tenantId, cfg, samlBinding);
   }
@@ -245,6 +247,8 @@ public class Client extends SAML2Client {
       keystorePassword,
       privateKeyPassword,
       idpUrlResource);
+    
+    byteArrayCfg.setCertificateExpirationPeriod(Config.CERTIFICATE_VALIDITY);
 
     return get(okapiUrl, tenantId, byteArrayCfg, samlBinding);
   }

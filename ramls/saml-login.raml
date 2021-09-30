@@ -17,6 +17,16 @@ types:
   SamlValidateResponse: !include schemas/SamlValidateResponse.json
 
 /saml:
+  /metadata:
+    get:
+      description: Generates SAMLRequest and RelayState parameters for initiating a SAML login process
+      responses:
+        200:
+          description: "Return with HTML page in case POST_BINDING is used"
+          body:
+            application/xml:
+              description: Service provider XML metadata
+
   /regenerate:
     get:
       description: Regenerate SAML configuration (keyfile and passwords). The response contains the sp-metadata.xml file
@@ -57,6 +67,61 @@ types:
           body:
             text/plain:
               example: "Bad request"
+              
+  /disco-init:
+    get:
+      queryParameters: 
+        entityID:
+          description: The Service provider Entity ID.
+            We only support 1 value and it must be equal to the entity ID of the service provider from metadata for the current tenants service.
+          type: string
+          required: true
+          
+        returnIDParam:
+          description: A parameter name used to return the unique identifier of the selected identity provider to the original requester.
+            We only support 1 value of "entityID" to match our only supported service.
+          type: string
+          enum: ["entityID"]
+          required: false
+          
+        policy: 
+          description: A parameter name used to indicate the desired behavior controlling the processing of the discovery service.
+            We only support 1 value of "urn:oasis:names:tc:SAML:profiles:SSO:idp-discovery-protocol:single", and currently so does the disco spec.
+            
+        isPassive:
+          description: A boolean value of "true" or "false" that controls whether
+            the discovery service is allowed to visibly interact with the user agent the default is "false".
+          
+          type: boolean
+          required: false
+          
+      description: Generates SAMLRequest and RelayState parameters for initiating a SAML login process
+      responses:
+        302:
+          description: "Redirect to discoveryResponseUrl"
+          body:
+            application/json:
+              type: SamlLogin
+        403:
+          description: "Forbidden"
+          body:
+            text/plain:
+              example: "Forbidden"
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"
+#    options:
+#      description: "Preflight CORS for /saml/login"
+#      responses:
+#        204:
+#          description: "Return with appropriate CORS headers"
+#        400:
+#          description: "Bad request"
+#          body:
+#            text/plain:
+#              example: "Bad request"
   /callback:
     post:
       description: Redirect browser to sso-landing page with generated token.

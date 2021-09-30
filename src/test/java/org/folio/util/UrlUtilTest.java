@@ -38,7 +38,7 @@ public class UrlUtilTest {
         get(urlEqualTo("/xml"))
           .willReturn(
             aResponse()
-              .withBodyFile("meta-idp.xml")
+              .withBodyFile("single-idp.xml")
               .withHeader("Content-Type", "application/xml")
           )
       );
@@ -58,7 +58,7 @@ public class UrlUtilTest {
         get(urlEqualTo("/xml-incorrect-header"))
         .willReturn(
           aResponse()
-            .withBodyFile("meta-idp.xml")
+            .withBodyFile("single-idp.xml")
             .withHeader("Content-Type", "application/json")
         )
       );

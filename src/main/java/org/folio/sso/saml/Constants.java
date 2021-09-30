@@ -1,5 +1,7 @@
 package org.folio.sso.saml;
 
+import java.time.Period;
+
 public interface Constants {
   public static final String MODULE_NAME = "LOGIN-SAML";
   public static final int BLOCKING_OP_TIMEOUT_SECONDS = 5;
@@ -40,6 +42,8 @@ public interface Constants {
     public static final String DU_FIRST_NM_DEFAULT = DEFAULT_USER + ".firstNameDefault";
     public static final String DU_LAST_NM_DEFAULT = DEFAULT_USER + ".lastNameDefault";
     public static final String DU_PATRON_GRP = DEFAULT_USER + ".patronGroup";
+    
+    public static final Period CERTIFICATE_VALIDITY = Period.ofYears(3);
   }
   
   

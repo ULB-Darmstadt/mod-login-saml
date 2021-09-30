@@ -1,0 +1,1277 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<EntitiesDescriptor
+  xmlns="urn:oasis:names:tc:SAML:2.0:metadata"
+  xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+  xmlns:idpdisc="urn:oasis:names:tc:SAML:profiles:SSO:idp-discovery-protocol"
+  xmlns:init="urn:oasis:names:tc:SAML:profiles:SSO:request-init"
+  xmlns:mdattr="urn:oasis:names:tc:SAML:metadata:attribute"
+  xmlns:mdrpi="urn:oasis:names:tc:SAML:metadata:rpi"
+  xmlns:mdui="urn:oasis:names:tc:SAML:metadata:ui"
+  xmlns:remd="http://refeds.org/metadata"
+  xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+  xmlns:saml1md="urn:mace:shibboleth:metadata:1.0"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  ID="DFN-AAI-Test_20210823120009"
+  Name="https://www.aai.dfn.de/DFN-AAI-Test"
+  validUntil="2021-08-29T12:00:09Z"
+  xsi:schemaLocation="urn:oasis:names:tc:SAML:2.0:metadata saml-schema-metadata-2.0.xsd urn:mace:shibboleth:metadata:1.0 shibboleth-metadata-1.0.xsd http://www.w3.org/2000/09/xmldsig# xmldsig-core-schema.xsd">
+  <ds:Signature>
+    <ds:SignedInfo>
+      <ds:CanonicalizationMethod
+        Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+      <ds:SignatureMethod
+        Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" />
+      <ds:Reference URI="#DFN-AAI-Test_20210823120009">
+        <ds:Transforms>
+          <ds:Transform
+            Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
+          <ds:Transform
+            Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+        </ds:Transforms>
+        <ds:DigestMethod
+          Algorithm="http://www.w3.org/2001/04/xmlenc#sha256" />
+        <ds:DigestValue>UFUo2RcOxPjbnGDm+EaSlU18R1Mv6DU2Fk3DUExIb78=
+        </ds:DigestValue>
+      </ds:Reference>
+    </ds:SignedInfo>
+    <ds:SignatureValue>
+      qLd/zSVgGL5mAzU2GmpsD0ZUbXS6/UkLSimGbUyeruxIMM11Jff2319JzJbaxfy8Wo9GRfBVMvOz
+      MoaB88YJXsS0jhTGXiRwETEpOgLMqs+Mu2XBtKGAgoJG/v7ZU7uyXQjEgQO0OY478Gg6Cu29N8x1
+      0NCltfQ3nmAvtXbIjpcN/sJqXAx5rcQ+IbKcnEmhPtBC03eOlHd+HL0Jg7Eh1fIrWcAfQkm+xATs
+      a5e+lMgkaSvf67y1cDZZWHWL+cdRcX6ApOPpeFLYme52IVhjpjhdHY9QIDxwDdpCHCOx2SP6BgZQ
+      PpQCJ8/boBxMYOgbekEmgFE3G/OnzqJkAm5WwzzzTtCoZuVaY2pb7M/CdickQpw87q91JWUeauHo
+      EeF4GX3Ejyk8p4veabintVak2UaRgsLYj2bEonmMZC+QOMU95ze8Y2F2V3TTM7FsN9VNwaCAadKg
+      6DRwQ3xppiOPGxSmRpN3FZy7JYmmF62lAwlQCd4d0JfNCXRAbTOwkkvI0P60kNKmbHlbPhNCLUxn
+      pKn5AT7J17ad1xUaX9lnmgNwI7Bo8P3vkeSZweiQ+Zfa6XofL2Y3GFQT8VnCKTCLsKX825KjQFxj
+      ZlGAWkO4g1w7DXCr8TQy4esrGwGJa13Js6GuxOCnwW0o0cyE2LG0aISeM+A6+8o/EW+qR3SAtJQ=
+    </ds:SignatureValue>
+    <ds:KeyInfo>
+      <ds:KeyValue>
+        <ds:RSAKeyValue>
+          <ds:Modulus>
+            wanvdnlpw2bGAZkO0n6wV8oVaX2YcO5rBi1gtu950X1wgukvGTSHXkLTciT1M2a/l8Kc//9yNRPW
+            fjjDjgoPrKgnDHz9VHux9aWgvBF3I4lPYYmDN6AtoGjU2DD/ZBEgm8jHDGYoMRaLyUEgsR98Qirn
+            Jih0nferEEjk9vtK9ZpMjBTeoqnr7OLGHcGP6QK6Iu4z1RBfdW1H3S2CHQNstXiL6xTpBZ4jP+SK
+            vweNmgn4NF2MiNfbvbnCPCk9SQ1xCGxFFLYiR/MLvO+FduGhe00X87tKzASJAto3SnOv48q42Hew
+            Fa02v2YrdnkdIlmmiY+EJ2pW776cLETdG/O0MvX24hma7EraQWYnQdFKekkYPwM6hfikBz/XHGyB
+            az7UgkLFb1xbCGyy+1dPMwkJLRNYECRWUQcG27AfgCHMXQYxUwyt2gUKXWahSr1BTVZ2/URKyr5V
+            GZyANx6nmwGewbur0mvx3w3Pc1Awvv8HjFHRUwfBmuEiUB9IjzQHZWF6SVfqYVgYlVA+caDqZEyx
+            v1bJL4Iy/7L8k/b5l1vXVN2NXBm+vtpVRtGp2avvkHJ+lYw3mJFo1qFEKAKULlwjKsrkfzN2Csxf
+            v528Mm9fnyqUnkphaoWiYloYo3orEO1dga6+/OZl7XH6GcmAZBF49bZlC6ouPkKX66JQFdPiVX8=
+          </ds:Modulus>
+          <ds:Exponent>AQAB</ds:Exponent>
+        </ds:RSAKeyValue>
+      </ds:KeyValue>
+      <ds:X509Data>
+        <ds:X509Certificate>
+          MIIG8DCCBdigAwIBAgIMImTVJZamuZ7Kg7McMA0GCSqGSIb3DQEBCwUAMIGNMQswCQYDVQQGEwJE
+          RTFFMEMGA1UECgw8VmVyZWluIHp1ciBGb2VyZGVydW5nIGVpbmVzIERldXRzY2hlbiBGb3JzY2h1
+          bmdzbmV0emVzIGUuIFYuMRAwDgYDVQQLDAdERk4tUEtJMSUwIwYDVQQDDBxERk4tVmVyZWluIEds
+          b2JhbCBJc3N1aW5nIENBMB4XDTIwMDIxMzE0MDUxMVoXDTIzMDIxMjE0MDUxMVowgbcxCzAJBgNV
+          BAYTAkRFMQ8wDQYDVQQIDAZCZXJsaW4xDzANBgNVBAcMBkJlcmxpbjFFMEMGA1UECgw8VmVyZWlu
+          IHp1ciBGb2VyZGVydW5nIGVpbmVzIERldXRzY2hlbiBGb3JzY2h1bmdzbmV0emVzIGUuIFYuMRkw
+          FwYDVQQLDBBHZXNjaGFlZnRzc3RlbGxlMSQwIgYDVQQDDBtHUlA6IERGTi1BQUkgTWV0YWRhdGFz
+          aWduZXIwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQDBqe92eWnDZsYBmQ7SfrBXyhVp
+          fZhw7msGLWC273nRfXCC6S8ZNIdeQtNyJPUzZr+Xwpz//3I1E9Z+OMOOCg+sqCcMfP1Ue7H1paC8
+          EXcjiU9hiYM3oC2gaNTYMP9kESCbyMcMZigxFovJQSCxH3xCKucmKHSd96sQSOT2+0r1mkyMFN6i
+          qevs4sYdwY/pAroi7jPVEF91bUfdLYIdA2y1eIvrFOkFniM/5Iq/B42aCfg0XYyI19u9ucI8KT1J
+          DXEIbEUUtiJH8wu874V24aF7TRfzu0rMBIkC2jdKc6/jyrjYd7AVrTa/Zit2eR0iWaaJj4Qnalbv
+          vpwsRN0b87Qy9fbiGZrsStpBZidB0Up6SRg/AzqF+KQHP9ccbIFrPtSCQsVvXFsIbLL7V08zCQkt
+          E1gQJFZRBwbbsB+AIcxdBjFTDK3aBQpdZqFKvUFNVnb9RErKvlUZnIA3HqebAZ7Bu6vSa/HfDc9z
+          UDC+/weMUdFTB8Ga4SJQH0iPNAdlYXpJV+phWBiVUD5xoOpkTLG/VskvgjL/svyT9vmXW9dU3Y1c
+          Gb6+2lVG0anZq++Qcn6VjDeYkWjWoUQoApQuXCMqyuR/M3YKzF+/nbwyb1+fKpSeSmFqhaJiWhij
+          eisQ7V2Brr785mXtcfoZyYBkEXj1tmULqi4+QpfrolAV0+JVfwIDAQABo4ICIjCCAh4wPgYDVR0g
+          BDcwNTAPBg0rBgEEAYGtIYIsAQEEMBAGDisGAQQBga0hgiwBAQQFMBAGDisGAQQBga0hgiwCAQQF
+          MAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMDMB0GA1UdDgQW
+          BBS+e1xFsmx74F+HXILQlDlwD0XlRjAfBgNVHSMEGDAWgBRrOpiL+fJTidrgrbIyHgkf6Ko7dDCB
+          jQYDVR0fBIGFMIGCMD+gPaA7hjlodHRwOi8vY2RwMS5wY2EuZGZuLmRlL2Rmbi1jYS1nbG9iYWwt
+          ZzIvcHViL2NybC9jYWNybC5jcmwwP6A9oDuGOWh0dHA6Ly9jZHAyLnBjYS5kZm4uZGUvZGZuLWNh
+          LWdsb2JhbC1nMi9wdWIvY3JsL2NhY3JsLmNybDCB2wYIKwYBBQUHAQEEgc4wgcswMwYIKwYBBQUH
+          MAGGJ2h0dHA6Ly9vY3NwLnBjYS5kZm4uZGUvT0NTUC1TZXJ2ZXIvT0NTUDBJBggrBgEFBQcwAoY9
+          aHR0cDovL2NkcDEucGNhLmRmbi5kZS9kZm4tY2EtZ2xvYmFsLWcyL3B1Yi9jYWNlcnQvY2FjZXJ0
+          LmNydDBJBggrBgEFBQcwAoY9aHR0cDovL2NkcDIucGNhLmRmbi5kZS9kZm4tY2EtZ2xvYmFsLWcy
+          L3B1Yi9jYWNlcnQvY2FjZXJ0LmNydDANBgkqhkiG9w0BAQsFAAOCAQEALHNrhqP5XdILVXJu3jxA
+          ATfJT8cStEw3JGa8AfD737AP3YBDKhCFScutDTm4rO2EYmYkUEcv09SufVD4cd791WPoXVCU0TmL
+          TonmDhJvcFKCS3C+uqM7WOB1FO0SbC0/IW1SGde8K2guhYQHl57HD9BpCBL4HrrkFyqziSYjNk4K
+          4x46EL5gBkgBsiUgIpqef3Kb01bRtXVsRwhKKp/FtN73Rjbakm6Z2KGbeVi3M3dkUpJNOC63Zkuc
+          zF+MSTPU3Nx/r8bxvbmbUf0bEeDW5sLaEjNKTXfX41SxrRL6MaEIlBufp8U04UtUOM/XLYMvOxHI
+          dcZuVhSVsrfaiGm3VQ==
+        </ds:X509Certificate>
+        <ds:X509Certificate>
+          MIIFrDCCBJSgAwIBAgIHG2O60B4sPTANBgkqhkiG9w0BAQsFADCBlTELMAkGA1UEBhMCREUxRTBD
+          BgNVBAoTPFZlcmVpbiB6dXIgRm9lcmRlcnVuZyBlaW5lcyBEZXV0c2NoZW4gRm9yc2NodW5nc25l
+          dHplcyBlLiBWLjEQMA4GA1UECxMHREZOLVBLSTEtMCsGA1UEAxMkREZOLVZlcmVpbiBDZXJ0aWZp
+          Y2F0aW9uIEF1dGhvcml0eSAyMB4XDTE2MDUyNDExMzg0MFoXDTMxMDIyMjIzNTk1OVowgY0xCzAJ
+          BgNVBAYTAkRFMUUwQwYDVQQKDDxWZXJlaW4genVyIEZvZXJkZXJ1bmcgZWluZXMgRGV1dHNjaGVu
+          IEZvcnNjaHVuZ3NuZXR6ZXMgZS4gVi4xEDAOBgNVBAsMB0RGTi1QS0kxJTAjBgNVBAMMHERGTi1W
+          ZXJlaW4gR2xvYmFsIElzc3VpbmcgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCd
+          O3kcR94fhsvGadcQnjnX2aIw23IcBX8pX0to8a0Z1kzhaxuxC3+hq+B7i4vYLc5uiDoQ7lflHn8E
+          UTbrunBtY6C+li5A4dGDTGY9HGRp5ZukrXKuaDlRh3nMF9OuL11jcUs5eutCp5eQaQW/kP+kQHC9
+          A+e/nhiIH5+ZiE0OR41IX2WZENLZKkntwbktHZ8SyxXTP38eVC86rpNXp354ytVK4hrl7UF9U1/I
+          syr1ijCs7RcFJD+2oAsH/U0amgNSoDac3iSHZeTn+seWcyQUzdDoG2ieGFmudn730Qp4PIdLsDfP
+          U8o6OBDzy0dtjGQ9PFpFSrrKgHy48+enTEzNAgMBAAGjggIFMIICATASBgNVHRMBAf8ECDAGAQH/
+          AgEBMA4GA1UdDwEB/wQEAwIBBjApBgNVHSAEIjAgMA0GCysGAQQBga0hgiweMA8GDSsGAQQBga0h
+          giwBAQQwHQYDVR0OBBYEFGs6mIv58lOJ2uCtsjIeCR/oqjt0MB8GA1UdIwQYMBaAFJPj2DIm2tXx
+          SqWRSuDqS+KiDM/hMIGPBgNVHR8EgYcwgYQwQKA+oDyGOmh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUv
+          Z2xvYmFsLXJvb3QtZzItY2EvcHViL2NybC9jYWNybC5jcmwwQKA+oDyGOmh0dHA6Ly9jZHAyLnBj
+          YS5kZm4uZGUvZ2xvYmFsLXJvb3QtZzItY2EvcHViL2NybC9jYWNybC5jcmwwgd0GCCsGAQUFBwEB
+          BIHQMIHNMDMGCCsGAQUFBzABhidodHRwOi8vb2NzcC5wY2EuZGZuLmRlL09DU1AtU2VydmVyL09D
+          U1AwSgYIKwYBBQUHMAKGPmh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvZ2xvYmFsLXJvb3QtZzItY2Ev
+          cHViL2NhY2VydC9jYWNlcnQuY3J0MEoGCCsGAQUFBzAChj5odHRwOi8vY2RwMi5wY2EuZGZuLmRl
+          L2dsb2JhbC1yb290LWcyLWNhL3B1Yi9jYWNlcnQvY2FjZXJ0LmNydDANBgkqhkiG9w0BAQsFAAOC
+          AQEAgXhFpE6kfw5V8Amxaj54zGg1qRzzlZ4/8/jfazh3iSyNta0+x/KUzaAGrrrMqLGtMwi2JIZi
+          Nkx4blDw1W5gjU9SMUOXRnXwYuRuZlHBQjFnUOVJ5zkey5/KhkjeCBT/FUsrZpugOJ8Azv2n69F/
+          Vy3ITF/cEBGXPpYEAlyEqCk5bJT8EJIGe57u2Ea0G7UDDDjZ3LCpP3EGC7IDBzPCjUhjJSU8entX
+          bveKBTjvuKCuL/TbB9VbhBjBqbhLzmyQGoLkuT36d/HSHzMCv1PndvncJiVBby+mG/qkE5D6fH7Z
+          C2Bd7L/KQaBh+xFJKdioLXUV2EoY6hbvVTQiGhONBg==
+        </ds:X509Certificate>
+        <ds:X509Certificate>
+          MIIFEjCCA/qgAwIBAgIJAOML1fivJdmBMA0GCSqGSIb3DQEBCwUAMIGCMQswCQYDVQQGEwJERTEr
+          MCkGA1UECgwiVC1TeXN0ZW1zIEVudGVycHJpc2UgU2VydmljZXMgR21iSDEfMB0GA1UECwwWVC1T
+          eXN0ZW1zIFRydXN0IENlbnRlcjElMCMGA1UEAwwcVC1UZWxlU2VjIEdsb2JhbFJvb3QgQ2xhc3Mg
+          MjAeFw0xNjAyMjIxMzM4MjJaFw0zMTAyMjIyMzU5NTlaMIGVMQswCQYDVQQGEwJERTFFMEMGA1UE
+          ChM8VmVyZWluIHp1ciBGb2VyZGVydW5nIGVpbmVzIERldXRzY2hlbiBGb3JzY2h1bmdzbmV0emVz
+          IGUuIFYuMRAwDgYDVQQLEwdERk4tUEtJMS0wKwYDVQQDEyRERk4tVmVyZWluIENlcnRpZmljYXRp
+          b24gQXV0aG9yaXR5IDIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDLYNf/ZqFBzdL6
+          h5eKc6uZTepnOVqhYIBHFU6MlbLlz87TV0uNzvhWbBVVdgfqRv3IA0VjPnDUq1SAsSOcvjcoqQn/
+          BV0YD8SYmTezIPZmeBeHwp0OzEoy5xadrg6NKXkHACBU3BVfSpbXeLY008F0tZ3pv8B3Teq9WQfg
+          Wi9sPKUA3DW9ZQ2PfzJt8lpqS2IB7qw4NFlFNkkF2njKam1bwIFrEczSPKiL+HEayjvigN0WtGd6
+          izbqTpEpPbNRXK2oDL6dNOPRDReDdcQ5HrCUCxLx1WmOJfS4PSu/wI7DHjulv1UQqyquF5deM87I
+          8/QJB+MChjFGawHFEAwRx1npAgMBAAGjggF0MIIBcDAOBgNVHQ8BAf8EBAMCAQYwHQYDVR0OBBYE
+          FJPj2DIm2tXxSqWRSuDqS+KiDM/hMB8GA1UdIwQYMBaAFL9ZIDYAeaCgImuM1fJh0rgsy4JKMBIG
+          A1UdEwEB/wQIMAYBAf8CAQIwMwYDVR0gBCwwKjAPBg0rBgEEAYGtIYIsAQEEMA0GCysGAQQBga0h
+          giweMAgGBmeBDAECAjBMBgNVHR8ERTBDMEGgP6A9hjtodHRwOi8vcGtpMDMzNi50ZWxlc2VjLmRl
+          L3JsL1RlbGVTZWNfR2xvYmFsUm9vdF9DbGFzc18yLmNybDCBhgYIKwYBBQUHAQEEejB4MCwGCCsG
+          AQUFBzABhiBodHRwOi8vb2NzcDAzMzYudGVsZXNlYy5kZS9vY3NwcjBIBggrBgEFBQcwAoY8aHR0
+          cDovL3BraTAzMzYudGVsZXNlYy5kZS9jcnQvVGVsZVNlY19HbG9iYWxSb290X0NsYXNzXzIuY2Vy
+          MA0GCSqGSIb3DQEBCwUAA4IBAQCHC/8+AptlyFYt1juamItxT9q6Kaoh+UYu9bKkD64ROHk4sw50
+          unZdnugYgpZi20wz6N35at8yvSxMR2BVf+d0a7Qsg9h5a7a3TVALZge17bOXrerufzDmmf0i4nJN
+          PoRb7vnPmep/11I5LqyYAER+aTu/de7QCzsazeX3DyJsR4T2pUeg/dAaNH2t0j13s+70103/w+jl
+          kk9ZPpBHEEqwhVjAb3/4ru0IQp4e1N8ULk2PvJ6Uw+ft9hj4PEnnJqinNtgs3iLNi4LY2XjiVRKj
+          O4dEthEL1QxSr2mMDwbf0KJTi1eYe8/9ByT0/L3D/UqSApcb8re2z2WKGqK1chk5
+        </ds:X509Certificate>
+        <ds:X509Certificate>
+          MIIDwzCCAqugAwIBAgIBATANBgkqhkiG9w0BAQsFADCBgjELMAkGA1UEBhMCREUxKzApBgNVBAoM
+          IlQtU3lzdGVtcyBFbnRlcnByaXNlIFNlcnZpY2VzIEdtYkgxHzAdBgNVBAsMFlQtU3lzdGVtcyBU
+          cnVzdCBDZW50ZXIxJTAjBgNVBAMMHFQtVGVsZVNlYyBHbG9iYWxSb290IENsYXNzIDIwHhcNMDgx
+          MDAxMTA0MDE0WhcNMzMxMDAxMjM1OTU5WjCBgjELMAkGA1UEBhMCREUxKzApBgNVBAoMIlQtU3lz
+          dGVtcyBFbnRlcnByaXNlIFNlcnZpY2VzIEdtYkgxHzAdBgNVBAsMFlQtU3lzdGVtcyBUcnVzdCBD
+          ZW50ZXIxJTAjBgNVBAMMHFQtVGVsZVNlYyBHbG9iYWxSb290IENsYXNzIDIwggEiMA0GCSqGSIb3
+          DQEBAQUAA4IBDwAwggEKAoIBAQCqX9obX+hzkeXaXPSi5kfl82hVYAUdAqSzm1nzHoqvNK38DcLZ
+          SBnuaY/JIPwhqgcZ7bBcrGXHX+0CfHt8LRvWurmAwhiCFoT6ZrAIxlQjgeTNuUk/9k9uN0goOA/F
+          vudocP05l03Sx5iRUKrERLMjfTlH6VJi1hKTXrcxlkIF+3anHqP1wvzpesVsqXFP6st4vGCvx970
+          2cu+fjOlbpSD8DT6IavqjnKgP6TeMFvvhk1qlVtDRKgQFRzlAVfFmPHmBiiRqiDFt1MmUUOyCxGV
+          WOHAD3bZwI18gfNycJ5v/hqO2V81xrJvNHy+SE/iWjnX2J14np+GPgNeGYtEotXHAgMBAAGjQjBA
+          MA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBS/WSA2AHmgoCJrjNXy
+          YdK4LMuCSjANBgkqhkiG9w0BAQsFAAOCAQEAMQOiYQsfdOhyNsZt+U2e+iKo4YFWz827n+qrkRk4
+          r6p8FU3ztqONpfSO9kSpp+ghla0+AGIWiPACuvxhI+YzmzB6azZie60EI4RYZeLbK4rnJVM3YlNf
+          vNoBYimipidx5joifsFvHZVwIEoHNN/q/xWA5brXethbdXwFeilHfkCoMRN3zUA7tFFHei4R40cR
+          3p1m0IvVVGb6g1XqfMIpiRvpb7PO4gWEyS8+eIVibslfwXhjdFjASBgMmTnrpMwatXlajRWc2BQN
+          9noHV8cigwUtPJslJj0Ys6lDfMjIq2SPDqO/nBudMNva0Bkuqjzx+zOAduTNrRlPBSeOE6Fuwg==
+        </ds:X509Certificate>
+      </ds:X509Data>
+    </ds:KeyInfo>
+  </ds:Signature>
+  <Extensions>
+    <mdrpi:PublicationInfo
+      creationInstant="2021-08-23T12:00:09Z"
+      publisher="https://www.aai.dfn.de" />
+  </Extensions>
+  <EntityDescriptor
+    entityID="http://b-web78.sbb.spk-berlin.de/shibboleth">
+    <Extensions>
+      <mdrpi:RegistrationInfo
+        registrationAuthority="https://www.aai.dfn.de"
+        registrationInstant="2018-12-05T10:11:33Z">
+        <mdrpi:RegistrationPolicy xml:lang="en">https://www.aai.dfn.de/en/join/
+        </mdrpi:RegistrationPolicy>
+        <mdrpi:RegistrationPolicy xml:lang="de">https://www.aai.dfn.de/teilnahme/
+        </mdrpi:RegistrationPolicy>
+      </mdrpi:RegistrationInfo>
+      <mdattr:EntityAttributes>
+        <saml:Attribute
+          Name="http://aai.dfn.de/require-loa/degree-of-reliance"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+          <saml:AttributeValue>n/a</saml:AttributeValue>
+        </saml:Attribute>
+      </mdattr:EntityAttributes>
+    </Extensions>
+    <SPSSODescriptor
+      protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+      <Extensions>
+        <mdui:UIInfo>
+          <mdui:DisplayName xml:lang="de">SBB Kartographie
+            SP (TEST)</mdui:DisplayName>
+          <mdui:DisplayName xml:lang="en">SBB Cartography SP
+            (TEST)</mdui:DisplayName>
+          <mdui:Description xml:lang="de">Test SP für FID
+            Kartographie</mdui:Description>
+          <mdui:Description xml:lang="en">Test SP for FID
+            Cartography</mdui:Description>
+        </mdui:UIInfo>
+      </Extensions>
+      <KeyDescriptor>
+        <ds:KeyInfo>
+          <ds:KeyName>b-web78.sbb.spk-berlin.de</ds:KeyName>
+          <ds:X509Data>
+            <ds:X509SubjectName>emailAddress=marco.remy@sbb.spk-berlin.de,CN=b-web78.sbb.spk-berlin.de,OU=IDM2.3,O=PK
+              SBB,L=Berlin,ST=Berlin,C=DE</ds:X509SubjectName>
+            <ds:X509Certificate>MIIGHDCCBASgAwIBAgIJAM/SZtnTtcVTMA0GCSqGSIb3DQEBCwUAMIGiMQswCQYD
+              VQQGEwJERTEPMA0GA1UECAwGQmVybGluMQ8wDQYDVQQHDAZCZXJsaW4xDzANBgNV
+              BAoMBlBLIFNCQjEPMA0GA1UECwwGSURNMi4zMSIwIAYDVQQDDBliLXdlYjc4LnNi
+              Yi5zcGstYmVybGluLmRlMSswKQYJKoZIhvcNAQkBFhxtYXJjby5yZW15QHNiYi5z
+              cGstYmVybGluLmRlMB4XDTE4MTIwNDE2MTMxMloXDTE5MTIwNDE2MTMxMlowgaIx
+              CzAJBgNVBAYTAkRFMQ8wDQYDVQQIDAZCZXJsaW4xDzANBgNVBAcMBkJlcmxpbjEP
+              MA0GA1UECgwGUEsgU0JCMQ8wDQYDVQQLDAZJRE0yLjMxIjAgBgNVBAMMGWItd2Vi
+              Nzguc2JiLnNway1iZXJsaW4uZGUxKzApBgkqhkiG9w0BCQEWHG1hcmNvLnJlbXlA
+              c2JiLnNway1iZXJsaW4uZGUwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoIC
+              AQC9iot8N97iQeahbi2PkC0BZ3UsEx+/7CvhvMIfyUWuIQEPckXP547E1KgQoWnD
+              OQoTEogA5sSsYUY1SBjZjbLTt8NAGttEqLM170Ek9/mas03tKXBdOSmmS5dgD382
+              nAwPQMD6v6IgjZDA1Q9eSPCbriVu+tpWAI0r+9ObXofd6sPafO87KfveBkCZEher
+              w1sgMJ+nrTEDfceEsV+iXlk1zcPKRhweyQI8/Dl2rY7idFIA15TVgXGGU0zEY9c+
+              /seDgHuuKo22a8QlFDL4UGbZUpkYiZ5aIYHk0ezerYq7+YzINbGdQU0Xn0qQRahk
+              /E/yI9TAE8+W2tnpiM+hZr5Mhoyao5eLmpL8DpIFnI8Te2kgzWFjdedsj61/MxlQ
+              SQMcLiIHZV2sbD92/3jPL6+kV7kexeCaVBSy/jcSrSQRePtD7UTCOM1H6xSLYeEa
+              8NKJkGa102Acs6pMGLvyDTrtNau3XJtPoeKWljmbhu7MHXf3WSlb7evV6Jd3zwt8
+              PBWMPzL74Wd2DWgeY81W9HR8j3hEZ1z1rpheNttc/kQsdfXVOREAhnfLQUCjvvjI
+              RUHlPqzuEKR+V0Yp3/z6tCDlFltIuDWxDkE4C8QobLBzCvpMB2+MO8TK4itHiotE
+              G3UiO62zxa4fs2H2Wb0DEa4POXFH7e9Upz0QCpCucbv8/wIDAQABo1MwUTAdBgNV
+              HQ4EFgQU3mqWx/3/S53EOFfPhXRyuuGAJ70wHwYDVR0jBBgwFoAU3mqWx/3/S53E
+              OFfPhXRyuuGAJ70wDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAgEA
+              hM56FUGSR8Lj1kR/GMj1EU6czbq/tEhB73j6IoCHWYy2oIhsXNHC6hq7dsHR+U/T
+              sFD8vWXr6Pc4nypCuMLVhYsL9/sQEjPu2PeW2urV5taHEyPhRsmhONE/EfMjdiMQ
+              bC7HxiD0XgQ7XocjexweY/5nKnlCJQutHjrIwG4dcCPOOX7rnVhYkMn/HRLPdZr6
+              uPUHiz2iYdCesgVaPCHmkHp3eiTWgxxKp51sMLXvFW86vrvzSjriRJY78MBU0SaM
+              GuezsB/HgWkHv4w0OIVGdaZtzse6Fx7ThWjEqo2nb+6vb6F3N5XHb2a3DF+DtKHp
+              UU7kfrFcflhyadU5pZPIIFifRugazrkwHkOzJ6sYbbHvapj5GzU3kHVQrcmSPRs6
+              I3LXozZGndbbM4j6qbwYFHEWsSKdq495+N2PxwI536/GHBkYavlhTEH1tEA+VPWi
+              IBM+joAZkyU0vUw/qHQFMd97tj71w3mLgw4mFrZSYK1b9UN8yr3VdxjsfIJ3vm2W
+              gM3OcU+lB5Cj13beNf8RhLKXIvV5tmRgDmBjFSa0Sssm7eZFt/hL6GPYo3mK4lyU
+              WM6Nh5ztpybVZjKeXoGvFrUmnoqzQoPRsQYa0eAvlQD9D/k6ho4n2b3VUdYdjYt2
+              3oXxkKL6ezKwGndkZ4yA3B6G1CYtUQgq9BjSb0XThfA=
+            </ds:X509Certificate>
+          </ds:X509Data>
+        </ds:KeyInfo>
+      </KeyDescriptor>
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+        Location="http://b-web78.sbb.spk-berlin.de/Shibboleth.sso/SLO/SOAP" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        Location="http://b-web78.sbb.spk-berlin.de/Shibboleth.sso/SLO/Redirect" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"
+        Location="http://b-web78.sbb.spk-berlin.de/Shibboleth.sso/SLO/Artifact" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Location="http://b-web78.sbb.spk-berlin.de/Shibboleth.sso/SLO/POST" />
+      <AssertionConsumerService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Location="http://b-web78.sbb.spk-berlin.de/Shibboleth.sso/SAML2/POST"
+        index="1" />
+      <AssertionConsumerService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+        Location="http://b-web78.sbb.spk-berlin.de/Shibboleth.sso/SAML2/POST-SimpleSign"
+        index="2" />
+      <AssertionConsumerService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"
+        Location="http://b-web78.sbb.spk-berlin.de/Shibboleth.sso/SAML2/Artifact"
+        index="3" />
+    </SPSSODescriptor>
+    <Organization>
+      <OrganizationName xml:lang="de">e107
+      </OrganizationName>
+      <OrganizationName xml:lang="en">e107
+      </OrganizationName>
+      <OrganizationDisplayName xml:lang="de">Staatsbibliothek
+        zu Berlin</OrganizationDisplayName>
+      <OrganizationDisplayName xml:lang="en">State
+        Library Berlin</OrganizationDisplayName>
+      <OrganizationURL xml:lang="de">http://staatsbibliothek-berlin.de
+      </OrganizationURL>
+      <OrganizationURL xml:lang="en">http://staatsbibliothek-berlin.de
+      </OrganizationURL>
+    </Organization>
+    <ContactPerson contactType="technical">
+      <GivenName>Marco</GivenName>
+      <SurName>Remy</SurName>
+      <EmailAddress>mailto:marco.remy@sbb.spk-berlin.de</EmailAddress>
+    </ContactPerson>
+  </EntityDescriptor>
+  <EntityDescriptor
+    entityID="http://directqa2.dimensiondata.com/seller/direct">
+    <Extensions>
+      <mdrpi:RegistrationInfo
+        registrationAuthority="https://www.aai.dfn.de"
+        registrationInstant="2021-05-11T10:56:32Z">
+        <mdrpi:RegistrationPolicy xml:lang="en">https://www.aai.dfn.de/fileadmin/documents/mrps_dfn-aai_1.0.pdf
+        </mdrpi:RegistrationPolicy>
+      </mdrpi:RegistrationInfo>
+      <mdattr:EntityAttributes>
+        <saml:Attribute
+          Name="urn:oasis:names:tc:SAML:profiles:subject-id:req"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+          <saml:AttributeValue>subject-id</saml:AttributeValue>
+        </saml:Attribute>
+        <saml:Attribute
+          Name="http://aai.dfn.de/require-loa/degree-of-reliance"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+          <saml:AttributeValue>n/a</saml:AttributeValue>
+        </saml:Attribute>
+      </mdattr:EntityAttributes>
+    </Extensions>
+    <SPSSODescriptor AuthnRequestsSigned="false"
+      WantAssertionsSigned="true"
+      protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+      <Extensions>
+        <mdui:UIInfo>
+          <mdui:DisplayName xml:lang="de">NTT Limited
+          </mdui:DisplayName>
+          <mdui:DisplayName xml:lang="en">NTT Limited
+          </mdui:DisplayName>
+          <mdui:Description xml:lang="de">eStore ist die
+            eCommerce-Plattform von NTT zur Interaktion, Transaktion und
+            Bestellung von Produkten und Dienstleistungen.
+          </mdui:Description>
+          <mdui:Description xml:lang="en">eStore is NTT's
+            eCommerce platform to interact, transact and order products
+            and service</mdui:Description>
+          <mdui:PrivacyStatementURL
+            xml:lang="de">http://alias.cloud-marketing.dimensiondata.com/Web/DimensionData/%7B81f25f35-f2e9-49af-a1de-eca66fdd7eb1%7D_Datenschutzhinweis_Storefront_en.pdf
+          </mdui:PrivacyStatementURL>
+        </mdui:UIInfo>
+      </Extensions>
+      <KeyDescriptor use="encryption">
+        <ds:KeyInfo>
+          <ds:KeyName>b2b.nttltd.global.ntt</ds:KeyName>
+          <ds:X509Data>
+            <ds:X509SubjectName>CN=b2b.nttltd.global.ntt,O=NTT
+              Ltd,L=LONDON,C=GB</ds:X509SubjectName>
+            <ds:X509Certificate>MIIG1zCCBb+gAwIBAgIQAVNKJTCl5vp/lZiC0npUeTANBgkqhkiG9w0BAQsFADBw
+              MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
+              d3cuZGlnaWNlcnQuY29tMS8wLQYDVQQDEyZEaWdpQ2VydCBTSEEyIEhpZ2ggQXNz
+              dXJhbmNlIFNlcnZlciBDQTAeFw0yMDAzMzAwMDAwMDBaFw0yMjA0MDQxMjAwMDBa
+              MFAxCzAJBgNVBAYTAkdCMQ8wDQYDVQQHEwZMT05ET04xEDAOBgNVBAoTB05UVCBM
+              dGQxHjAcBgNVBAMTFWIyYi5udHRsdGQuZ2xvYmFsLm50dDCCASIwDQYJKoZIhvcN
+              AQEBBQADggEPADCCAQoCggEBAKjex0SjatmfRv9P6vhrGFNuHt9CgXDWKLGQnkeT
+              ljbuCAGcOjCpUbYWcdSa9KqZUi+b7+gaye/PwL+A9r+VceA1tcpXN2723tcpS9jX
+              93/J+CEm6ome9EG+RpwQKiOq4cKHoaTHrBGNPa0zvspr8ABO+lkl/r6uHBXa6v83
+              i1FcolgZvKDIpQtlAizrqJ+I2a/KMEwKzsrjPo04Y/dLDxeMDq8u4VZ6yZqosk1T
+              NLC8C8iTGx/8Mn0Vag/v5m3UTH4zc4oK+OmceKqIn8tPINc1doY061C1H/324eZ4
+              AgCNGUttGy75VTpujgybgulkiGHEzPL9iv64TxIKwI5vjdsCAwEAAaOCA4swggOH
+              MB8GA1UdIwQYMBaAFFFo/5CvAgd1PMzZZWRiohK4WXI7MB0GA1UdDgQWBBQrnm4S
+              /KmU1sMIZDBel8AoUWreujA7BgNVHREENDAyghViMmIubnR0bHRkLmdsb2JhbC5u
+              dHSCGXd3dy5iMmIubnR0bHRkLmdsb2JhbC5udHQwDgYDVR0PAQH/BAQDAgWgMB0G
+              A1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjB1BgNVHR8EbjBsMDSgMqAwhi5o
+              dHRwOi8vY3JsMy5kaWdpY2VydC5jb20vc2hhMi1oYS1zZXJ2ZXItZzYuY3JsMDSg
+              MqAwhi5odHRwOi8vY3JsNC5kaWdpY2VydC5jb20vc2hhMi1oYS1zZXJ2ZXItZzYu
+              Y3JsMEwGA1UdIARFMEMwNwYJYIZIAYb9bAEBMCowKAYIKwYBBQUHAgEWHGh0dHBz
+              Oi8vd3d3LmRpZ2ljZXJ0LmNvbS9DUFMwCAYGZ4EMAQICMIGDBggrBgEFBQcBAQR3
+              MHUwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmRpZ2ljZXJ0LmNvbTBNBggrBgEF
+              BQcwAoZBaHR0cDovL2NhY2VydHMuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0U0hBMkhp
+              Z2hBc3N1cmFuY2VTZXJ2ZXJDQS5jcnQwDAYDVR0TAQH/BAIwADCCAX4GCisGAQQB
+              1nkCBAIEggFuBIIBagFoAHUAKXm+8J45OSHwVnOfY6V35b5XfZxgCvj5TV0mXCVd
+              x4QAAAFxK9N5OwAABAMARjBEAiBSAiW77G1HQg3zVLC9NkYDIA1dnSFzLsqfBWwY
+              WYyjtgIgWnGxgND92W91i5G8BBLb3JKhsT3aM7WmOhOF9cnpFPwAdgBByMqx3yJG
+              ShDGoToJQodeTjGLGwPr60vHaPCQYpYG9gAAAXEr03j5AAAEAwBHMEUCIBiN2OCd
+              OHhyZh0MGy92PPx7e4Wf5b4YZmxUvxZettL8AiEA2GLRLqTabiay2qfQh0qNHwFo
+              pwTgkFl718pmzt3DAr8AdwC72d+8H4pxtZOUI5eqkntHOFeVCqtS6BqQlmQ2jh7R
+              hQAAAXEr03kqAAAEAwBIMEYCIQC/mhCsPrRrCYR5WhIUqH1vl9q7qdnxRbV0HkH5
+              Kv1yfAIhAMm2cuJD+OR3xDFeB4RFssa4BFaa5w2BMB2RrvR14sHIMA0GCSqGSIb3
+              DQEBCwUAA4IBAQB6coL8Xz/SwSuHfoSDXIMU5f5+j6wlAeF6yRRxUkf+CiMhI69i
+              9//qBCCZoAvn370ukrpdbvUxPsdCnmJZE8vyyB1NJ808fpE0hUoXJPmEVGne6mvq
+              9GZpRYOQgFB+NUVVF9Nn2r65KXj93YugCNCLC/zdSclyFFezQVUw/VN+gB7c77i/
+              IlSy4XIZLtkOtl73BhSSDuYu8oN+9ocWJwx6r6u+hNZd2a4V3smz9gs2GeIq/i9E
+              3PxQN2LrqLHkv3XaHf6+gpmHoikWM9u/tqXcmVyDlKtM67dtM9p/Cn2nlfBd45bx
+              rzKKWY286Lx4wOmRLdhjKBp7+a6hCDAuMqNh
+            </ds:X509Certificate>
+          </ds:X509Data>
+        </ds:KeyInfo>
+      </KeyDescriptor>
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Location="https://tst2.direct.nttltd.global.ntt/seller/direct/DirectSAML/SAML/SLOService.aspx" />
+      <NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+      </NameIDFormat>
+      <AssertionConsumerService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Location="https://tst2.direct.nttltd.global.ntt/seller/direct/DirectSAML/SAML/AssertionConsumerService.aspx"
+        index="0" />
+      <AttributeConsumingService index="1">
+        <ServiceName xml:lang="de">NTT Limited</ServiceName>
+        <ServiceName xml:lang="en">NTT Limited</ServiceName>
+        <ServiceDescription xml:lang="de">eStore ist die
+          eCommerce-Plattform von NTT zur Interaktion, Transaktion und
+          Bestellung von Produkten und Dienstleistungen.
+        </ServiceDescription>
+        <ServiceDescription xml:lang="en">eStore is NTT's
+          eCommerce platform to interact, transact and order products
+          and service</ServiceDescription>
+        <RequestedAttribute
+          FriendlyName="eduPersonEntitlement"
+          Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.7"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+          isRequired="true" />
+        <RequestedAttribute
+          FriendlyName="eduPersonAffiliation"
+          Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.1"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+          isRequired="true" />
+        <RequestedAttribute
+          FriendlyName="eduPersonScopedAffiliation"
+          Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.9"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+          isRequired="true" />
+        <RequestedAttribute
+          FriendlyName="eduPersonUniqueId"
+          Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.13"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+          isRequired="true" />
+        <RequestedAttribute FriendlyName="givenName"
+          Name="urn:oid:2.5.4.42"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+          isRequired="true" />
+        <RequestedAttribute FriendlyName="mail"
+          Name="urn:oid:0.9.2342.19200300.100.1.3"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+          isRequired="true" />
+        <RequestedAttribute FriendlyName="sn"
+          Name="urn:oid:2.5.4.4"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+          isRequired="true" />
+        <RequestedAttribute
+          FriendlyName="preferredLanguage"
+          Name="urn:oid:2.16.840.1.113730.3.1.39"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+          isRequired="false" />
+        <RequestedAttribute
+          FriendlyName="dfnEduPersonVerifiedMobile"
+          Name="urn:oid:1.3.6.1.4.1.22177.400.1.1.3.13"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+          isRequired="false" />
+      </AttributeConsumingService>
+    </SPSSODescriptor>
+    <Organization>
+      <OrganizationName xml:lang="de">e741
+      </OrganizationName>
+      <OrganizationName xml:lang="en">e741
+      </OrganizationName>
+      <OrganizationDisplayName xml:lang="de">NTT
+        Limited</OrganizationDisplayName>
+      <OrganizationDisplayName xml:lang="en">NTT
+        Limited</OrganizationDisplayName>
+      <OrganizationURL xml:lang="de">https://hello.global.ntt/
+      </OrganizationURL>
+      <OrganizationURL xml:lang="en">https://hello.global.ntt/
+      </OrganizationURL>
+    </Organization>
+    <ContactPerson contactType="technical">
+      <GivenName>Ramez</GivenName>
+      <SurName>Ghattas</SurName>
+      <EmailAddress>mailto:ramez.ghattas@global.ntt</EmailAddress>
+    </ContactPerson>
+    <ContactPerson contactType="support">
+      <GivenName>Ramez</GivenName>
+      <SurName>Ghattas</SurName>
+      <EmailAddress>mailto:ramez.ghattas@global.ntt</EmailAddress>
+    </ContactPerson>
+  </EntityDescriptor>
+  <EntityDescriptor
+    entityID="https://aai-integration.dfn.de/idp/shibboleth">
+    <Extensions>
+      <mdrpi:RegistrationInfo
+        registrationAuthority="https://www.aai.dfn.de"
+        registrationInstant="2014-04-29T06:53:40Z">
+        <mdrpi:RegistrationPolicy xml:lang="en">https://www.aai.dfn.de/en/join/
+        </mdrpi:RegistrationPolicy>
+        <mdrpi:RegistrationPolicy xml:lang="de">https://www.aai.dfn.de/teilnahme/
+        </mdrpi:RegistrationPolicy>
+      </mdrpi:RegistrationInfo>
+      <mdattr:EntityAttributes>
+        <saml:Attribute
+          Name="http://macedir.org/entity-category-support"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+          <saml:AttributeValue>http://www.geant.net/uri/dataprotection-code-of-conduct/v1
+          </saml:AttributeValue>
+          <saml:AttributeValue>http://refeds.org/category/research-and-scholarship
+          </saml:AttributeValue>
+        </saml:Attribute>
+        <saml:Attribute
+          Name="http://aai.dfn.de/loa/degree-of-reliance"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+          <saml:AttributeValue>advanced</saml:AttributeValue>
+        </saml:Attribute>
+      </mdattr:EntityAttributes>
+    </Extensions>
+    <IDPSSODescriptor
+      protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+      <Extensions>
+        <saml1md:Scope regexp="false">testscope.dfn.de
+        </saml1md:Scope>
+        <saml1md:Scope regexp="false">test.dfn.de</saml1md:Scope>
+        <mdui:UIInfo>
+          <mdui:DisplayName xml:lang="de">DFN-AAI
+            Integration + Test IdP</mdui:DisplayName>
+          <mdui:DisplayName xml:lang="en">DFN-AAI
+            Integration + Test IdP</mdui:DisplayName>
+          <mdui:Description xml:lang="de">AAI Integration
+            and Test IdP operated by DFN-AAI</mdui:Description>
+          <mdui:Description xml:lang="en">AAI Integration
+            and Test IdP operated by DFN-AAI</mdui:Description>
+          <mdui:Logo height="16" width="16">https://aai-integration.dfn.de/idp/images/favicon.ico
+          </mdui:Logo>
+          <mdui:Logo height="131" width="236">https://aai-integration.dfn.de/idp/images/dfn_logo.png
+          </mdui:Logo>
+          <mdui:PrivacyStatementURL
+            xml:lang="de">https://www.aai.dfn.de/fileadmin/documents/datenschutz/test-idp.html
+          </mdui:PrivacyStatementURL>
+        </mdui:UIInfo>
+      </Extensions>
+      <KeyDescriptor use="signing">
+        <ds:KeyInfo>
+          <ds:KeyName>aai-integration.dfn.de</ds:KeyName>
+          <ds:X509Data>
+            <ds:X509SubjectName>CN=aai-integration.dfn.de
+            </ds:X509SubjectName>
+            <ds:X509Certificate>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
+              uoUC/Cw3Kf4=
+            </ds:X509Certificate>
+          </ds:X509Data>
+        </ds:KeyInfo>
+      </KeyDescriptor>
+      <ArtifactResolutionService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+        Location="https://aai-integration.dfn.de:8443/idp/profile/SAML2/SOAP/ArtifactResolution"
+        index="1" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        Location="https://aai-integration.dfn.de/idp/profile/SAML2/Redirect/SLO" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Location="https://aai-integration.dfn.de/idp/profile/SAML2/POST/SLO" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+        Location="https://aai-integration.dfn.de:8443/idp/profile/SAML2/SOAP/SLO" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+        Location="https://aai-integration.dfn.de/idp/profile/SAML2/POST-SimpleSign/SLO" />
+      <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient
+      </NameIDFormat>
+      <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent
+      </NameIDFormat>
+      <SingleSignOnService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+        Location="https://aai-integration.dfn.de/idp/profile/SAML2/POST-SimpleSign/SSO" />
+      <SingleSignOnService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        Location="https://aai-integration.dfn.de/idp/profile/SAML2/Redirect/SSO" />
+      <SingleSignOnService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+        Location="https://aai-integration.dfn.de/idp/profile/SAML2/SOAP/ECP" />
+      <SingleSignOnService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Location="https://aai-integration.dfn.de/idp/profile/SAML2/POST/SSO" />
+    </IDPSSODescriptor>
+    <AttributeAuthorityDescriptor
+      protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+      <Extensions>
+        <saml1md:Scope regexp="false">testscope.dfn.de
+        </saml1md:Scope>
+        <saml1md:Scope regexp="false">test.dfn.de</saml1md:Scope>
+      </Extensions>
+      <KeyDescriptor use="signing">
+        <ds:KeyInfo>
+          <ds:KeyName>aai-integration.dfn.de</ds:KeyName>
+          <ds:X509Data>
+            <ds:X509SubjectName>CN=aai-integration.dfn.de
+            </ds:X509SubjectName>
+            <ds:X509Certificate>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
+              uoUC/Cw3Kf4=
+            </ds:X509Certificate>
+          </ds:X509Data>
+        </ds:KeyInfo>
+      </KeyDescriptor>
+      <AttributeService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+        Location="https://aai-integration.dfn.de:8443/idp/profile/SAML2/SOAP/AttributeQuery" />
+      <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient
+      </NameIDFormat>
+      <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent
+      </NameIDFormat>
+    </AttributeAuthorityDescriptor>
+    <Organization>
+      <OrganizationName xml:lang="de">e15</OrganizationName>
+      <OrganizationName xml:lang="en">e15</OrganizationName>
+      <OrganizationDisplayName xml:lang="de">DFN-Verein
+        - Deutsches Forschungsnetz</OrganizationDisplayName>
+      <OrganizationDisplayName xml:lang="en">German
+        National Research and Education Network, DFN
+      </OrganizationDisplayName>
+      <OrganizationURL xml:lang="de">http://www.dfn.de
+      </OrganizationURL>
+      <OrganizationURL xml:lang="en">http://www.dfn.de/en/
+      </OrganizationURL>
+    </Organization>
+    <ContactPerson contactType="technical">
+      <GivenName>Wolfgang</GivenName>
+      <SurName>Pempe</SurName>
+      <EmailAddress>mailto:hotline@aai.dfn.de</EmailAddress>
+    </ContactPerson>
+    <ContactPerson contactType="support">
+      <GivenName>DFN-AAI</GivenName>
+      <SurName>Hotline</SurName>
+      <EmailAddress>mailto:hotline@aai.dfn.de</EmailAddress>
+    </ContactPerson>
+    <ContactPerson contactType="other"
+      remd:contactType="http://refeds.org/metadata/contactType/security">
+      <GivenName>DFN-AAI Hotline</GivenName>
+      <EmailAddress>mailto:hotline@aai.dfn.de</EmailAddress>
+    </ContactPerson>
+    <ContactPerson contactType="administrative">
+      <GivenName>Wolfgang</GivenName>
+      <SurName>Pempe</SurName>
+      <EmailAddress>mailto:pempe@dfn.de</EmailAddress>
+    </ContactPerson>
+  </EntityDescriptor>
+  <EntityDescriptor
+    entityID="https://aai-mdc2.mdc-berlin.de/idp/shibboleth">
+    <Extensions>
+      <mdrpi:RegistrationInfo
+        registrationAuthority="https://www.aai.dfn.de"
+        registrationInstant="2018-11-02T12:03:17Z">
+        <mdrpi:RegistrationPolicy xml:lang="en">https://www.aai.dfn.de/en/join/
+        </mdrpi:RegistrationPolicy>
+        <mdrpi:RegistrationPolicy xml:lang="de">https://www.aai.dfn.de/teilnahme/
+        </mdrpi:RegistrationPolicy>
+      </mdrpi:RegistrationInfo>
+      <mdattr:EntityAttributes>
+        <saml:Attribute
+          Name="http://aai.dfn.de/loa/degree-of-reliance"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+          <saml:AttributeValue>n/a</saml:AttributeValue>
+        </saml:Attribute>
+      </mdattr:EntityAttributes>
+    </Extensions>
+    <IDPSSODescriptor
+      protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+      <Extensions>
+        <saml1md:Scope regexp="false">mdc-berlin.de
+        </saml1md:Scope>
+        <mdui:UIInfo>
+          <mdui:DisplayName xml:lang="de">Max-Delbrück-Centrum
+            für molekulare Medizin (Test IdP)</mdui:DisplayName>
+          <mdui:DisplayName xml:lang="en">Max Delbrück
+            Center for Molecular Medicine (Test IdP)</mdui:DisplayName>
+          <mdui:Description xml:lang="de">Test IdP des MDC
+            Berlin</mdui:Description>
+          <mdui:Description xml:lang="en">Test IdP of MDC
+            Berlin</mdui:Description>
+          <mdui:Logo height="16" width="16">https://aai-mdc2.mdc-berlin.de/idp/images/favicon.ico
+          </mdui:Logo>
+          <mdui:Logo height="64" width="80">https://aai-mdc2.mdc-berlin.de/idp/images/logo2.png
+          </mdui:Logo>
+          <mdui:InformationURL xml:lang="de">https://www.mdc-berlin.de/de
+          </mdui:InformationURL>
+          <mdui:InformationURL xml:lang="en">https://www.mdc-berlin.de/en
+          </mdui:InformationURL>
+          <mdui:PrivacyStatementURL
+            xml:lang="de">https://www.mdc-berlin.de/de/datenschutz
+          </mdui:PrivacyStatementURL>
+          <mdui:PrivacyStatementURL
+            xml:lang="en">https://www.mdc-berlin.de/data-privacy
+          </mdui:PrivacyStatementURL>
+        </mdui:UIInfo>
+      </Extensions>
+      <KeyDescriptor>
+        <ds:KeyInfo>
+          <ds:KeyName>aai-mdc2.mdc-berlin.de</ds:KeyName>
+          <ds:X509Data>
+            <ds:X509SubjectName>CN=aai-mdc2.mdc-berlin.de,OU=IT,O=Max-Delbrueck-Centrum
+              fuer Molekulare Medizin (MDC),L=Berlin,ST=Berlin,C=DE
+            </ds:X509SubjectName>
+            <ds:X509Certificate>MIIIKzCCBxOgAwIBAgIMJFhDwG/pCml8eonkMA0GCSqGSIb3DQEBCwUAMIGNMQsw
+              CQYDVQQGEwJERTFFMEMGA1UECgw8VmVyZWluIHp1ciBGb2VyZGVydW5nIGVpbmVz
+              IERldXRzY2hlbiBGb3JzY2h1bmdzbmV0emVzIGUuIFYuMRAwDgYDVQQLDAdERk4t
+              UEtJMSUwIwYDVQQDDBxERk4tVmVyZWluIEdsb2JhbCBJc3N1aW5nIENBMB4XDTIx
+              MDIyNjA5NTgxMFoXDTIyMDMzMDA5NTgxMFowgZsxCzAJBgNVBAYTAkRFMQ8wDQYD
+              VQQIDAZCZXJsaW4xDzANBgNVBAcMBkJlcmxpbjE8MDoGA1UECgwzTWF4LURlbGJy
+              dWVjay1DZW50cnVtIGZ1ZXIgTW9sZWt1bGFyZSBNZWRpemluIChNREMpMQswCQYD
+              VQQLDAJJVDEfMB0GA1UEAwwWYWFpLW1kYzIubWRjLWJlcmxpbi5kZTCCASIwDQYJ
+              KoZIhvcNAQEBBQADggEPADCCAQoCggEBALetbQLzY7iyA4fWGDhTPmfIrlaQLALL
+              johwt1k7xIgiWZJYvGVT/TTd2pivF/kOLL1J3DKcN2ZlMdbcv8qZIkSF/jIv0esK
+              bz9Jw5sQB41Wd36Hp586g5bqFEwCDd/RKmkA6H368SkUbu3Ypc4FFyErELnplhFh
+              veHuV7M2deYx0RQ/usk4ianaDH6LN823mhWgnqJuH6dgmiHA35XU2qVWR1MR1Mkf
+              xt5kfAIEFMzFosK7USOswbkembqeC460iWYZiM+wX7hoq2VNzHMnmghMAYLSDVa1
+              XADZdGhHeGcYKtVjSRN8Ir/o8rS/SccEkSoLDc8jSu8TarEBmQK85qsCAwEAAaOC
+              BHkwggR1MFcGA1UdIARQME4wCAYGZ4EMAQICMA0GCysGAQQBga0hgiweMA8GDSsG
+              AQQBga0hgiwBAQQwEAYOKwYBBAGBrSGCLAEBBAgwEAYOKwYBBAGBrSGCLAIBBAgw
+              CQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwIG
+              CCsGAQUFBwMBMB0GA1UdDgQWBBQNf8FqEu6J+JYO9Lp1Ecp7a9aPTzAfBgNVHSME
+              GDAWgBRrOpiL+fJTidrgrbIyHgkf6Ko7dDA6BgNVHREEMzAxghZhYWktbWRjMi5t
+              ZGMtYmVybGluLmRlghdhYWktbWRjMi5tZGMtYmVybGluLm5ldDCBjQYDVR0fBIGF
+              MIGCMD+gPaA7hjlodHRwOi8vY2RwMS5wY2EuZGZuLmRlL2Rmbi1jYS1nbG9iYWwt
+              ZzIvcHViL2NybC9jYWNybC5jcmwwP6A9oDuGOWh0dHA6Ly9jZHAyLnBjYS5kZm4u
+              ZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIvY3JsL2NhY3JsLmNybDCB2wYIKwYBBQUH
+              AQEEgc4wgcswMwYIKwYBBQUHMAGGJ2h0dHA6Ly9vY3NwLnBjYS5kZm4uZGUvT0NT
+              UC1TZXJ2ZXIvT0NTUDBJBggrBgEFBQcwAoY9aHR0cDovL2NkcDEucGNhLmRmbi5k
+              ZS9kZm4tY2EtZ2xvYmFsLWcyL3B1Yi9jYWNlcnQvY2FjZXJ0LmNydDBJBggrBgEF
+              BQcwAoY9aHR0cDovL2NkcDIucGNhLmRmbi5kZS9kZm4tY2EtZ2xvYmFsLWcyL3B1
+              Yi9jYWNlcnQvY2FjZXJ0LmNydDCCAfQGCisGAQQB1nkCBAIEggHkBIIB4AHeAHQA
+              RqVV63X6kSAwtaKJafTzfREsQXS+/Um4havy/HD+bUcAAAF33cY/LQAABAMARTBD
+              AiAdOWvSb1QuqCXr0NffqjSonyOUOD+bk12igVpFXObTLAIfX3b1RbKo7nZudDSY
+              gdCzXj0YlHF0ShPSLnruDeHCLwB2ACl5vvCeOTkh8FZzn2Old+W+V32cYAr4+U1d
+              JlwlXceEAAABd93GRkoAAAQDAEcwRQIgCXmV2qH6jxzsgPuYNxnad+NfCEja1wjI
+              9x7/mUx4wukCIQDZ7SQp9pAUfdUk9bEA0TErHXix3XuZWZGOhoEFlDV0QwB2AG9T
+              dqwx8DEZ2JkApFEV/3cVHBHZAsEAKQaNsgiaN9kTAAABd93GQBsAAAQDAEcwRQIh
+              APuhCM4U4gwPGRP3KV03qdd7auFGMUOeloIbPUxbUAJPAiBVkiQ0SiNd73OWNGaO
+              LdUT4jSs5ckNu/9uJKRXabEYlwB2AFWB1MIWkDYBSuoLm1c8U/DA5Dh4cCUIFy+j
+              qh0HE9MMAAABd93GQSgAAAQDAEcwRQIhAOPRaCDkQvg/gYuqRQwydTCWr1SYK4wg
+              sj+kRSg6cxFKAiBGJ6DHaPct7wpZhAzEji1ygIOBSfubm/6WG9WWDfo+LjANBgkq
+              hkiG9w0BAQsFAAOCAQEAW0v/ECugzeVnryXpUA1H+pcf3p+jx4AqBz/5NrFIwKRt
+              aJPji8YdRbc+YcdVkKnXyJwVF8ld+yezTiqCVHkPNAy4soUpTHoxYIoPWueS9SeK
+              +oWjwrHODA52XI5Oyxt4nsZARRXfpVljYh8FkXwF6ecfb7wiCwy2QSJ5JbLWe0KZ
+              vrYLISEdQNSkU8bhqhr4RMpH9FVkiiF8I7hrf2JeNOkT+GbXWN/ELFk5cbsBm4sK
+              R6rLg/ShKtt3afwmpev0/nAAvC35iCvn88zl4/WqWxW7/lddOkcCkuqvEg8b2bwx
+              NX7/GyVjtXHFdO96wYzO6zk/MZg/4ZMXR/z9q4dVZw==
+            </ds:X509Certificate>
+          </ds:X509Data>
+        </ds:KeyInfo>
+      </KeyDescriptor>
+      <ArtifactResolutionService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+        Location="https://aai-mdc2.mdc-berlin.de:8443/idp/profile/SAML2/SOAP/ArtifactResolution"
+        index="2" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        Location="https://aai-mdc2.mdc-berlin.de/idp/profile/SAML2/Redirect/SLO" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Location="https://aai-mdc2.mdc-berlin.de/idp/profile/SAML2/POST/SLO" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+        Location="https://aai-mdc2.mdc-berlin.de/idp/profile/SAML2/POST-SimpleSign/SLO" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+        Location="https://aai-mdc2.mdc-berlin.de:8443/idp/profile/SAML2/SOAP/SLO" />
+      <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient
+      </NameIDFormat>
+      <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent
+      </NameIDFormat>
+      <SingleSignOnService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Location="https://aai-mdc2.mdc-berlin.de/idp/profile/SAML2/POST/SSO" />
+      <SingleSignOnService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+        Location="https://aai-mdc2.mdc-berlin.de/idp/profile/SAML2/POST-SimpleSign/SSO" />
+      <SingleSignOnService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        Location="https://aai-mdc2.mdc-berlin.de/idp/profile/SAML2/Redirect/SSO" />
+      <SingleSignOnService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+        Location="https://aai-mdc2.mdc-berlin.de/idp/profile/SAML2/SOAP/ECP" />
+    </IDPSSODescriptor>
+    <AttributeAuthorityDescriptor
+      protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+      <Extensions>
+        <saml1md:Scope regexp="false">mdc-berlin.de
+        </saml1md:Scope>
+      </Extensions>
+      <KeyDescriptor>
+        <ds:KeyInfo>
+          <ds:KeyName>aai-mdc2.mdc-berlin.de</ds:KeyName>
+          <ds:X509Data>
+            <ds:X509SubjectName>CN=aai-mdc2.mdc-berlin.de,OU=IT,O=Max-Delbrueck-Centrum
+              fuer Molekulare Medizin (MDC),L=Berlin,ST=Berlin,C=DE
+            </ds:X509SubjectName>
+            <ds:X509Certificate>MIIIKzCCBxOgAwIBAgIMJFhDwG/pCml8eonkMA0GCSqGSIb3DQEBCwUAMIGNMQsw
+              CQYDVQQGEwJERTFFMEMGA1UECgw8VmVyZWluIHp1ciBGb2VyZGVydW5nIGVpbmVz
+              IERldXRzY2hlbiBGb3JzY2h1bmdzbmV0emVzIGUuIFYuMRAwDgYDVQQLDAdERk4t
+              UEtJMSUwIwYDVQQDDBxERk4tVmVyZWluIEdsb2JhbCBJc3N1aW5nIENBMB4XDTIx
+              MDIyNjA5NTgxMFoXDTIyMDMzMDA5NTgxMFowgZsxCzAJBgNVBAYTAkRFMQ8wDQYD
+              VQQIDAZCZXJsaW4xDzANBgNVBAcMBkJlcmxpbjE8MDoGA1UECgwzTWF4LURlbGJy
+              dWVjay1DZW50cnVtIGZ1ZXIgTW9sZWt1bGFyZSBNZWRpemluIChNREMpMQswCQYD
+              VQQLDAJJVDEfMB0GA1UEAwwWYWFpLW1kYzIubWRjLWJlcmxpbi5kZTCCASIwDQYJ
+              KoZIhvcNAQEBBQADggEPADCCAQoCggEBALetbQLzY7iyA4fWGDhTPmfIrlaQLALL
+              johwt1k7xIgiWZJYvGVT/TTd2pivF/kOLL1J3DKcN2ZlMdbcv8qZIkSF/jIv0esK
+              bz9Jw5sQB41Wd36Hp586g5bqFEwCDd/RKmkA6H368SkUbu3Ypc4FFyErELnplhFh
+              veHuV7M2deYx0RQ/usk4ianaDH6LN823mhWgnqJuH6dgmiHA35XU2qVWR1MR1Mkf
+              xt5kfAIEFMzFosK7USOswbkembqeC460iWYZiM+wX7hoq2VNzHMnmghMAYLSDVa1
+              XADZdGhHeGcYKtVjSRN8Ir/o8rS/SccEkSoLDc8jSu8TarEBmQK85qsCAwEAAaOC
+              BHkwggR1MFcGA1UdIARQME4wCAYGZ4EMAQICMA0GCysGAQQBga0hgiweMA8GDSsG
+              AQQBga0hgiwBAQQwEAYOKwYBBAGBrSGCLAEBBAgwEAYOKwYBBAGBrSGCLAIBBAgw
+              CQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwIG
+              CCsGAQUFBwMBMB0GA1UdDgQWBBQNf8FqEu6J+JYO9Lp1Ecp7a9aPTzAfBgNVHSME
+              GDAWgBRrOpiL+fJTidrgrbIyHgkf6Ko7dDA6BgNVHREEMzAxghZhYWktbWRjMi5t
+              ZGMtYmVybGluLmRlghdhYWktbWRjMi5tZGMtYmVybGluLm5ldDCBjQYDVR0fBIGF
+              MIGCMD+gPaA7hjlodHRwOi8vY2RwMS5wY2EuZGZuLmRlL2Rmbi1jYS1nbG9iYWwt
+              ZzIvcHViL2NybC9jYWNybC5jcmwwP6A9oDuGOWh0dHA6Ly9jZHAyLnBjYS5kZm4u
+              ZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIvY3JsL2NhY3JsLmNybDCB2wYIKwYBBQUH
+              AQEEgc4wgcswMwYIKwYBBQUHMAGGJ2h0dHA6Ly9vY3NwLnBjYS5kZm4uZGUvT0NT
+              UC1TZXJ2ZXIvT0NTUDBJBggrBgEFBQcwAoY9aHR0cDovL2NkcDEucGNhLmRmbi5k
+              ZS9kZm4tY2EtZ2xvYmFsLWcyL3B1Yi9jYWNlcnQvY2FjZXJ0LmNydDBJBggrBgEF
+              BQcwAoY9aHR0cDovL2NkcDIucGNhLmRmbi5kZS9kZm4tY2EtZ2xvYmFsLWcyL3B1
+              Yi9jYWNlcnQvY2FjZXJ0LmNydDCCAfQGCisGAQQB1nkCBAIEggHkBIIB4AHeAHQA
+              RqVV63X6kSAwtaKJafTzfREsQXS+/Um4havy/HD+bUcAAAF33cY/LQAABAMARTBD
+              AiAdOWvSb1QuqCXr0NffqjSonyOUOD+bk12igVpFXObTLAIfX3b1RbKo7nZudDSY
+              gdCzXj0YlHF0ShPSLnruDeHCLwB2ACl5vvCeOTkh8FZzn2Old+W+V32cYAr4+U1d
+              JlwlXceEAAABd93GRkoAAAQDAEcwRQIgCXmV2qH6jxzsgPuYNxnad+NfCEja1wjI
+              9x7/mUx4wukCIQDZ7SQp9pAUfdUk9bEA0TErHXix3XuZWZGOhoEFlDV0QwB2AG9T
+              dqwx8DEZ2JkApFEV/3cVHBHZAsEAKQaNsgiaN9kTAAABd93GQBsAAAQDAEcwRQIh
+              APuhCM4U4gwPGRP3KV03qdd7auFGMUOeloIbPUxbUAJPAiBVkiQ0SiNd73OWNGaO
+              LdUT4jSs5ckNu/9uJKRXabEYlwB2AFWB1MIWkDYBSuoLm1c8U/DA5Dh4cCUIFy+j
+              qh0HE9MMAAABd93GQSgAAAQDAEcwRQIhAOPRaCDkQvg/gYuqRQwydTCWr1SYK4wg
+              sj+kRSg6cxFKAiBGJ6DHaPct7wpZhAzEji1ygIOBSfubm/6WG9WWDfo+LjANBgkq
+              hkiG9w0BAQsFAAOCAQEAW0v/ECugzeVnryXpUA1H+pcf3p+jx4AqBz/5NrFIwKRt
+              aJPji8YdRbc+YcdVkKnXyJwVF8ld+yezTiqCVHkPNAy4soUpTHoxYIoPWueS9SeK
+              +oWjwrHODA52XI5Oyxt4nsZARRXfpVljYh8FkXwF6ecfb7wiCwy2QSJ5JbLWe0KZ
+              vrYLISEdQNSkU8bhqhr4RMpH9FVkiiF8I7hrf2JeNOkT+GbXWN/ELFk5cbsBm4sK
+              R6rLg/ShKtt3afwmpev0/nAAvC35iCvn88zl4/WqWxW7/lddOkcCkuqvEg8b2bwx
+              NX7/GyVjtXHFdO96wYzO6zk/MZg/4ZMXR/z9q4dVZw==
+            </ds:X509Certificate>
+          </ds:X509Data>
+        </ds:KeyInfo>
+      </KeyDescriptor>
+      <AttributeService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+        Location="https://aai-mdc2.mdc-berlin.de:8443/idp/profile/SAML2/SOAP/AttributeQuery" />
+      <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient
+      </NameIDFormat>
+      <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent
+      </NameIDFormat>
+    </AttributeAuthorityDescriptor>
+    <Organization>
+      <OrganizationName xml:lang="de">e605
+      </OrganizationName>
+      <OrganizationName xml:lang="en">e605
+      </OrganizationName>
+      <OrganizationDisplayName xml:lang="de">Max-Delbrück-Centrum
+        für molekulare Medizin</OrganizationDisplayName>
+      <OrganizationDisplayName xml:lang="en">Max
+        Delbrück Center for Molecular Medicine</OrganizationDisplayName>
+      <OrganizationURL xml:lang="de">https://www.mdc-berlin.de/
+      </OrganizationURL>
+      <OrganizationURL xml:lang="en">https://www.mdc-berlin.de/
+      </OrganizationURL>
+    </Organization>
+    <ContactPerson contactType="technical">
+      <GivenName>MDC</GivenName>
+      <SurName>AAI-Technical</SurName>
+      <EmailAddress>mailto:AAI-Technical@mdc-berlin.de</EmailAddress>
+    </ContactPerson>
+    <ContactPerson contactType="support">
+      <GivenName>MDC</GivenName>
+      <SurName>AAI-Support</SurName>
+      <EmailAddress>mailto:AAI-Support@mdc-berlin.de</EmailAddress>
+    </ContactPerson>
+    <ContactPerson contactType="other"
+      remd:contactType="http://refeds.org/metadata/contactType/security">
+      <GivenName>MDC</GivenName>
+      <SurName>AAI-Security</SurName>
+      <EmailAddress>mailto:AAI-Security@mdc-berlin.de</EmailAddress>
+    </ContactPerson>
+  </EntityDescriptor>
+  <EntityDescriptor
+    entityID="https://aai-test-v3.ruhr-uni-bochum.de/idp/shibboleth">
+    <Extensions>
+      <mdrpi:RegistrationInfo
+        registrationAuthority="https://www.aai.dfn.de"
+        registrationInstant="2016-09-15T07:04:09Z">
+        <mdrpi:RegistrationPolicy xml:lang="en">https://www.aai.dfn.de/en/join/
+        </mdrpi:RegistrationPolicy>
+        <mdrpi:RegistrationPolicy xml:lang="de">https://www.aai.dfn.de/teilnahme/
+        </mdrpi:RegistrationPolicy>
+      </mdrpi:RegistrationInfo>
+      <mdattr:EntityAttributes>
+        <saml:Attribute
+          Name="http://aai.dfn.de/loa/degree-of-reliance"
+          NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+          <saml:AttributeValue>n/a</saml:AttributeValue>
+        </saml:Attribute>
+      </mdattr:EntityAttributes>
+    </Extensions>
+    <IDPSSODescriptor
+      protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+      <Extensions>
+        <saml1md:Scope regexp="false">ruhr-uni-bochum.de
+        </saml1md:Scope>
+        <mdui:UIInfo>
+          <mdui:DisplayName xml:lang="de">Ruhr-Universität
+            Bochum TEST-IDP-v3</mdui:DisplayName>
+          <mdui:DisplayName xml:lang="en">Ruhr-Universitaet
+            Bochum TEST-IDP-v3</mdui:DisplayName>
+          <mdui:Description xml:lang="de">Test-IdP der
+            Ruhr-Universität Bochum für die Shibboleth v3 Migration
+          </mdui:Description>
+          <mdui:Description xml:lang="en">Ruhr-Universitaet
+            Bochum Test-IdP for Shibboleth v3 migration
+          </mdui:Description>
+        </mdui:UIInfo>
+      </Extensions>
+      <KeyDescriptor use="encryption">
+        <ds:KeyInfo>
+          <ds:KeyName>aai-test-v3.ruhr-uni-bochum.de</ds:KeyName>
+          <ds:X509Data>
+            <ds:X509SubjectName>CN=aai-test-v3.ruhr-uni-bochum.de,OU=IT.SERVICES,O=Ruhr-Universitaet
+              Bochum,L=Bochum,ST=Nordrhein-Westfalen,C=DE
+            </ds:X509SubjectName>
+            <ds:X509Certificate>MIIJMjCCCBqgAwIBAgIMI5+Bs3rST8e6oVuMMA0GCSqGSIb3DQEBCwUAMIGNMQsw
+              CQYDVQQGEwJERTFFMEMGA1UECgw8VmVyZWluIHp1ciBGb2VyZGVydW5nIGVpbmVz
+              IERldXRzY2hlbiBGb3JzY2h1bmdzbmV0emVzIGUuIFYuMRAwDgYDVQQLDAdERk4t
+              UEtJMSUwIwYDVQQDDBxERk4tVmVyZWluIEdsb2JhbCBJc3N1aW5nIENBMB4XDTIw
+              MTAwOTA2MzMwOVoXDTIxMTExMDA2MzMwOVowgZ4xCzAJBgNVBAYTAkRFMRwwGgYD
+              VQQIDBNOb3JkcmhlaW4tV2VzdGZhbGVuMQ8wDQYDVQQHDAZCb2NodW0xITAfBgNV
+              BAoMGFJ1aHItVW5pdmVyc2l0YWV0IEJvY2h1bTEUMBIGA1UECwwLSVQuU0VSVklD
+              RVMxJzAlBgNVBAMMHmFhaS10ZXN0LXYzLnJ1aHItdW5pLWJvY2h1bS5kZTCCAiIw
+              DQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAKo+/O7lLMyrhIFYOVTgkEj+CW3X
+              qKNCxsgFzmvRKeuYXhqqpjf1Bu48rxoayC3bzjF3RH1F7InjU1qUOhTKD/pNnRCu
+              9Y7dwZtAOZn0R/q15a/gylFgRJRAhaRuPGuFGFwuGZhCvQWWomv0n1sBhQbL4Edj
+              d4cKY49FdQkaUjwKEE8kWB/eRfOk68GfeyEplWZfbY2Mv7lYxyAGgCkYykCfDtS/
+              20EDS9ys9vHKVoTHENdUOggK5+R/pJubaqgrXNWfiqx6ZEgTgVDxdZhDRh9+WObW
+              /lHQEyaH8PhWCS54bsvAMdWuLn2N3uBZHQvAOZMf6OFYTZluznUbFt8+D1IPGGsv
+              9lhWQLa+RA/2KDH5SZ4YBkUk/XcfTEJOGEhx0J9/iidSeSAGvZ3etgymMdeX9X9F
+              /309NDWGVi/NqdtE/6DlPD/0BMm2BU25muMXhilyFHFZdvfkTWP09DCYhEHHjcs2
+              LLckHrMxHy2esYjY8TtoBD3X8FmgyCCBLCq/9AjFyifR0qc7zvGZz3LaPoKNRU5k
+              GKFO5FWHEk+D3/btuZXCna4WIw0lUU3T+YqiscPPIZbCuL0JaMw96lyivGWq1mSM
+              KYhcUrk3Vyy1B4R8vhnUXjUA2EzM4I3UvbHuTP0/lmlg3jvGN50aK+M62ovbegiF
+              eucU4ENMn4LadcrPAgMBAAGjggR9MIIEeTBXBgNVHSAEUDBOMAgGBmeBDAECAjAN
+              BgsrBgEEAYGtIYIsHjAPBg0rBgEEAYGtIYIsAQEEMBAGDisGAQQBga0hgiwBAQQI
+              MBAGDisGAQQBga0hgiwCAQQIMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgWgMB0G
+              A1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAdBgNVHQ4EFgQU/jS6zaGmMK3F
+              muE/G+UeDqbu+F8wHwYDVR0jBBgwFoAUazqYi/nyU4na4K2yMh4JH+iqO3QwPQYD
+              VR0RBDYwNIISYWFpLXRlc3QtdjMucnViLmRlgh5hYWktdGVzdC12My5ydWhyLXVu
+              aS1ib2NodW0uZGUwgY0GA1UdHwSBhTCBgjA/oD2gO4Y5aHR0cDovL2NkcDEucGNh
+              LmRmbi5kZS9kZm4tY2EtZ2xvYmFsLWcyL3B1Yi9jcmwvY2FjcmwuY3JsMD+gPaA7
+              hjlodHRwOi8vY2RwMi5wY2EuZGZuLmRlL2Rmbi1jYS1nbG9iYWwtZzIvcHViL2Ny
+              bC9jYWNybC5jcmwwgdsGCCsGAQUFBwEBBIHOMIHLMDMGCCsGAQUFBzABhidodHRw
+              Oi8vb2NzcC5wY2EuZGZuLmRlL09DU1AtU2VydmVyL09DU1AwSQYIKwYBBQUHMAKG
+              PWh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIvY2Fj
+              ZXJ0L2NhY2VydC5jcnQwSQYIKwYBBQUHMAKGPWh0dHA6Ly9jZHAyLnBjYS5kZm4u
+              ZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIvY2FjZXJ0L2NhY2VydC5jcnQwggH1Bgor
+              BgEEAdZ5AgQCBIIB5QSCAeEB3wB1APZclC/RdzAiFFQYCDCUVo7jTRMZM7/fDC8g
+              C8xO8WTjAAABdQwQPv4AAAQDAEYwRAIgN/O8tfEf0LGkIEioa5EquzoH/eaEETVS
+              vwBxtiYGdqwCIBuRXE5I+JDBEm1cOURXI1psZielTJfAdVKdxMvDwSIMAHUAfT7y
+              +I//iFVoJMLAyp5SiXkrxQ54CX8uapdomX4i8NcAAAF1DBBBuAAABAMARjBEAiAP
+              NgCdMT9ke7mFXnxslKgOhsqX7y/gLhL/7TWDN3yJMgIgfaLO5XVemJWcwSO7ROCU
+              069/W1DmytDG3Vj9RYN6BxcAdgBElGUusO7Or8RAB9io/ijA2uaCvtjLMbU/0zOW
+              tbaBqAAAAXUMED0LAAAEAwBHMEUCIQDYG1l/KV0wqGfj4pPpmtPbfF6Fqp117rjk
+              VYSRRi9QUQIgSJ0+VsTJ8jlapUfPsnOL57P8HzCTJ++bfaC9yQ5zpVsAdwBvU3as
+              MfAxGdiZAKRRFf93FRwR2QLBACkGjbIImjfZEwAAAXUMED36AAAEAwBIMEYCIQCk
+              TX9TNYQzePRu5/pCSa3aIwHhshZlXqc+2PZ7bRkk5QIhAMMgBKUXf+ubC0OrVuQS
+              A9LdKt255tnnECpbPfK0AGj8MA0GCSqGSIb3DQEBCwUAA4IBAQAEoteF4AhuK19J
+              cQe6lZPpBRKpm7uKBfvuSD/QWdjXHCO6z+Ssmcx0mtzGKdKDJCDjsGZO2Nk4C1FO
+              CAGqdXHqdWPbhrByBKmUHi81uP5fVTlWxy4QHdRYqcPdZN3FQJESuCdmdF707jCs
+              VvnI4jtS4FEzjkkVd/50cBN142k/filZuaqXA1Gwnj3kq9HyUG8dUc1S6hAlZhhk
+              ChrdhHbVVkZ+94uN5TJ7UF8njb1UDIyLoE1hYiDbUXranmO+nCvndoIfNiDC8ydd
+              HPBMKP78mBrOzMByR5V9rDVHj3CQ/YPO6s58uezYnZ+Tmago+87qREHSXAyTGFaT
+              NsKuXgew
+            </ds:X509Certificate>
+          </ds:X509Data>
+        </ds:KeyInfo>
+      </KeyDescriptor>
+      <KeyDescriptor use="signing">
+        <ds:KeyInfo>
+          <ds:KeyName>aai-test-v3.ruhr-uni-bochum.de</ds:KeyName>
+          <ds:X509Data>
+            <ds:X509SubjectName>CN=aai-test-v3.ruhr-uni-bochum.de,OU=IT.SERVICES,O=Ruhr-Universitaet
+              Bochum,L=Bochum,ST=Nordrhein-Westfalen,C=DE
+            </ds:X509SubjectName>
+            <ds:X509Certificate>MIIJMjCCCBqgAwIBAgIMI5+Bs3rST8e6oVuMMA0GCSqGSIb3DQEBCwUAMIGNMQsw
+              CQYDVQQGEwJERTFFMEMGA1UECgw8VmVyZWluIHp1ciBGb2VyZGVydW5nIGVpbmVz
+              IERldXRzY2hlbiBGb3JzY2h1bmdzbmV0emVzIGUuIFYuMRAwDgYDVQQLDAdERk4t
+              UEtJMSUwIwYDVQQDDBxERk4tVmVyZWluIEdsb2JhbCBJc3N1aW5nIENBMB4XDTIw
+              MTAwOTA2MzMwOVoXDTIxMTExMDA2MzMwOVowgZ4xCzAJBgNVBAYTAkRFMRwwGgYD
+              VQQIDBNOb3JkcmhlaW4tV2VzdGZhbGVuMQ8wDQYDVQQHDAZCb2NodW0xITAfBgNV
+              BAoMGFJ1aHItVW5pdmVyc2l0YWV0IEJvY2h1bTEUMBIGA1UECwwLSVQuU0VSVklD
+              RVMxJzAlBgNVBAMMHmFhaS10ZXN0LXYzLnJ1aHItdW5pLWJvY2h1bS5kZTCCAiIw
+              DQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAKo+/O7lLMyrhIFYOVTgkEj+CW3X
+              qKNCxsgFzmvRKeuYXhqqpjf1Bu48rxoayC3bzjF3RH1F7InjU1qUOhTKD/pNnRCu
+              9Y7dwZtAOZn0R/q15a/gylFgRJRAhaRuPGuFGFwuGZhCvQWWomv0n1sBhQbL4Edj
+              d4cKY49FdQkaUjwKEE8kWB/eRfOk68GfeyEplWZfbY2Mv7lYxyAGgCkYykCfDtS/
+              20EDS9ys9vHKVoTHENdUOggK5+R/pJubaqgrXNWfiqx6ZEgTgVDxdZhDRh9+WObW
+              /lHQEyaH8PhWCS54bsvAMdWuLn2N3uBZHQvAOZMf6OFYTZluznUbFt8+D1IPGGsv
+              9lhWQLa+RA/2KDH5SZ4YBkUk/XcfTEJOGEhx0J9/iidSeSAGvZ3etgymMdeX9X9F
+              /309NDWGVi/NqdtE/6DlPD/0BMm2BU25muMXhilyFHFZdvfkTWP09DCYhEHHjcs2
+              LLckHrMxHy2esYjY8TtoBD3X8FmgyCCBLCq/9AjFyifR0qc7zvGZz3LaPoKNRU5k
+              GKFO5FWHEk+D3/btuZXCna4WIw0lUU3T+YqiscPPIZbCuL0JaMw96lyivGWq1mSM
+              KYhcUrk3Vyy1B4R8vhnUXjUA2EzM4I3UvbHuTP0/lmlg3jvGN50aK+M62ovbegiF
+              eucU4ENMn4LadcrPAgMBAAGjggR9MIIEeTBXBgNVHSAEUDBOMAgGBmeBDAECAjAN
+              BgsrBgEEAYGtIYIsHjAPBg0rBgEEAYGtIYIsAQEEMBAGDisGAQQBga0hgiwBAQQI
+              MBAGDisGAQQBga0hgiwCAQQIMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgWgMB0G
+              A1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAdBgNVHQ4EFgQU/jS6zaGmMK3F
+              muE/G+UeDqbu+F8wHwYDVR0jBBgwFoAUazqYi/nyU4na4K2yMh4JH+iqO3QwPQYD
+              VR0RBDYwNIISYWFpLXRlc3QtdjMucnViLmRlgh5hYWktdGVzdC12My5ydWhyLXVu
+              aS1ib2NodW0uZGUwgY0GA1UdHwSBhTCBgjA/oD2gO4Y5aHR0cDovL2NkcDEucGNh
+              LmRmbi5kZS9kZm4tY2EtZ2xvYmFsLWcyL3B1Yi9jcmwvY2FjcmwuY3JsMD+gPaA7
+              hjlodHRwOi8vY2RwMi5wY2EuZGZuLmRlL2Rmbi1jYS1nbG9iYWwtZzIvcHViL2Ny
+              bC9jYWNybC5jcmwwgdsGCCsGAQUFBwEBBIHOMIHLMDMGCCsGAQUFBzABhidodHRw
+              Oi8vb2NzcC5wY2EuZGZuLmRlL09DU1AtU2VydmVyL09DU1AwSQYIKwYBBQUHMAKG
+              PWh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIvY2Fj
+              ZXJ0L2NhY2VydC5jcnQwSQYIKwYBBQUHMAKGPWh0dHA6Ly9jZHAyLnBjYS5kZm4u
+              ZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIvY2FjZXJ0L2NhY2VydC5jcnQwggH1Bgor
+              BgEEAdZ5AgQCBIIB5QSCAeEB3wB1APZclC/RdzAiFFQYCDCUVo7jTRMZM7/fDC8g
+              C8xO8WTjAAABdQwQPv4AAAQDAEYwRAIgN/O8tfEf0LGkIEioa5EquzoH/eaEETVS
+              vwBxtiYGdqwCIBuRXE5I+JDBEm1cOURXI1psZielTJfAdVKdxMvDwSIMAHUAfT7y
+              +I//iFVoJMLAyp5SiXkrxQ54CX8uapdomX4i8NcAAAF1DBBBuAAABAMARjBEAiAP
+              NgCdMT9ke7mFXnxslKgOhsqX7y/gLhL/7TWDN3yJMgIgfaLO5XVemJWcwSO7ROCU
+              069/W1DmytDG3Vj9RYN6BxcAdgBElGUusO7Or8RAB9io/ijA2uaCvtjLMbU/0zOW
+              tbaBqAAAAXUMED0LAAAEAwBHMEUCIQDYG1l/KV0wqGfj4pPpmtPbfF6Fqp117rjk
+              VYSRRi9QUQIgSJ0+VsTJ8jlapUfPsnOL57P8HzCTJ++bfaC9yQ5zpVsAdwBvU3as
+              MfAxGdiZAKRRFf93FRwR2QLBACkGjbIImjfZEwAAAXUMED36AAAEAwBIMEYCIQCk
+              TX9TNYQzePRu5/pCSa3aIwHhshZlXqc+2PZ7bRkk5QIhAMMgBKUXf+ubC0OrVuQS
+              A9LdKt255tnnECpbPfK0AGj8MA0GCSqGSIb3DQEBCwUAA4IBAQAEoteF4AhuK19J
+              cQe6lZPpBRKpm7uKBfvuSD/QWdjXHCO6z+Ssmcx0mtzGKdKDJCDjsGZO2Nk4C1FO
+              CAGqdXHqdWPbhrByBKmUHi81uP5fVTlWxy4QHdRYqcPdZN3FQJESuCdmdF707jCs
+              VvnI4jtS4FEzjkkVd/50cBN142k/filZuaqXA1Gwnj3kq9HyUG8dUc1S6hAlZhhk
+              ChrdhHbVVkZ+94uN5TJ7UF8njb1UDIyLoE1hYiDbUXranmO+nCvndoIfNiDC8ydd
+              HPBMKP78mBrOzMByR5V9rDVHj3CQ/YPO6s58uezYnZ+Tmago+87qREHSXAyTGFaT
+              NsKuXgew
+            </ds:X509Certificate>
+          </ds:X509Data>
+        </ds:KeyInfo>
+      </KeyDescriptor>
+      <ArtifactResolutionService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+        Location="https://aai-test-v3.ruhr-uni-bochum.de/idp/profile/SAML2/SOAP/ArtifactResolution"
+        index="2" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        Location="https://aai-test-v3.ruhr-uni-bochum.de/idp/profile/SAML2/Redirect/SLO" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Location="https://aai-test-v3.ruhr-uni-bochum.de/idp/profile/SAML2/POST/SLO" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+        Location="https://aai-test-v3.ruhr-uni-bochum.de/idp/profile/SAML2/POST-SimpleSign/SLO" />
+      <SingleLogoutService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+        Location="https://aai-test-v3.ruhr-uni-bochum.de/idp/profile/SAML2/SOAP/SLO" />
+      <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient
+      </NameIDFormat>
+      <SingleSignOnService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Location="https://aai-test-v3.ruhr-uni-bochum.de/idp/profile/SAML2/POST/SSO" />
+      <SingleSignOnService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+        Location="https://aai-test-v3.ruhr-uni-bochum.de/idp/profile/SAML2/POST-SimpleSign/SSO" />
+      <SingleSignOnService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        Location="https://aai-test-v3.ruhr-uni-bochum.de/idp/profile/SAML2/Redirect/SSO" />
+    </IDPSSODescriptor>
+    <AttributeAuthorityDescriptor
+      protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+      <Extensions>
+        <saml1md:Scope regexp="false">ruhr-uni-bochum.de
+        </saml1md:Scope>
+      </Extensions>
+      <KeyDescriptor use="signing">
+        <ds:KeyInfo>
+          <ds:KeyName>aai-test-v3.ruhr-uni-bochum.de</ds:KeyName>
+          <ds:X509Data>
+            <ds:X509SubjectName>CN=aai-test-v3.ruhr-uni-bochum.de,OU=IT.SERVICES,O=Ruhr-Universitaet
+              Bochum,L=Bochum,ST=Nordrhein-Westfalen,C=DE
+            </ds:X509SubjectName>
+            <ds:X509Certificate>MIIJMjCCCBqgAwIBAgIMI5+Bs3rST8e6oVuMMA0GCSqGSIb3DQEBCwUAMIGNMQsw
+              CQYDVQQGEwJERTFFMEMGA1UECgw8VmVyZWluIHp1ciBGb2VyZGVydW5nIGVpbmVz
+              IERldXRzY2hlbiBGb3JzY2h1bmdzbmV0emVzIGUuIFYuMRAwDgYDVQQLDAdERk4t
+              UEtJMSUwIwYDVQQDDBxERk4tVmVyZWluIEdsb2JhbCBJc3N1aW5nIENBMB4XDTIw
+              MTAwOTA2MzMwOVoXDTIxMTExMDA2MzMwOVowgZ4xCzAJBgNVBAYTAkRFMRwwGgYD
+              VQQIDBNOb3JkcmhlaW4tV2VzdGZhbGVuMQ8wDQYDVQQHDAZCb2NodW0xITAfBgNV
+              BAoMGFJ1aHItVW5pdmVyc2l0YWV0IEJvY2h1bTEUMBIGA1UECwwLSVQuU0VSVklD
+              RVMxJzAlBgNVBAMMHmFhaS10ZXN0LXYzLnJ1aHItdW5pLWJvY2h1bS5kZTCCAiIw
+              DQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAKo+/O7lLMyrhIFYOVTgkEj+CW3X
+              qKNCxsgFzmvRKeuYXhqqpjf1Bu48rxoayC3bzjF3RH1F7InjU1qUOhTKD/pNnRCu
+              9Y7dwZtAOZn0R/q15a/gylFgRJRAhaRuPGuFGFwuGZhCvQWWomv0n1sBhQbL4Edj
+              d4cKY49FdQkaUjwKEE8kWB/eRfOk68GfeyEplWZfbY2Mv7lYxyAGgCkYykCfDtS/
+              20EDS9ys9vHKVoTHENdUOggK5+R/pJubaqgrXNWfiqx6ZEgTgVDxdZhDRh9+WObW
+              /lHQEyaH8PhWCS54bsvAMdWuLn2N3uBZHQvAOZMf6OFYTZluznUbFt8+D1IPGGsv
+              9lhWQLa+RA/2KDH5SZ4YBkUk/XcfTEJOGEhx0J9/iidSeSAGvZ3etgymMdeX9X9F
+              /309NDWGVi/NqdtE/6DlPD/0BMm2BU25muMXhilyFHFZdvfkTWP09DCYhEHHjcs2
+              LLckHrMxHy2esYjY8TtoBD3X8FmgyCCBLCq/9AjFyifR0qc7zvGZz3LaPoKNRU5k
+              GKFO5FWHEk+D3/btuZXCna4WIw0lUU3T+YqiscPPIZbCuL0JaMw96lyivGWq1mSM
+              KYhcUrk3Vyy1B4R8vhnUXjUA2EzM4I3UvbHuTP0/lmlg3jvGN50aK+M62ovbegiF
+              eucU4ENMn4LadcrPAgMBAAGjggR9MIIEeTBXBgNVHSAEUDBOMAgGBmeBDAECAjAN
+              BgsrBgEEAYGtIYIsHjAPBg0rBgEEAYGtIYIsAQEEMBAGDisGAQQBga0hgiwBAQQI
+              MBAGDisGAQQBga0hgiwCAQQIMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgWgMB0G
+              A1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAdBgNVHQ4EFgQU/jS6zaGmMK3F
+              muE/G+UeDqbu+F8wHwYDVR0jBBgwFoAUazqYi/nyU4na4K2yMh4JH+iqO3QwPQYD
+              VR0RBDYwNIISYWFpLXRlc3QtdjMucnViLmRlgh5hYWktdGVzdC12My5ydWhyLXVu
+              aS1ib2NodW0uZGUwgY0GA1UdHwSBhTCBgjA/oD2gO4Y5aHR0cDovL2NkcDEucGNh
+              LmRmbi5kZS9kZm4tY2EtZ2xvYmFsLWcyL3B1Yi9jcmwvY2FjcmwuY3JsMD+gPaA7
+              hjlodHRwOi8vY2RwMi5wY2EuZGZuLmRlL2Rmbi1jYS1nbG9iYWwtZzIvcHViL2Ny
+              bC9jYWNybC5jcmwwgdsGCCsGAQUFBwEBBIHOMIHLMDMGCCsGAQUFBzABhidodHRw
+              Oi8vb2NzcC5wY2EuZGZuLmRlL09DU1AtU2VydmVyL09DU1AwSQYIKwYBBQUHMAKG
+              PWh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIvY2Fj
+              ZXJ0L2NhY2VydC5jcnQwSQYIKwYBBQUHMAKGPWh0dHA6Ly9jZHAyLnBjYS5kZm4u
+              ZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIvY2FjZXJ0L2NhY2VydC5jcnQwggH1Bgor
+              BgEEAdZ5AgQCBIIB5QSCAeEB3wB1APZclC/RdzAiFFQYCDCUVo7jTRMZM7/fDC8g
+              C8xO8WTjAAABdQwQPv4AAAQDAEYwRAIgN/O8tfEf0LGkIEioa5EquzoH/eaEETVS
+              vwBxtiYGdqwCIBuRXE5I+JDBEm1cOURXI1psZielTJfAdVKdxMvDwSIMAHUAfT7y
+              +I//iFVoJMLAyp5SiXkrxQ54CX8uapdomX4i8NcAAAF1DBBBuAAABAMARjBEAiAP
+              NgCdMT9ke7mFXnxslKgOhsqX7y/gLhL/7TWDN3yJMgIgfaLO5XVemJWcwSO7ROCU
+              069/W1DmytDG3Vj9RYN6BxcAdgBElGUusO7Or8RAB9io/ijA2uaCvtjLMbU/0zOW
+              tbaBqAAAAXUMED0LAAAEAwBHMEUCIQDYG1l/KV0wqGfj4pPpmtPbfF6Fqp117rjk
+              VYSRRi9QUQIgSJ0+VsTJ8jlapUfPsnOL57P8HzCTJ++bfaC9yQ5zpVsAdwBvU3as
+              MfAxGdiZAKRRFf93FRwR2QLBACkGjbIImjfZEwAAAXUMED36AAAEAwBIMEYCIQCk
+              TX9TNYQzePRu5/pCSa3aIwHhshZlXqc+2PZ7bRkk5QIhAMMgBKUXf+ubC0OrVuQS
+              A9LdKt255tnnECpbPfK0AGj8MA0GCSqGSIb3DQEBCwUAA4IBAQAEoteF4AhuK19J
+              cQe6lZPpBRKpm7uKBfvuSD/QWdjXHCO6z+Ssmcx0mtzGKdKDJCDjsGZO2Nk4C1FO
+              CAGqdXHqdWPbhrByBKmUHi81uP5fVTlWxy4QHdRYqcPdZN3FQJESuCdmdF707jCs
+              VvnI4jtS4FEzjkkVd/50cBN142k/filZuaqXA1Gwnj3kq9HyUG8dUc1S6hAlZhhk
+              ChrdhHbVVkZ+94uN5TJ7UF8njb1UDIyLoE1hYiDbUXranmO+nCvndoIfNiDC8ydd
+              HPBMKP78mBrOzMByR5V9rDVHj3CQ/YPO6s58uezYnZ+Tmago+87qREHSXAyTGFaT
+              NsKuXgew
+            </ds:X509Certificate>
+          </ds:X509Data>
+        </ds:KeyInfo>
+      </KeyDescriptor>
+      <KeyDescriptor use="encryption">
+        <ds:KeyInfo>
+          <ds:KeyName>aai-test-v3.ruhr-uni-bochum.de</ds:KeyName>
+          <ds:X509Data>
+            <ds:X509SubjectName>CN=aai-test-v3.ruhr-uni-bochum.de,OU=IT.SERVICES,O=Ruhr-Universitaet
+              Bochum,L=Bochum,ST=Nordrhein-Westfalen,C=DE
+            </ds:X509SubjectName>
+            <ds:X509Certificate>MIIJMjCCCBqgAwIBAgIMI5+Bs3rST8e6oVuMMA0GCSqGSIb3DQEBCwUAMIGNMQsw
+              CQYDVQQGEwJERTFFMEMGA1UECgw8VmVyZWluIHp1ciBGb2VyZGVydW5nIGVpbmVz
+              IERldXRzY2hlbiBGb3JzY2h1bmdzbmV0emVzIGUuIFYuMRAwDgYDVQQLDAdERk4t
+              UEtJMSUwIwYDVQQDDBxERk4tVmVyZWluIEdsb2JhbCBJc3N1aW5nIENBMB4XDTIw
+              MTAwOTA2MzMwOVoXDTIxMTExMDA2MzMwOVowgZ4xCzAJBgNVBAYTAkRFMRwwGgYD
+              VQQIDBNOb3JkcmhlaW4tV2VzdGZhbGVuMQ8wDQYDVQQHDAZCb2NodW0xITAfBgNV
+              BAoMGFJ1aHItVW5pdmVyc2l0YWV0IEJvY2h1bTEUMBIGA1UECwwLSVQuU0VSVklD
+              RVMxJzAlBgNVBAMMHmFhaS10ZXN0LXYzLnJ1aHItdW5pLWJvY2h1bS5kZTCCAiIw
+              DQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAKo+/O7lLMyrhIFYOVTgkEj+CW3X
+              qKNCxsgFzmvRKeuYXhqqpjf1Bu48rxoayC3bzjF3RH1F7InjU1qUOhTKD/pNnRCu
+              9Y7dwZtAOZn0R/q15a/gylFgRJRAhaRuPGuFGFwuGZhCvQWWomv0n1sBhQbL4Edj
+              d4cKY49FdQkaUjwKEE8kWB/eRfOk68GfeyEplWZfbY2Mv7lYxyAGgCkYykCfDtS/
+              20EDS9ys9vHKVoTHENdUOggK5+R/pJubaqgrXNWfiqx6ZEgTgVDxdZhDRh9+WObW
+              /lHQEyaH8PhWCS54bsvAMdWuLn2N3uBZHQvAOZMf6OFYTZluznUbFt8+D1IPGGsv
+              9lhWQLa+RA/2KDH5SZ4YBkUk/XcfTEJOGEhx0J9/iidSeSAGvZ3etgymMdeX9X9F
+              /309NDWGVi/NqdtE/6DlPD/0BMm2BU25muMXhilyFHFZdvfkTWP09DCYhEHHjcs2
+              LLckHrMxHy2esYjY8TtoBD3X8FmgyCCBLCq/9AjFyifR0qc7zvGZz3LaPoKNRU5k
+              GKFO5FWHEk+D3/btuZXCna4WIw0lUU3T+YqiscPPIZbCuL0JaMw96lyivGWq1mSM
+              KYhcUrk3Vyy1B4R8vhnUXjUA2EzM4I3UvbHuTP0/lmlg3jvGN50aK+M62ovbegiF
+              eucU4ENMn4LadcrPAgMBAAGjggR9MIIEeTBXBgNVHSAEUDBOMAgGBmeBDAECAjAN
+              BgsrBgEEAYGtIYIsHjAPBg0rBgEEAYGtIYIsAQEEMBAGDisGAQQBga0hgiwBAQQI
+              MBAGDisGAQQBga0hgiwCAQQIMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgWgMB0G
+              A1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAdBgNVHQ4EFgQU/jS6zaGmMK3F
+              muE/G+UeDqbu+F8wHwYDVR0jBBgwFoAUazqYi/nyU4na4K2yMh4JH+iqO3QwPQYD
+              VR0RBDYwNIISYWFpLXRlc3QtdjMucnViLmRlgh5hYWktdGVzdC12My5ydWhyLXVu
+              aS1ib2NodW0uZGUwgY0GA1UdHwSBhTCBgjA/oD2gO4Y5aHR0cDovL2NkcDEucGNh
+              LmRmbi5kZS9kZm4tY2EtZ2xvYmFsLWcyL3B1Yi9jcmwvY2FjcmwuY3JsMD+gPaA7
+              hjlodHRwOi8vY2RwMi5wY2EuZGZuLmRlL2Rmbi1jYS1nbG9iYWwtZzIvcHViL2Ny
+              bC9jYWNybC5jcmwwgdsGCCsGAQUFBwEBBIHOMIHLMDMGCCsGAQUFBzABhidodHRw
+              Oi8vb2NzcC5wY2EuZGZuLmRlL09DU1AtU2VydmVyL09DU1AwSQYIKwYBBQUHMAKG
+              PWh0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIvY2Fj
+              ZXJ0L2NhY2VydC5jcnQwSQYIKwYBBQUHMAKGPWh0dHA6Ly9jZHAyLnBjYS5kZm4u
+              ZGUvZGZuLWNhLWdsb2JhbC1nMi9wdWIvY2FjZXJ0L2NhY2VydC5jcnQwggH1Bgor
+              BgEEAdZ5AgQCBIIB5QSCAeEB3wB1APZclC/RdzAiFFQYCDCUVo7jTRMZM7/fDC8g
+              C8xO8WTjAAABdQwQPv4AAAQDAEYwRAIgN/O8tfEf0LGkIEioa5EquzoH/eaEETVS
+              vwBxtiYGdqwCIBuRXE5I+JDBEm1cOURXI1psZielTJfAdVKdxMvDwSIMAHUAfT7y
+              +I//iFVoJMLAyp5SiXkrxQ54CX8uapdomX4i8NcAAAF1DBBBuAAABAMARjBEAiAP
+              NgCdMT9ke7mFXnxslKgOhsqX7y/gLhL/7TWDN3yJMgIgfaLO5XVemJWcwSO7ROCU
+              069/W1DmytDG3Vj9RYN6BxcAdgBElGUusO7Or8RAB9io/ijA2uaCvtjLMbU/0zOW
+              tbaBqAAAAXUMED0LAAAEAwBHMEUCIQDYG1l/KV0wqGfj4pPpmtPbfF6Fqp117rjk
+              VYSRRi9QUQIgSJ0+VsTJ8jlapUfPsnOL57P8HzCTJ++bfaC9yQ5zpVsAdwBvU3as
+              MfAxGdiZAKRRFf93FRwR2QLBACkGjbIImjfZEwAAAXUMED36AAAEAwBIMEYCIQCk
+              TX9TNYQzePRu5/pCSa3aIwHhshZlXqc+2PZ7bRkk5QIhAMMgBKUXf+ubC0OrVuQS
+              A9LdKt255tnnECpbPfK0AGj8MA0GCSqGSIb3DQEBCwUAA4IBAQAEoteF4AhuK19J
+              cQe6lZPpBRKpm7uKBfvuSD/QWdjXHCO6z+Ssmcx0mtzGKdKDJCDjsGZO2Nk4C1FO
+              CAGqdXHqdWPbhrByBKmUHi81uP5fVTlWxy4QHdRYqcPdZN3FQJESuCdmdF707jCs
+              VvnI4jtS4FEzjkkVd/50cBN142k/filZuaqXA1Gwnj3kq9HyUG8dUc1S6hAlZhhk
+              ChrdhHbVVkZ+94uN5TJ7UF8njb1UDIyLoE1hYiDbUXranmO+nCvndoIfNiDC8ydd
+              HPBMKP78mBrOzMByR5V9rDVHj3CQ/YPO6s58uezYnZ+Tmago+87qREHSXAyTGFaT
+              NsKuXgew
+            </ds:X509Certificate>
+          </ds:X509Data>
+        </ds:KeyInfo>
+      </KeyDescriptor>
+      <AttributeService
+        Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+        Location="https://aai-test-v3.ruhr-uni-bochum.de/idp/profile/SAML2/SOAP/AttributeQuery" />
+    </AttributeAuthorityDescriptor>
+    <Organization>
+      <OrganizationName xml:lang="de">e200
+      </OrganizationName>
+      <OrganizationName xml:lang="en">e200
+      </OrganizationName>
+      <OrganizationDisplayName xml:lang="de">Ruhr-Universität
+        Bochum</OrganizationDisplayName>
+      <OrganizationDisplayName xml:lang="en">Ruhr-Universität
+        Bochum</OrganizationDisplayName>
+      <OrganizationURL xml:lang="de">http://www.ruhr-uni-bochum.de
+      </OrganizationURL>
+      <OrganizationURL xml:lang="en">http://www.ruhr-uni-bochum.de
+      </OrganizationURL>
+    </Organization>
+    <ContactPerson contactType="technical">
+      <GivenName>Markus</GivenName>
+      <SurName>Westerdick</SurName>
+      <EmailAddress>mailto:Markus.Westerdick@uv.ruhr-uni-bochum.de
+      </EmailAddress>
+    </ContactPerson>
+    <ContactPerson contactType="support">
+      <GivenName>AAI</GivenName>
+      <SurName>RUB</SurName>
+      <EmailAddress>mailto:aai@ruhr-uni-bochum.de</EmailAddress>
+    </ContactPerson>
+    <ContactPerson contactType="other"
+      remd:contactType="http://refeds.org/metadata/contactType/security">
+      <GivenName>AAI</GivenName>
+      <SurName>RUB</SurName>
+      <EmailAddress>mailto:aai@ruhr-uni-bochum.de</EmailAddress>
+    </ContactPerson>
+  </EntityDescriptor>
+</EntitiesDescriptor>

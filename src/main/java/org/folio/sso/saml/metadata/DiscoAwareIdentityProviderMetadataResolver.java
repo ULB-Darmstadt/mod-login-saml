@@ -168,12 +168,11 @@ public class DiscoAwareIdentityProviderMetadataResolver implements SAML2Metadata
   @Override
   public String getEntityId() {
     final XMLObject md = getEntityDescriptorElement();
-    if (md instanceof EntitiesDescriptor) {
-      return ((EntitiesDescriptor) md).getEntityDescriptors().get(0).getEntityID();
-    } else if (md instanceof EntityDescriptor) {
+    if (md instanceof EntityDescriptor) {
       return ((EntityDescriptor) md).getEntityID();
     }
-    throw new SAMLException("No idp entityId found");
+    
+    throw new SAMLException("Invalid IDP selection made");
   }
 
   
@@ -215,7 +214,9 @@ public class DiscoAwareIdentityProviderMetadataResolver implements SAML2Metadata
       while (it.hasNext()) {
         final EntityDescriptor entityDescriptor = it.next();
         totalNumOfIdps++;
-        this.idpEntityId = entityDescriptor.getEntityID();
+        if (this.idpEntityId == null) {
+          this.idpEntityId = entityDescriptor.getEntityID();
+        }
       }
       
 

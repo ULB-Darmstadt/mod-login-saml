@@ -248,7 +248,7 @@ public class SamlAPITest {
         .withHost(equalTo("mock-idp"))
         .willReturn(
             aResponse()
-            .withBodyFile("meta-idp.xml")
+            .withBodyFile("single-idp.xml")
             .withHeader("Content-Type", "application/xml")));
 
 
