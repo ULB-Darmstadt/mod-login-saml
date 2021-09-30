@@ -1,0 +1,25 @@
+{  
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "description": "Single IDP entry schema",
+  "required" : [ "id" ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "readOnly": true
+    },
+    "displayName": {
+      "type": "string",
+      "readOnly": true
+    },
+    "description": {
+      "type": "string",
+      "readOnly": true
+    },
+    "i18n": {
+      "type": "object",
+      "readOnly": true,
+      "additionalProperties": { "$ref": "SamlIdpEntryI8n.json" }
+    }
+  }
+}

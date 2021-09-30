@@ -15,17 +15,35 @@ types:
   SamlConfig: !include schemas/SamlConfig.json
   SamlRegenerateResponse: !include schemas/SamlRegenerateResponse.json
   SamlValidateResponse: !include schemas/SamlValidateResponse.json
+  SamlIdpList: !include schemas/SamlIdpList.json
 
 /saml:
   /metadata:
     get:
-      description: Generates SAMLRequest and RelayState parameters for initiating a SAML login process
+      description: Displays the metadata as XML.
       responses:
         200:
-          description: "Return with HTML page in case POST_BINDING is used"
           body:
             application/xml:
               description: Service provider XML metadata
+        404:
+          description: Not found used when invalid or missing tenant ID
+          body:
+            text/plain:
+              example: Not found
+    /available-idps:
+      get:
+        description: List of all IDPs that are valid for this tenant
+        responses:
+          200:
+            body:
+              application/json:
+                type: SamlIdpList
+          404:
+            description: Not found used when invalid or missing tenant ID
+            body:
+              text/plain:
+                example: Not found
 
   /regenerate:
     get:

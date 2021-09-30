@@ -540,4 +540,11 @@ public class SamlAPI implements Saml {
     // TODO Auto-generated method stub
     
   }
+
+  @Override
+  public void getSamlMetadataAvailableIdps (Map<String, String> okapiHeaders,
+      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    // TODO Auto-generated method stub
+    
+  }
 }

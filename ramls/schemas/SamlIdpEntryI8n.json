@@ -1,0 +1,12 @@
+{ 
+  "type": "object",
+  "readOnly": true,
+  "displayName": { 
+    "type": "string",
+    "readOnly": true
+  },
+  "description": { 
+    "type": "string",
+    "readOnly": true
+  }
+}
