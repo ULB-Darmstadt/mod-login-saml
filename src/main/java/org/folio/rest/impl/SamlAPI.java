@@ -1,6 +1,8 @@
 package org.folio.rest.impl;
 
 import static io.vertx.core.http.HttpHeaders.*;
+import static org.folio.sso.saml.Constants.COOKIE_RELAY_STATE;
+import static org.folio.sso.saml.Constants.QUERY_PARAM_CSRF_TOKEN;
 import static org.folio.util.ErrorHandlingUtil.assert2xx;
 import static org.folio.util.ErrorHandlingUtil.handleThrowables;
 import static org.folio.util.ErrorHandlingUtil.handleThrowablesWithResponse;
@@ -26,8 +28,9 @@ import org.folio.rest.jaxrs.resource.Saml;
 import org.folio.rest.jaxrs.resource.Saml.PostSamlCallbackResponse.HeadersFor302;
 import org.folio.session.NoopSession;
 import org.folio.sso.saml.Client;
-import static org.folio.sso.saml.Constants.*;
+import org.folio.sso.saml.Constants.Config;
 import org.folio.sso.saml.ModuleConfig;
+import org.folio.sso.saml.metadata.FederationIdentityProviderMetadataResolver;
 import org.folio.util.*;
 import org.folio.util.model.OkapiHeaders;
 import org.pac4j.core.exception.http.HttpAction;
@@ -527,7 +530,7 @@ public class SamlAPI implements Saml {
   }
 
   @Override
-  public void getSamlMetadata (Map<String, String> okapiHeaders,
+  public void getSamlMetadata (RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     
   }
@@ -542,9 +545,24 @@ public class SamlAPI implements Saml {
   }
 
   @Override
-  public void getSamlMetadataAvailableIdps (Map<String, String> okapiHeaders,
+  public void getSamlMetadataAvailableIdps (RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    // TODO Auto-generated method stub
-    
+    handleThrowablesWithResponse(asyncResultHandler,
+      Client.get(routingContext)
+        .compose(client -> {
+          return Future.future((Promise<SamlIdpList> handler) -> {
+            handleThrowablesWithResponse(asyncResultHandler, () -> {
+              final FederationIdentityProviderMetadataResolver provider = 
+                  (FederationIdentityProviderMetadataResolver) client.getIdentityProviderMetadataResolver();
+              
+              handler.complete(provider.getKnownIDPs());
+            });
+          });
+        })
+        
+        .onSuccess(ipdList -> {
+          GetSamlMetadataAvailableIdpsResponse.respond200WithApplicationJson(ipdList);
+        })
+    );
   }
 }

@@ -13,16 +13,25 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.folio.rest.jaxrs.model.I18n;
+import org.folio.rest.jaxrs.model.I18nProperty;
+import org.folio.rest.jaxrs.model.Idp;
+import org.folio.rest.jaxrs.model.SamlIdpList;
 import org.opensaml.core.criterion.EntityIdCriterion;
 import org.opensaml.core.xml.XMLObject;
+import org.opensaml.saml.common.xml.SAMLConstants;
+import org.opensaml.saml.ext.saml2mdui.Description;
+import org.opensaml.saml.ext.saml2mdui.DisplayName;
+import org.opensaml.saml.ext.saml2mdui.UIInfo;
 import org.opensaml.saml.metadata.resolver.MetadataResolver;
 import org.opensaml.saml.metadata.resolver.filter.impl.EntityRoleFilter;
 import org.opensaml.saml.metadata.resolver.impl.FileBackedHTTPMetadataResolver;
 import org.opensaml.saml.metadata.resolver.index.impl.RoleMetadataIndex;
-import org.opensaml.saml.saml2.metadata.EntitiesDescriptor;
 import org.opensaml.saml.saml2.metadata.EntityDescriptor;
+import org.opensaml.saml.saml2.metadata.Extensions;
 import org.opensaml.saml.saml2.metadata.IDPSSODescriptor;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.util.CommonHelper;
@@ -56,7 +65,7 @@ import net.shibboleth.utilities.java.support.resolver.ResolverException;
  * @author Steve Osguthorpe
  *
  */
-public class DiscoAwareIdentityProviderMetadataResolver implements SAML2MetadataResolver {
+public class FederationIdentityProviderMetadataResolver implements SAML2MetadataResolver {
   
   //Ensure we only take into account the IDP listings by using a filter.
   private static final EntityRoleFilter IDPOnlyFilter = new EntityRoleFilter(
@@ -136,7 +145,7 @@ public class DiscoAwareIdentityProviderMetadataResolver implements SAML2Metadata
     return totalNumOfIdps > 1;
   }
 
-  public DiscoAwareIdentityProviderMetadataResolver(final Resource idpMetadataResource, @Nullable final String idpEntityId, final String instanceName) {
+  public FederationIdentityProviderMetadataResolver(final Resource idpMetadataResource, @Nullable final String idpEntityId, final String instanceName) {
     CommonHelper.assertNotNull("idpMetadataResource", idpMetadataResource);
     CommonHelper.assertNotNull("namePrefix", instanceName);
     this.instanceName = instanceName;
@@ -144,7 +153,7 @@ public class DiscoAwareIdentityProviderMetadataResolver implements SAML2Metadata
     this.idpEntityId = idpEntityId;
   }
   
-  public DiscoAwareIdentityProviderMetadataResolver(final SAML2Configuration conf, final String instanceName) {
+  public FederationIdentityProviderMetadataResolver(final SAML2Configuration conf, final String instanceName) {
     this(conf.getIdentityProviderMetadataResource(), conf.getIdentityProviderEntityId(), instanceName);
   }
 
@@ -236,7 +245,96 @@ public class DiscoAwareIdentityProviderMetadataResolver implements SAML2Metadata
   }
 
   @Override
-  public final MetadataResolver resolve() {
+  public MetadataResolver resolve() {
     return remoteMetadataProvider;
+  }
+  
+  public SamlIdpList getKnownIDPs() {
+    final List<Idp> idpList = new ArrayList<Idp>();
+    
+    Iterator<EntityDescriptor> mdIdps;
+    try {
+      mdIdps = getOrCreateRemoteMetadataResolver().iterator();
+      while (mdIdps.hasNext()) {
+        final EntityDescriptor entityDescriptor = mdIdps.next();
+        final IDPSSODescriptor idpDesc =  entityDescriptor.getIDPSSODescriptor(SAMLConstants.SAML20P_NS);
+        if (idpDesc != null) {
+          Idp idp = new Idp()
+            .withId(idpDesc.getID());
+          
+          // Grab the UI extension data if present
+          final Extensions ext = idpDesc.getExtensions();
+          if (ext != null) {
+            
+            // Try and resolve the UIInfo XMLObject from the Extension children.
+            Iterator<XMLObject> allExt = ext.getOrderedChildren().iterator();
+            UIInfo uiInfo = null;
+            while (uiInfo == null && allExt.hasNext()) {
+              final XMLObject obj = allExt.next();
+              if (obj.getElementQName() == UIInfo.DEFAULT_ELEMENT_NAME) {
+                
+                uiInfo = (UIInfo)obj;
+
+                // Creat our object, and set it against the parent.
+                final I18n i18n = new I18n();
+                idp.setI18n(i18n);
+                
+                // Found a UIInfo element, Build up our i18n namespaced model.
+                // Start with the displayNames.
+                for (final DisplayName displayName : uiInfo.getDisplayNames()) {
+                  
+                  final String langCode = displayName.getXMLLang();
+                  
+                  // Namespaced PropertyEntry
+                  I18nProperty entry = getOrCreateI18nProperty(i18n.getAdditionalProperties(), langCode);
+                  final String value = displayName.getValue();
+                  entry.setDisplayName(value);
+                  
+                  // We always use en as the default, at least for now. First one found otherwise.
+                  if ("en".equalsIgnoreCase(langCode) || StringUtils.isBlank(idp.getDisplayName())) {
+                    // Set the default at the root too.
+                    idp.setDisplayName(value);
+                  }
+                }
+                
+                // Descriptions next.
+                for (final Description description : uiInfo.getDescriptions()) {
+                  
+                  final String langCode = description.getXMLLang();
+                  
+                  // Namespaced PropertyEntry
+                  I18nProperty entry = getOrCreateI18nProperty(i18n.getAdditionalProperties(), langCode);
+                  final String value = description.getValue();
+                  entry.setDescription(value);
+                  
+                  // We always use en as the default, at least for now. First one found otherwise.
+                  if ("en".equalsIgnoreCase(langCode) || StringUtils.isBlank(idp.getDescription())) {
+                    // Set the default at the root too.
+                    idp.setDescription(value);
+                  }
+                }
+              }
+            }
+          }
+          
+          idpList.add(idp);
+        }
+      }
+      
+    } catch (Exception e) {
+      logger.warn("Error resolving IDP list", e);
+    }
+    
+    return new SamlIdpList().withIdps(idpList);
+  }
+  
+  private static I18nProperty getOrCreateI18nProperty(final Map<String, I18nProperty> propMap, final String langCode) {
+    I18nProperty entry = propMap.get(langCode);
+    if (entry == null) {
+      entry = new I18nProperty();
+      // Add the entry too.
+      propMap.put(langCode, entry);
+    }
+    return entry;
   }
 }

@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "Root object container for list of available IDPs",
   "type": "object",
+  "additionalProperties": false,
   "properties" :{
     "idps": {
       "readOnly": true,

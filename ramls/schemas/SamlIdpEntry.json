@@ -3,6 +3,7 @@
   "type": "object",
   "description": "Single IDP entry schema",
   "required" : [ "id" ],
+  "additionalProperties": false,
   "properties": {
     "id": {
       "type": "string",

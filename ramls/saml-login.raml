@@ -31,6 +31,12 @@ types:
           body:
             text/plain:
               example: Not found
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"
+              
     /available-idps:
       get:
         description: List of all IDPs that are valid for this tenant
@@ -44,6 +50,11 @@ types:
             body:
               text/plain:
                 example: Not found
+          500:
+            description: "Internal server error"
+            body:
+              text/plain:
+                example: "Internal server error"
 
   /regenerate:
     get:
@@ -130,16 +141,7 @@ types:
           body:
             text/plain:
               example: "Internal server error"
-#    options:
-#      description: "Preflight CORS for /saml/login"
-#      responses:
-#        204:
-#          description: "Return with appropriate CORS headers"
-#        400:
-#          description: "Bad request"
-#          body:
-#            text/plain:
-#              example: "Bad request"
+
   /callback:
     post:
       description: Redirect browser to sso-landing page with generated token.

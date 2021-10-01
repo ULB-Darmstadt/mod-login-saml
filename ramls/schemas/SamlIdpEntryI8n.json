@@ -1,12 +1,16 @@
 { 
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "readOnly": true,
-  "displayName": { 
-    "type": "string",
-    "readOnly": true
-  },
-  "description": { 
-    "type": "string",
-    "readOnly": true
+  "additionalProperties": false,
+  "properties": {
+    "displayName": { 
+      "type": "string",
+      "readOnly": true
+    },
+    "description": { 
+      "type": "string",
+      "readOnly": true
+    }
   }
 }

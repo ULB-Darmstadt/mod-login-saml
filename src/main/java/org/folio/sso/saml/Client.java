@@ -10,7 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.config.JsonReponseSaml2RedirectActionBuilder;
 import org.folio.sso.saml.Constants.Config;
-import org.folio.sso.saml.metadata.DiscoAwareIdentityProviderMetadataResolver;
+import org.folio.sso.saml.metadata.FederationIdentityProviderMetadataResolver;
 import org.folio.sso.saml.metadata.DiscoAwareServiceProviderMetadataResolver;
 import org.folio.util.OkapiHelper;
 import org.folio.util.model.OkapiHeaders;
@@ -174,12 +174,16 @@ public class Client extends SAML2Client {
   
   public static void forceReinit() {
     // Clear the caches...
-    DiscoAwareIdentityProviderMetadataResolver.clearCache();
+    FederationIdentityProviderMetadataResolver.clearCache();
   }
   
   public static void forceReinit(final String tenant) {
     // Clear the cache for the single tenant...
-    DiscoAwareIdentityProviderMetadataResolver.clearCache(tenant);
+    FederationIdentityProviderMetadataResolver.clearCache(tenant);
+  }
+  
+  public static Future<Client> get ( final RoutingContext routingContext ) {
+    return get(routingContext, false, false);
   }
   
   public static Future<Client> get ( final RoutingContext routingContext, final boolean generateMissingKeyStore, final boolean reinitialize ) {
@@ -331,7 +335,7 @@ public class Client extends SAML2Client {
   @Override
   protected void initIdentityProviderMetadataResolver() {
     try {
-      DiscoAwareIdentityProviderMetadataResolver md = new DiscoAwareIdentityProviderMetadataResolver(
+      FederationIdentityProviderMetadataResolver md = new FederationIdentityProviderMetadataResolver(
           this.configuration,
           getName()
       );
