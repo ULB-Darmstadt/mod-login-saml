@@ -9,6 +9,7 @@ import java.net.ConnectException;
 import java.net.URI;
 import java.nio.charset.Charset;
 
+import javax.ws.rs.core.UriBuilder;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -34,7 +35,12 @@ public class UrlUtil {
   }
 
   public static URI parseBaseUrl(URI originalUrl) {
-    return URI.create(originalUrl.getScheme() + "://" + originalUrl.getAuthority());
+    UriBuilder builder = UriBuilder.fromUri(originalUrl)
+      .replaceQuery(null)
+      .replacePath(null)
+    ;
+    
+    return builder.build();
   }
 
   public static Future<UrlCheckResult> checkIdpUrl(String url, Vertx vertx) {
