@@ -257,67 +257,70 @@ public class FederationIdentityProviderMetadataResolver implements SAML2Metadata
       mdIdps = getOrCreateRemoteMetadataResolver().iterator();
       while (mdIdps.hasNext()) {
         final EntityDescriptor entityDescriptor = mdIdps.next();
-        final IDPSSODescriptor idpDesc =  entityDescriptor.getIDPSSODescriptor(SAMLConstants.SAML20P_NS);
-        if (idpDesc != null) {
-          Idp idp = new Idp()
-            .withId(idpDesc.getID());
-          
-          // Grab the UI extension data if present
-          final Extensions ext = idpDesc.getExtensions();
-          if (ext != null) {
+        final String descId = entityDescriptor.getEntityID();
+        if (descId != null) {
+          final IDPSSODescriptor idpDesc =  entityDescriptor.getIDPSSODescriptor(SAMLConstants.SAML20P_NS);
+          if (idpDesc != null) {
+            Idp idp = new Idp()
+              .withId(entityDescriptor.getEntityID());
             
-            // Try and resolve the UIInfo XMLObject from the Extension children.
-            Iterator<XMLObject> allExt = ext.getOrderedChildren().iterator();
-            UIInfo uiInfo = null;
-            while (uiInfo == null && allExt.hasNext()) {
-              final XMLObject obj = allExt.next();
-              if (obj.getElementQName() == UIInfo.DEFAULT_ELEMENT_NAME) {
-                
-                uiInfo = (UIInfo)obj;
-
-                // Creat our object, and set it against the parent.
-                final I18n i18n = new I18n();
-                idp.setI18n(i18n);
-                
-                // Found a UIInfo element, Build up our i18n namespaced model.
-                // Start with the displayNames.
-                for (final DisplayName displayName : uiInfo.getDisplayNames()) {
+            // Grab the UI extension data if present
+            final Extensions ext = idpDesc.getExtensions();
+            if (ext != null) {
+              
+              // Try and resolve the UIInfo XMLObject from the Extension children.
+              Iterator<XMLObject> allExt = ext.getOrderedChildren().iterator();
+              UIInfo uiInfo = null;
+              while (uiInfo == null && allExt.hasNext()) {
+                final XMLObject obj = allExt.next();
+                if (obj.getElementQName().equals(UIInfo.DEFAULT_ELEMENT_NAME)) {
                   
-                  final String langCode = displayName.getXMLLang();
+                  uiInfo = (UIInfo)obj;
+  
+                  // Creat our object, and set it against the parent.
+                  final I18n i18n = new I18n();
+                  idp.setI18n(i18n);
                   
-                  // Namespaced PropertyEntry
-                  I18nProperty entry = getOrCreateI18nProperty(i18n.getAdditionalProperties(), langCode);
-                  final String value = displayName.getValue();
-                  entry.setDisplayName(value);
-                  
-                  // We always use en as the default, at least for now. First one found otherwise.
-                  if ("en".equalsIgnoreCase(langCode) || StringUtils.isBlank(idp.getDisplayName())) {
-                    // Set the default at the root too.
-                    idp.setDisplayName(value);
+                  // Found a UIInfo element, Build up our i18n namespaced model.
+                  // Start with the displayNames.
+                  for (final DisplayName displayName : uiInfo.getDisplayNames()) {
+                    
+                    final String langCode = displayName.getXMLLang();
+                    
+                    // Namespaced PropertyEntry
+                    I18nProperty entry = getOrCreateI18nProperty(i18n.getAdditionalProperties(), langCode);
+                    final String value = displayName.getValue();
+                    entry.setDisplayName(value);
+                    
+                    // We always use en as the default, at least for now. First one found otherwise.
+                    if ("en".equalsIgnoreCase(langCode) || StringUtils.isBlank(idp.getDisplayName())) {
+                      // Set the default at the root too.
+                      idp.setDisplayName(value);
+                    }
                   }
-                }
-                
-                // Descriptions next.
-                for (final Description description : uiInfo.getDescriptions()) {
                   
-                  final String langCode = description.getXMLLang();
-                  
-                  // Namespaced PropertyEntry
-                  I18nProperty entry = getOrCreateI18nProperty(i18n.getAdditionalProperties(), langCode);
-                  final String value = description.getValue();
-                  entry.setDescription(value);
-                  
-                  // We always use en as the default, at least for now. First one found otherwise.
-                  if ("en".equalsIgnoreCase(langCode) || StringUtils.isBlank(idp.getDescription())) {
-                    // Set the default at the root too.
-                    idp.setDescription(value);
+                  // Descriptions next.
+                  for (final Description description : uiInfo.getDescriptions()) {
+                    
+                    final String langCode = description.getXMLLang();
+                    
+                    // Namespaced PropertyEntry
+                    I18nProperty entry = getOrCreateI18nProperty(i18n.getAdditionalProperties(), langCode);
+                    final String value = description.getValue();
+                    entry.setDescription(value);
+                    
+                    // We always use en as the default, at least for now. First one found otherwise.
+                    if ("en".equalsIgnoreCase(langCode) || StringUtils.isBlank(idp.getDescription())) {
+                      // Set the default at the root too.
+                      idp.setDescription(value);
+                    }
                   }
                 }
               }
             }
+            
+            idpList.add(idp);
           }
-          
-          idpList.add(idp);
         }
       }
       

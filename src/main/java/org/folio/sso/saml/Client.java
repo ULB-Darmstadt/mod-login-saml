@@ -160,7 +160,8 @@ public class Client extends SAML2Client {
               try {
                 UrlResource idpUrlResource = new UrlResource(idpUrl);
                 Client saml2Client = get(okapiUrl, tenantId, keystorePassword, privateKeyPassword, idpUrlResource, keystoreResource, samlBinding);
-
+                saml2Client.init();
+                
                 clientInstantiationFuture.complete(saml2Client);
               } catch (MalformedURLException e) {
                 clientInstantiationFuture.fail(e);
@@ -183,7 +184,7 @@ public class Client extends SAML2Client {
   }
   
   public static Future<Client> get ( final RoutingContext routingContext ) {
-    return get(routingContext, false, false);
+    return get(routingContext, false, true);
   }
   
   public static Future<Client> get ( final RoutingContext routingContext, final boolean generateMissingKeyStore, final boolean reinitialize ) {

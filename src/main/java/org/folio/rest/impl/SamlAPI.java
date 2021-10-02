@@ -532,7 +532,9 @@ public class SamlAPI implements Saml {
   @Override
   public void getSamlMetadata (RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    
+    asyncResultHandler.handle(
+        Future.succeededFuture(GetSamlMetadataResponse.respond200WithApplicationXml("<?xml version=\"1.0\" encoding=\"UTF-8\"?><test>OK</test>"))
+    );
   }
 
   @Override
@@ -541,7 +543,9 @@ public class SamlAPI implements Saml {
       boolean isPassive, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     // TODO Auto-generated method stub
-    
+    asyncResultHandler.handle(
+        Future.succeededFuture(GetSamlDiscoInitResponse.respond403WithTextPlain("OK"))
+    );
   }
 
   @Override
@@ -561,7 +565,7 @@ public class SamlAPI implements Saml {
         })
         
         .onSuccess(ipdList -> {
-          GetSamlMetadataAvailableIdpsResponse.respond200WithApplicationJson(ipdList);
+          asyncResultHandler.handle(Future.succeededFuture(GetSamlMetadataAvailableIdpsResponse.respond200WithApplicationJson(ipdList)));
         })
     );
   }

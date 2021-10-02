@@ -6,8 +6,6 @@ package org.folio.rest.impl;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
-import static org.folio.sso.saml.Constants.COOKIE_RELAY_STATE;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.UnsupportedEncodingException;
@@ -21,7 +19,6 @@ import org.folio.junit.rules.HttpMockingVertx;
 import org.hamcrest.Matchers;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 
 import io.restassured.http.ContentType;
