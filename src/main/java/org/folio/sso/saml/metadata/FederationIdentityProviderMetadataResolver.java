@@ -277,7 +277,7 @@ public class FederationIdentityProviderMetadataResolver implements SAML2Metadata
                   
                   uiInfo = (UIInfo)obj;
   
-                  // Creat our object, and set it against the parent.
+                  // Create our object, and set it against the parent.
                   final I18n i18n = new I18n();
                   idp.setI18n(i18n);
                   
