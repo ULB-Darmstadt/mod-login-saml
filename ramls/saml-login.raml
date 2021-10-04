@@ -36,25 +36,6 @@ types:
           body:
             text/plain:
               example: "Internal server error"
-              
-    /available-idps:
-      get:
-        description: List of all IDPs that are valid for this tenant
-        responses:
-          200:
-            body:
-              application/json:
-                type: SamlIdpList
-          404:
-            description: Not found used when invalid or missing tenant ID
-            body:
-              text/plain:
-                example: Not found
-          500:
-            description: "Internal server error"
-            body:
-              text/plain:
-                example: "Internal server error"
 
   /regenerate:
     get:
@@ -231,6 +212,21 @@ types:
           body:
             text/plain:
               example: "Internal server error"
+              
+    /idps-all:
+      get:
+        description: List of all IDPs present in the metadata file
+        responses:
+          200:
+            body:
+              application/json:
+                type: SamlIdpList
+          500:
+            description: "Internal server error"
+            body:
+              text/plain:
+                example: "Internal server error"
+                
   /validate:
     get:
       queryParameters:

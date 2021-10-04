@@ -549,7 +549,7 @@ public class SamlAPI implements Saml {
   }
 
   @Override
-  public void getSamlMetadataAvailableIdps (RoutingContext routingContext, Map<String, String> okapiHeaders,
+  public void getSamlConfigurationIdpsAll (RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     handleThrowablesWithResponse(asyncResultHandler,
       Client.get(routingContext)
@@ -565,7 +565,7 @@ public class SamlAPI implements Saml {
         })
         
         .onSuccess(ipdList -> {
-          asyncResultHandler.handle(Future.succeededFuture(GetSamlMetadataAvailableIdpsResponse.respond200WithApplicationJson(ipdList)));
+          asyncResultHandler.handle(Future.succeededFuture(GetSamlConfigurationIdpsAllResponse.respond200WithApplicationJson(ipdList)));
         })
     );
   }

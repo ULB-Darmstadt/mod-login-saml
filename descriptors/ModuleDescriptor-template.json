@@ -4,7 +4,7 @@
   "provides": [
     {
       "id": "login-saml",
-      "version": "2.1",
+      "version": "2.2",
       "handlers": [
         {
           "methods": [
@@ -87,6 +87,28 @@
           ],
           "pathPattern": "/saml/validate",
           "permissionsRequired": []
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/saml/metadata",
+          "permissionsRequired": [],
+          "modulePermissions": [
+            "configuration.entries.collection.get"
+          ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/saml/configuration/*",
+          "permissionsRequired": [
+            "login-saml.configuration.get"
+          ],
+          "modulePermissions": [
+            "configuration.entries.collection.get"
+          ]
         }
       ]
     }
