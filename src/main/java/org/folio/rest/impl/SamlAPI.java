@@ -553,6 +553,10 @@ public class SamlAPI implements Saml {
     final List<String> langs = routingContext.acceptableLanguages().stream().map( langHeader -> {
       return langHeader.rawValue();
     }).collect(Collectors.toUnmodifiableList());
+
+    // The language header also affects what we supply in the root of the JSON so we should flag that
+    // to anything that might cache the results of this endpoint.
+    Utils.appendToMapIfAbsent(routingContext.response().headers(), VARY, ",", ACCEPT_LANGUAGE);
     
     handleThrowablesWithResponse(asyncResultHandler,
       Client.get(routingContext)
