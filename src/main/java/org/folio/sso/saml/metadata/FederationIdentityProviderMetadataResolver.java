@@ -1,5 +1,7 @@
 package org.folio.sso.saml.metadata;
 
+import static org.folio.sso.saml.Constants.Config.I18N_DEFAULT_LANG;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -261,8 +263,13 @@ public class FederationIdentityProviderMetadataResolver implements SAML2Metadata
         if (descId != null) {
           final IDPSSODescriptor idpDesc =  entityDescriptor.getIDPSSODescriptor(SAMLConstants.SAML20P_NS);
           if (idpDesc != null) {
-            Idp idp = new Idp()
-              .withId(entityDescriptor.getEntityID());
+            final String entitytId = entityDescriptor.getEntityID();
+            
+            // Add the default root elems.
+            final Idp idp = new Idp()
+              .withId(entitytId)
+              .withDisplayName(entitytId)
+              .withDescription(String.format("IDP at %s", entitytId));
             
             // Grab the UI extension data if present
             final Extensions ext = idpDesc.getExtensions();
@@ -293,7 +300,7 @@ public class FederationIdentityProviderMetadataResolver implements SAML2Metadata
                     entry.setDisplayName(value);
                     
                     // We always use en as the default, at least for now. First one found otherwise.
-                    if ("en".equalsIgnoreCase(langCode) || StringUtils.isBlank(idp.getDisplayName())) {
+                    if (I18N_DEFAULT_LANG.equalsIgnoreCase(langCode) || StringUtils.isBlank(idp.getDisplayName())) {
                       // Set the default at the root too.
                       idp.setDisplayName(value);
                     }
@@ -309,14 +316,25 @@ public class FederationIdentityProviderMetadataResolver implements SAML2Metadata
                     final String value = description.getValue();
                     entry.setDescription(value);
                     
-                    // We always use en as the default, at least for now. First one found otherwise.
-                    if ("en".equalsIgnoreCase(langCode) || StringUtils.isBlank(idp.getDescription())) {
+                    // Root entries default to I18N_DEFAULT_LANG, First one found otherwise.
+                    if (I18N_DEFAULT_LANG.equalsIgnoreCase(langCode) || StringUtils.isBlank(idp.getDescription())) {
                       // Set the default at the root too.
                       idp.setDescription(value);
                     }
                   }
                 }
               }
+            }
+            
+            if (idp.getI18n() == null || idp.getI18n().getAdditionalProperties().isEmpty()) {
+
+              // Default the I18N_DEFAULT_LANG entry to the root options.
+              idp.setI18n(new I18n()
+                .withAdditionalProperty(I18N_DEFAULT_LANG, new I18nProperty()
+                  .withDisplayName(idp.getDisplayName())
+                  .withDescription(idp.getDescription())
+                )
+              );
             }
             
             idpList.add(idp);

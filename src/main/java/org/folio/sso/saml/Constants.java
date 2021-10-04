@@ -21,6 +21,8 @@ public interface Constants {
     public static final String ENDPOINT_ENTRIES = "/configurations/entries";
     public static final String ENDPOINT_CALLBACK = "/saml/callback";
     
+    public static final String I18N_DEFAULT_LANG = "en";
+    
     public static final String CONFIG_NAME = "saml";
     
     public static final String DEFAULT_USER = "samlDefaultUser";
