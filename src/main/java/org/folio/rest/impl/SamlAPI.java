@@ -28,6 +28,7 @@ import org.folio.session.NoopSession;
 import org.folio.sso.saml.Client;
 import org.folio.sso.saml.Constants.Config;
 import org.folio.sso.saml.ModuleConfig;
+import org.folio.sso.saml.metadata.DiscoAwareServiceProviderMetadataResolver;
 import org.folio.sso.saml.metadata.FederationIdentityProviderMetadataResolver;
 import org.folio.util.*;
 import org.folio.util.model.OkapiHeaders;
@@ -138,7 +139,7 @@ public class SamlAPI implements Saml {
       final VertxWebContext webContext = VertxUtils.createWebContext(routingContext);
       // Form parameters "RelayState" is not part webContext.
       final String relayState = routingContext.request().getFormAttribute("RelayState");
-      URI relayStateUrl;
+      final URI relayStateUrl;
       try {
         relayStateUrl = new URI(relayState);
       } catch (URISyntaxException e1) {
@@ -154,6 +155,8 @@ public class SamlAPI implements Saml {
         return;
       }
       
+      // TODO: This method should be split. The user handling should be moved into the
+      // UserService class for better separation, portability and maintainability. 
       CompositeFuture.all(
           ModuleConfig.get(routingContext),
           Client.get(routingContext, false, false)
@@ -529,10 +532,29 @@ public class SamlAPI implements Saml {
 
   @Override
   public void getSamlMetadata (RoutingContext routingContext, Map<String, String> okapiHeaders,
-      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    asyncResultHandler.handle(
-        Future.succeededFuture(GetSamlMetadataResponse.respond200WithApplicationXml("<?xml version=\"1.0\" encoding=\"UTF-8\"?><test>OK</test>"))
-    );
+      Handler<AsyncResult<Response>> responseHandler, Context vertxContext) {
+    vertxContext.executeBlocking(blockingCode -> {
+      handleThrowablesWithResponse(responseHandler,
+        Client.get(routingContext)
+          .compose(client -> {
+            return Future.future((Promise<String> handler) -> {
+              handleThrowablesWithResponse(responseHandler, () -> {
+                final DiscoAwareServiceProviderMetadataResolver provider = 
+                    (DiscoAwareServiceProviderMetadataResolver) client.getServiceProviderMetadataResolver();
+                
+                handler.complete(provider.getMetadata());
+              });
+            });
+          })
+          
+          .onSuccess(successResult -> {
+            responseHandler.handle(Future.succeededFuture(GetSamlMetadataResponse.respond200WithApplicationXml(successResult)));
+            blockingCode.tryComplete();
+          })
+          
+          .onFailure(blockingCode::tryFail)
+      );
+    });
   }
 
   @Override
