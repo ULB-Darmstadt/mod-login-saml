@@ -554,26 +554,32 @@ public class SamlAPI implements Saml {
       return langHeader.rawValue();
     }).collect(Collectors.toUnmodifiableList());
 
+
     // The language header also affects what we supply in the root of the JSON so we should flag that
     // to anything that might cache the results of this endpoint.
     Utils.appendToMapIfAbsent(routingContext.response().headers(), VARY, ",", ACCEPT_LANGUAGE);
     
-    handleThrowablesWithResponse(asyncResultHandler,
-      Client.get(routingContext)
-        .compose(client -> {
-          return Future.future((Promise<SamlIdpList> handler) -> {
-            handleThrowablesWithResponse(asyncResultHandler, () -> {
-              final FederationIdentityProviderMetadataResolver provider = 
-                  (FederationIdentityProviderMetadataResolver) client.getIdentityProviderMetadataResolver();
-              
-              handler.complete(provider.getKnownIDPs(langs));
+    vertxContext.executeBlocking(blockingCode -> {
+      handleThrowablesWithResponse(asyncResultHandler,
+        Client.get(routingContext)
+          .compose(client -> {
+            return Future.future((Promise<SamlIdpList> handler) -> {
+              handleThrowablesWithResponse(asyncResultHandler, () -> {
+                final FederationIdentityProviderMetadataResolver provider = 
+                    (FederationIdentityProviderMetadataResolver) client.getIdentityProviderMetadataResolver();
+                
+                handler.complete(provider.getKnownIDPs(langs));
+              });
             });
-          });
-        })
-        
-        .onSuccess(ipdList -> {
-          asyncResultHandler.handle(Future.succeededFuture(GetSamlConfigurationIdpsAllResponse.respond200WithApplicationJson(ipdList)));
-        })
-    );
+          })
+          
+          .onSuccess(ipdList -> {
+            asyncResultHandler.handle(Future.succeededFuture(GetSamlConfigurationIdpsAllResponse.respond200WithApplicationJson(ipdList)));
+            blockingCode.tryComplete();
+          })
+          
+          .onFailure(blockingCode::tryFail)
+      );
+    });
   }
 }
