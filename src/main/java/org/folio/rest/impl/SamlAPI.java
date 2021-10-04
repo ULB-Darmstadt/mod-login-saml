@@ -11,10 +11,8 @@ import static org.pac4j.saml.state.SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUT
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
@@ -551,6 +549,11 @@ public class SamlAPI implements Saml {
   @Override
   public void getSamlConfigurationIdpsAll (RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    
+    final List<String> langs = routingContext.acceptableLanguages().stream().map( langHeader -> {
+      return langHeader.rawValue();
+    }).collect(Collectors.toUnmodifiableList());
+    
     handleThrowablesWithResponse(asyncResultHandler,
       Client.get(routingContext)
         .compose(client -> {
@@ -559,7 +562,7 @@ public class SamlAPI implements Saml {
               final FederationIdentityProviderMetadataResolver provider = 
                   (FederationIdentityProviderMetadataResolver) client.getIdentityProviderMetadataResolver();
               
-              handler.complete(provider.getKnownIDPs());
+              handler.complete(provider.getKnownIDPs(langs));
             });
           });
         })

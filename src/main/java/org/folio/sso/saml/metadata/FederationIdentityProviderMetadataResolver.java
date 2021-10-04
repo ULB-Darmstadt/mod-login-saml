@@ -9,13 +9,14 @@ import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.folio.rest.jaxrs.model.I18n;
@@ -252,6 +253,12 @@ public class FederationIdentityProviderMetadataResolver implements SAML2Metadata
   }
   
   public SamlIdpList getKnownIDPs() {
+    return getKnownIDPs(Stream.of( I18N_DEFAULT_LANG ).collect(Collectors.toUnmodifiableList()));
+  }
+  
+  public SamlIdpList getKnownIDPs(List<String> orderedLangCodes) {
+    
+    logger.debug("Languages requested: {}", orderedLangCodes.toString());
     final List<Idp> idpList = new ArrayList<Idp>();
     
     Iterator<EntityDescriptor> mdIdps;
@@ -263,13 +270,12 @@ public class FederationIdentityProviderMetadataResolver implements SAML2Metadata
         if (descId != null) {
           final IDPSSODescriptor idpDesc =  entityDescriptor.getIDPSSODescriptor(SAMLConstants.SAML20P_NS);
           if (idpDesc != null) {
+            
             final String entitytId = entityDescriptor.getEntityID();
             
             // Add the default root elems.
             final Idp idp = new Idp()
-              .withId(entitytId)
-              .withDisplayName(entitytId)
-              .withDescription(String.format("IDP at %s", entitytId));
+              .withId(entitytId);
             
             // Grab the UI extension data if present
             final Extensions ext = idpDesc.getExtensions();
@@ -298,12 +304,6 @@ public class FederationIdentityProviderMetadataResolver implements SAML2Metadata
                     I18nProperty entry = getOrCreateI18nProperty(i18n.getAdditionalProperties(), langCode);
                     final String value = displayName.getValue();
                     entry.setDisplayName(value);
-                    
-                    // We always use en as the default, at least for now. First one found otherwise.
-                    if (I18N_DEFAULT_LANG.equalsIgnoreCase(langCode) || StringUtils.isBlank(idp.getDisplayName())) {
-                      // Set the default at the root too.
-                      idp.setDisplayName(value);
-                    }
                   }
                   
                   // Descriptions next.
@@ -315,26 +315,76 @@ public class FederationIdentityProviderMetadataResolver implements SAML2Metadata
                     I18nProperty entry = getOrCreateI18nProperty(i18n.getAdditionalProperties(), langCode);
                     final String value = description.getValue();
                     entry.setDescription(value);
-                    
-                    // Root entries default to I18N_DEFAULT_LANG, First one found otherwise.
-                    if (I18N_DEFAULT_LANG.equalsIgnoreCase(langCode) || StringUtils.isBlank(idp.getDescription())) {
-                      // Set the default at the root too.
-                      idp.setDescription(value);
-                    }
                   }
                 }
               }
             }
             
+            // No languages specified in metadata. Use the defaults from our constants.
             if (idp.getI18n() == null || idp.getI18n().getAdditionalProperties().isEmpty()) {
+              idp
+                .withDisplayName(entitytId)
+                .withDescription(String.format("IDP at %s", entitytId))
+              
+                .setI18n(new I18n()
+                  .withAdditionalProperty(I18N_DEFAULT_LANG, new I18nProperty()
+                    .withDisplayName(idp.getDisplayName())
+                    .withDescription(idp.getDescription())
+                  )
+                );
+              
+            } else if (idp.getI18n().getAdditionalProperties().size() == 1) {
+            
+              // We'll always match the first...
+              final I18nProperty langEntry = 
+                  idp.getI18n().getAdditionalProperties().values().stream().findFirst().get();
+              
+                // Set the values.
+                idp
+                  .withDisplayName(langEntry.getDisplayName())
+                  .withDescription(langEntry.getDescription());
+            } else {
+              // We have more than 1 entry in the i18n section. Find the best match.
 
-              // Default the I18N_DEFAULT_LANG entry to the root options.
-              idp.setI18n(new I18n()
-                .withAdditionalProperty(I18N_DEFAULT_LANG, new I18nProperty()
-                  .withDisplayName(idp.getDisplayName())
-                  .withDescription(idp.getDescription())
-                )
-              );
+              // Default fallback language to null. We use null to denote that no partial
+              // match was found when parsing the UI hints. If this is still null after
+              // parsing then we'll use the default from the constants. First partial wins!
+              final Map<String, I18nProperty> allLangsMap = idp.getI18n().getAdditionalProperties();
+              final Set<String> allLangs = allLangsMap.keySet();
+              
+              String exactLanguage = null;
+              String fallbackLanguage = null;
+              for (int i=0; exactLanguage == null && i<orderedLangCodes.size(); i++) {
+                final String lang = orderedLangCodes.get(i);
+                exactLanguage = allLangs.contains(lang) ? lang : null;
+                if (exactLanguage == null && fallbackLanguage == null) {
+                  // See if a partial match is found.
+                  final int dash = lang.indexOf('-');
+                  if (dash > 0) {
+                    final String potentialFallback = lang.substring(0, dash);
+                    if (allLangs.contains(potentialFallback)) {
+                      fallbackLanguage = potentialFallback;
+                    }
+                  }
+                }
+              }
+              
+              // Match exact, fallback, default and finally the first if not found
+              final I18nProperty langEntry = Stream.of(
+                exactLanguage, fallbackLanguage, I18N_DEFAULT_LANG)
+                  .filter(Objects::nonNull)
+                  .findFirst()
+                  .map(selectedLang -> {
+                    logger.debug("Using lang code from supplied headers {}", selectedLang);
+                    return allLangsMap.get(selectedLang);
+                  })
+                  // Use the first entry if we cannot match any of the langs.
+                  .orElse(allLangsMap.values().stream().findFirst().get());
+              
+              // Set the values.
+              idp
+                .withDisplayName(langEntry.getDisplayName())
+                .withDescription(langEntry.getDescription());
             }
             
             idpList.add(idp);
