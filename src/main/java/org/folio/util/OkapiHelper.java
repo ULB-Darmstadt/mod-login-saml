@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.folio.util.model.OkapiHeaders;
 
 import io.vertx.ext.web.RoutingContext;
@@ -58,13 +59,15 @@ public interface OkapiHelper {
   }
 
   public static OkapiHeaders okapiHeaders(Map<String, String> parsedHeaders) {
+    
+    Map<String, String> caseIns = new CaseInsensitiveMap<>(parsedHeaders);
 
     OkapiHeaders headers = new OkapiHeaders();
 
-    headers.setUrl(parsedHeaders.get(OkapiHeaders.OKAPI_URL_HEADER));
-    headers.setTenant(parsedHeaders.get(OkapiHeaders.OKAPI_TENANT_HEADER));
-    headers.setToken(parsedHeaders.get(OkapiHeaders.OKAPI_TOKEN_HEADER));
-    headers.setPermissions(parsedHeaders.get(OkapiHeaders.OKAPI_PERMISSIONS_HEADER));
+    headers.setUrl(caseIns.get(OkapiHeaders.OKAPI_URL_HEADER));
+    headers.setTenant(caseIns.get(OkapiHeaders.OKAPI_TENANT_HEADER));
+    headers.setToken(caseIns.get(OkapiHeaders.OKAPI_TOKEN_HEADER));
+    headers.setPermissions(caseIns.get(OkapiHeaders.OKAPI_PERMISSIONS_HEADER));
 
     return headers;
 
