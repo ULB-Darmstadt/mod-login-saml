@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.folio.sso.saml.services;
+package org.folio.services;
 
 import java.util.List;
 import java.util.Map;
@@ -14,6 +14,7 @@ import org.folio.sso.saml.Configuration;
 import org.joda.time.Instant;
 import org.pac4j.core.profile.CommonProfile;
 
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
@@ -51,6 +52,7 @@ public interface UserService {
    * 
    * @return The user object
    */
+  @GenIgnore
   public static JsonObject createUserJSON(
       @NotNull final String uuid,
       @NotNull final String username,
@@ -102,6 +104,7 @@ public interface UserService {
    * @param configuration 
    * @return The user object
    */
+  @GenIgnore
   public static JsonObject createUserJSON(final CommonProfile profile, final Configuration configuration) {
     
     final String uuid = UUID.randomUUID().toString();

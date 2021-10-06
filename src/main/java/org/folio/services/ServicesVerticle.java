@@ -1,4 +1,6 @@
-package org.folio.sso.saml.services;
+package org.folio.services;
+
+import org.folio.services.impl.OkapiUserService;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.serviceproxy.ServiceBinder;

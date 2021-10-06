@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.folio.sso.saml.services;
+package org.folio.services;
 
 import java.net.URI;
 import java.util.Map;

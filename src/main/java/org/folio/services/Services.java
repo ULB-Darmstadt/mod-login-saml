@@ -1,7 +1,4 @@
-/**
- * 
- */
-package org.folio.sso.saml.services;
+package org.folio.services;
 
 import javax.validation.constraints.NotNull;
 
@@ -19,20 +16,17 @@ import io.vertx.core.Vertx;
 public interface Services {
   final Logger log = LogManager.getLogger(Services.class);
 
-  public static final String MODULE_NAME_SERVICES = "services";
-  public static final String GROUP_PACKAGE_SERVICES = "org.folio.sso.saml";
-  public static final String PACKAGE_SERVICES = GROUP_PACKAGE_SERVICES + "." + MODULE_NAME_SERVICES;
+  public static final String MODULE_NAME = "services";
+  public static final String GROUP_PACKAGE = "org.folio" + "." + MODULE_NAME;
   
   public static String getAddressFor(@NotNull Class<?> serviceInterfaceType) {
-    return String.format("%s:%s", MODULE_NAME_SERVICES, serviceInterfaceType.getCanonicalName());
+    return String.format("%s:%s", MODULE_NAME, serviceInterfaceType.getCanonicalName());
   }
 
   @SuppressWarnings("unchecked")
   public static <T> T proxyFor(@NotNull Vertx vertx, @NotNull Class<T> serviceType) {
-    
     try {
-      
-      return (T) Class.forName(PACKAGE_SERVICES + "." + serviceType.getSimpleName() + "VertxEBProxy")
+      return (T) Class.forName(serviceType.getCanonicalName() + "VertxEBProxy")
         .getDeclaredConstructor(new Class[] {Vertx.class, String.class})
         .newInstance(vertx, getAddressFor(serviceType));
     } catch (Exception e) {

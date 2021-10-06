@@ -1,28 +1,18 @@
-package org.folio.sso.saml.services;
-
-import static org.folio.util.ErrorHandlingUtil.assert2xx;
+package org.folio.services.impl;
 
 import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriBuilderException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.util.OkapiHelper;
-import org.folio.util.WebClientFactory;
-import org.folio.util.model.OkapiHeaders;
-import org.folio.util.model.OkapiHeaders.MissingHeaderException;
+import org.folio.services.AbstractOkapiHttpService;
+import org.folio.services.UserService;
 
 import io.vertx.core.Future;
-import io.vertx.core.MultiMap;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
-import io.vertx.rxjava.core.Promise;
 
 /**
  * @author Steve Osguthorpe
