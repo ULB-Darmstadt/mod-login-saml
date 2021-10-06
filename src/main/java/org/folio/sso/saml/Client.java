@@ -1,6 +1,5 @@
 package org.folio.sso.saml;
 
-import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -10,8 +9,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.config.JsonReponseSaml2RedirectActionBuilder;
 import org.folio.sso.saml.Constants.Config;
-import org.folio.sso.saml.metadata.FederationIdentityProviderMetadataResolver;
 import org.folio.sso.saml.metadata.DiscoAwareServiceProviderMetadataResolver;
+import org.folio.sso.saml.metadata.FederationIdentityProviderMetadataResolver;
+import org.folio.util.ErrorHandlingUtil;
 import org.folio.util.OkapiHelper;
 import org.folio.util.model.OkapiHeaders;
 import org.opensaml.saml.common.xml.SAMLConstants;
@@ -131,16 +131,14 @@ public class Client extends SAML2Client {
               storeKeystore(routingContext, keystoreFileName, actualKeystorePassword, actualPrivateKeyPassword).onComplete(keyfileStorageHandler -> {
                 if (keyfileStorageHandler.succeeded()) {
                   // storeKeystore is deleting JKS file, recreate client from byteArray
-                  Buffer keystoreBytes = keyfileStorageHandler.result();
-                  ByteArrayResource keystoreResource = new ByteArrayResource(keystoreBytes.getBytes());
-                  try {
+                  ErrorHandlingUtil.handleThrowables(clientInstantiationFuture, () -> {
+                    Buffer keystoreBytes = keyfileStorageHandler.result();
+                    ByteArrayResource keystoreResource = new ByteArrayResource(keystoreBytes.getBytes());
                     UrlResource idpUrlResource = new UrlResource(idpUrl);
                     Client reinitedSaml2Client = get(okapiUrl, tenantId, actualKeystorePassword, actualPrivateKeyPassword, idpUrlResource, keystoreResource, samlBinding);
 
                     clientInstantiationFuture.complete(reinitedSaml2Client);
-                  } catch (MalformedURLException e) {
-                    clientInstantiationFuture.fail(e);
-                  }
+                  });
                 } else {
                   clientInstantiationFuture.fail(keyfileStorageHandler.cause());
                 }
@@ -155,17 +153,16 @@ public class Client extends SAML2Client {
             if (resultHandler.failed()) {
               clientInstantiationFuture.fail(resultHandler.cause());
             } else {
-              Buffer keystoreBytes = resultHandler.result();
-              ByteArrayResource keystoreResource = new ByteArrayResource(keystoreBytes.getBytes());
-              try {
+              ErrorHandlingUtil.handleThrowables(clientInstantiationFuture, () -> {
+                Buffer keystoreBytes = resultHandler.result();
+                ByteArrayResource keystoreResource = new ByteArrayResource(keystoreBytes.getBytes());
+              
                 UrlResource idpUrlResource = new UrlResource(idpUrl);
                 Client saml2Client = get(okapiUrl, tenantId, keystorePassword, privateKeyPassword, idpUrlResource, keystoreResource, samlBinding);
                 saml2Client.init();
                 
                 clientInstantiationFuture.complete(saml2Client);
-              } catch (MalformedURLException e) {
-                clientInstantiationFuture.fail(e);
-              }
+              });
             }
           });
       }
