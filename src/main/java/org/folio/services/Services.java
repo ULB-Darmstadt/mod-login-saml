@@ -8,7 +8,7 @@ import org.apache.logging.log4j.Logger;
 import io.vertx.core.Vertx;
 
 /**
- * Central class for generic Services interraction.
+ * Central class for generic Services interaction.
  * 
  * @author Steve Osguthorpe
  *
