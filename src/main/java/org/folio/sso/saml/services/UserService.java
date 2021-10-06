@@ -1,6 +1,10 @@
-package org.folio.rest.interop;
+/**
+ * 
+ */
+package org.folio.sso.saml.services;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
@@ -10,9 +14,19 @@ import org.folio.sso.saml.Configuration;
 import org.joda.time.Instant;
 import org.pac4j.core.profile.CommonProfile;
 
+import io.vertx.codegen.annotations.ProxyGen;
+import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 
-public class UserService {
+/**
+ * Interface for an abstract user service.
+ * 
+ * @author Steve Osguthorpe
+ */
+@VertxGen
+@ProxyGen
+public interface UserService {
   
   private static String generateInitialUsername(final String firstName, final String lastName, final String email, @NotNull final String id) {
     String name;
@@ -130,7 +144,7 @@ public class UserService {
     );
   }
   
-  public UserService() {
-    
-  }
+  Future<JsonObject> findByAttribute(@NotNull final Map<String, String> headers, @NotNull final String attributeName, @NotNull final String attributeValue);
+  Future<JsonObject> findByID(@NotNull final Map<String, String> headers, @NotNull final String id );
+  Future<JsonObject> save(@NotNull final Map<String, String> headers, @NotNull final JsonObject user );
 }

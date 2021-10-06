@@ -3,23 +3,15 @@ package org.folio.rest.impl;
 import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.resource.interfaces.InitAPI;
+import org.folio.sso.saml.services.ServicesVerticle;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 
 public class ApiInitializer implements InitAPI {
 
@@ -36,6 +28,10 @@ public class ApiInitializer implements InitAPI {
     String disableResolver = System.getProperty("vertx.disableDnsResolver");
     log.info("vertx.disableDnsResolver (netty workaround): " + disableResolver);
 
+    vertx.deployVerticle(new ServicesVerticle(), ar -> {
+      log.debug("Deployed services verticle");
+    });
+    
     handler.handle(Future.succeededFuture(true));
   }
 

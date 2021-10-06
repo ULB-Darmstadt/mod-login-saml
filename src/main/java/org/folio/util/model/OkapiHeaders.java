@@ -9,13 +9,16 @@ import io.vertx.core.http.impl.headers.HeadersMultiMap;
 
 import static org.folio.sso.saml.Constants.Exceptions.*;
 
+import java.io.Serializable;
+
 /**
  * POJO for Okapi headers parsing
  *
  * @author rsass
  */
-public class OkapiHeaders {
-
+public class OkapiHeaders implements Serializable {
+  private static final long serialVersionUID = -8007366917656628325L;
+  
   public static final String OKAPI_URL_HEADER = "X-Okapi-URL";
   public static final String OKAPI_TOKEN_HEADER = "X-Okapi-Token";
   public static final String OKAPI_TENANT_HEADER = "X-Okapi-Tenant";

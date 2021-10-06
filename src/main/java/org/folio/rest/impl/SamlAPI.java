@@ -20,7 +20,6 @@ import javax.ws.rs.core.UriBuilder;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.rest.interop.UserService;
 import org.folio.rest.jaxrs.model.*;
 import org.folio.rest.jaxrs.resource.Saml;
 import org.folio.rest.jaxrs.resource.Saml.PostSamlCallbackResponse.HeadersFor302;
@@ -30,6 +29,8 @@ import org.folio.sso.saml.Constants.Config;
 import org.folio.sso.saml.ModuleConfig;
 import org.folio.sso.saml.metadata.DiscoAwareServiceProviderMetadataResolver;
 import org.folio.sso.saml.metadata.FederationIdentityProviderMetadataResolver;
+import org.folio.sso.saml.services.Services;
+import org.folio.sso.saml.services.UserService;
 import org.folio.util.*;
 import org.folio.util.model.OkapiHeaders;
 import org.pac4j.core.exception.http.HttpAction;
@@ -205,6 +206,53 @@ public class SamlAPI implements Saml {
               .putHeaders(headers)
               .send()
             ;
+            
+            // Grab whichever implementation is present for our user service.
+            final UserService userService = Services.proxyFor(vertxContext.owner(), UserService.class);
+            
+            userService.findByAttribute(okapiHeaders, samlAttributeName, samlAttributeValue)
+              .onSuccess(resultObject -> {
+                handleThrowablesWithResponse(asyncResultHandler, () -> {
+                  int recordCount = resultObject.getInteger("totalRecords");
+                  if (recordCount > 1) {
+                    asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond400WithTextPlain("More than one user record found!")));
+                    // Fail if the saml properties match more than 1 user.
+                    return;
+                  } else if (recordCount == 0) {
+                    // No matching user was found. If we shouldn't create when missing then we should log and return.
+                    if (!"true".equalsIgnoreCase(config.getUserCreateMissing())) {
+                      String message = "No user found by " + userPropertyName + " == " + samlAttributeValue;
+                      log.warn(message);
+                      asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond400WithTextPlain(message)));
+                      return;
+                    }
+                    CommonProfile profile =  credentials.getUserProfile();
+                    JsonObject userData = UserService.createUserJSON(profile, config);
+        
+                    // Also add the property which we are joining on.
+                    userData.put(userPropertyName, samlAttributeValue);
+        
+                    // Attempt to create the missing user.
+                    handleThrowablesWithResponse(asyncResultHandler, 
+                      webClient
+                        .postAbs(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/users"))
+                        .putHeaders(headers)
+                        .sendJsonObject(userData)
+                        
+                      .onSuccess(createResponse -> {
+                        assert2xx(createResponse, "Error creating user.");
+                        
+                        getTokenForUser(asyncResultHandler, parsedHeaders, createResponse.bodyAsJsonObject(), originalUrl, stripesBaseUrl);
+                      })
+                    );
+                  } else {
+                    // 1 user found! Grab them and then grab a token.
+                    final JsonObject userObject = resultObject.getJsonArray("users").getJsonObject(0);
+                    getTokenForUser(asyncResultHandler, parsedHeaders, userObject, originalUrl, stripesBaseUrl);
+                  }
+                });
+              });
+            
             
             clientResponse.onSuccess(response -> {
               handleThrowablesWithResponse(asyncResultHandler, () -> {
