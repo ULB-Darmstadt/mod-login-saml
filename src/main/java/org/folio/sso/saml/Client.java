@@ -261,67 +261,60 @@ public class Client extends SAML2Client {
    */
   private static Future<Buffer> storeKeystore(final RoutingContext routingContext, final String keystoreFileName, final String keystorePassword, final String privateKeyPassword) {
 
-    Promise<Buffer> future = Promise.promise();
     final Vertx vertx = routingContext.vertx();
     
-    // read generated jks file
-    vertx.fileSystem().readFile(keystoreFileName, fileResult -> {
-      if (fileResult.failed()) {
-        future.fail(fileResult.cause());
-      } else {
-        final byte[] rawBytes = fileResult.result().getBytes();
-
-        // base64 encode
-        vertx.executeBlocking((Promise<Buffer> blockingFuture) -> {
-          Buffer encodedBytes = Buffer.buffer(Base64.getEncoder().encode(rawBytes));
-          blockingFuture.complete(encodedBytes);
-        }, resultHandler -> {
-          Buffer encodedBytes = resultHandler.result();
+    // Move file ops off the event loop.
+    return vertx.executeBlocking((Promise<Buffer> blockingFuture) -> {
+      
+      ErrorHandlingUtil.handleThrowables(blockingFuture,
           
-          // Store in mod-configuration with passwords, wait for all operations to finish.
-          ModuleConfig.get(routingContext).onComplete((AsyncResult<ModuleConfig> configRes) -> {
-            ModuleConfig config = configRes.result();
-            CompositeFuture.all(
-              config.updateEntry(Config.KEYSTORE_FILE, encodedBytes.toString(StandardCharsets.UTF_8)),
-              config.updateEntry(Config.KEYSTORE_PASSWORD, keystorePassword),
-              config.updateEntry(Config.KEYSTORE_PRIVATEKEY_PASSWORD, privateKeyPassword),
-              config.updateEntry(Config.METADATA_INVALIDATED, "true") // if keystore modified, current metadata is invalid.
+        vertx.fileSystem().readFile(keystoreFileName)
+          .onSuccess(buffer -> {
+            
+            ErrorHandlingUtil.handleThrowables(blockingFuture, () -> {
               
-            ).onComplete(allConfigurationsStoredHandler -> {
+              Buffer encodedBytes = Buffer.buffer(Base64.getEncoder().encode(buffer.getBytes()));
               
-              // We still attempt the delete no matter what.
-              vertx.fileSystem().delete(keystoreFileName, deleteResult -> {
-                Throwable failureCause = null;
-                
-                // If the initial operation failed then fail with that cause.
-                if (allConfigurationsStoredHandler.failed()) {
-                  failureCause = allConfigurationsStoredHandler.cause();
-                  log.error ("Error storing configuration", failureCause);
-                }
-                
-                // We should log the error with delete too, to prevent it from
-                // being lost if the storage op fails.
-                if (deleteResult.failed()) {
-                  Throwable deleteFailure = deleteResult.cause();
-                  log.error ("Error deleteing keystore file", deleteFailure);
-                  if (failureCause == null) failureCause = deleteFailure;
-                }
-  
-                // Finally we should succeed or fail the future correctly.
-                if (failureCause == null) {
-                  future.complete(Buffer.buffer(rawBytes));
-                } else {
-                  future.fail(failureCause);
-                }
-              });
+              ErrorHandlingUtil.handleThrowables(blockingFuture,
+                ModuleConfig.get(routingContext).compose((ModuleConfig config) -> {
+                  return CompositeFuture.all(
+                    config.updateEntry(Config.KEYSTORE_FILE, encodedBytes.toString(StandardCharsets.UTF_8)),
+                    config.updateEntry(Config.KEYSTORE_PASSWORD, keystorePassword),
+                    config.updateEntry(Config.KEYSTORE_PRIVATEKEY_PASSWORD, privateKeyPassword)
+//                    config.updateEntry(Config.METADATA_INVALIDATED, "true") // if keystore modified, current metadata is invalid.
+                    
+                  ).onComplete(configEntriesHandler -> {
+                    // We still attempt the delete no matter what.
+                    vertx.fileSystem().delete(keystoreFileName, deleteResult -> {
+                      Throwable failureCause = null;
+                      
+                      // If the initial operation failed then log.
+                      if (configEntriesHandler.failed()) {
+                        failureCause = configEntriesHandler.cause();
+                        log.error ("Error storing configuration", failureCause);
+                      }
+                      
+                      // We should log the error with delete too, to prevent it from
+                      // being lost if the storage op fails.
+                      if (deleteResult.failed()) {
+                        Throwable deleteFailure = deleteResult.cause();
+                        log.error ("Error deleteing keystore file", deleteFailure);
+                        if (failureCause == null) failureCause = deleteFailure;
+                      }
+                      
+                      // Succeed buffered future if appropriate
+                      if (configEntriesHandler.succeeded()) {
+                        // Success
+                        blockingFuture.complete(buffer);
+                      }
+                    });
+                  });
+                })
+              );
             });
-          });
-        });
-      }
+          })
+        );
     });
-
-    return future.future();
-
   }
   
   private Client() {}

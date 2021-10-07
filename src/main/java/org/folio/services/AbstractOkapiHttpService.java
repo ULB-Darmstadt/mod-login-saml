@@ -5,18 +5,28 @@ package org.folio.services;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import javax.validation.constraints.NotNull;
 
+import org.folio.util.ErrorHandlingUtil;
+import org.folio.util.ErrorHandlingUtil.ThrowingSupplier;
 import org.folio.util.OkapiHelper;
 import org.folio.util.WebClientFactory;
 import org.folio.util.model.OkapiHeaders;
 import org.folio.util.model.OkapiHeaders.MissingHeaderException;
 
+import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.predicate.ErrorConverter;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
+import io.vertx.serviceproxy.ServiceException;
 
 /**
  * Abstract to handle the boilerplate headers and provide general method wrappers.
@@ -24,6 +34,24 @@ import io.vertx.ext.web.client.WebClient;
  * @author Steve Osguthorpe
  */
 public abstract class AbstractOkapiHttpService {
+  
+  public static ErrorConverter RESPONSE_TO_SERVICE_EXCEPTION = ErrorConverter.createFullBody(result -> {
+    return new ServiceException(
+      result.response().statusCode(),
+        Stream.of(
+          result.response().statusMessage(),
+          result.message()
+        ).filter(Objects::nonNull).findFirst().orElse("An unkown error occured"));
+  });
+  
+  public static ResponsePredicate SERVICE_SC_SUCCESS = ResponsePredicate.create(
+    ResponsePredicate.SC_SUCCESS,
+    RESPONSE_TO_SERVICE_EXCEPTION
+  );
+  
+  public static Function<Throwable, Throwable> TO_SERVICE_EXCEPTION = throwable -> {
+    return throwable instanceof ServiceException ? throwable : new ServiceException(-1, throwable.getMessage());
+  };
 
   private final WebClient webClient;
 
@@ -33,6 +61,10 @@ public abstract class AbstractOkapiHttpService {
 
   protected AbstractOkapiHttpService() {
     this(WebClientFactory.getWebClient());
+  }
+  
+  protected Future<JsonObject> doWithErrorHandling(final ThrowingSupplier<Future<JsonObject>> work) {
+    return ErrorHandlingUtil.handleThrowables(work::get, TO_SERVICE_EXCEPTION);
   }
 
   private HttpRequest<Buffer> request ( @NotNull final HttpMethod method, @NotNull final String path, @NotNull final Map<String, String> headers ) throws MissingHeaderException {

@@ -16,7 +16,6 @@ import org.pac4j.core.profile.CommonProfile;
 
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 
@@ -25,79 +24,9 @@ import io.vertx.core.json.JsonObject;
  * 
  * @author Steve Osguthorpe
  */
-@VertxGen
 @ProxyGen
 public interface UserService {
   
-  private static String generateInitialUsername(final String firstName, final String lastName, final String email, @NotNull final String id) {
-    String name;
-    if (!StringUtils.isBlank(lastName)) {
-      name = lastName;
-      
-      // Prepend the first initial if firstname present.
-      if (!StringUtils.isBlank(firstName)) {
-        name = firstName.substring(0,1) + name;
-      }
-    } else {
-      name = StringUtils.isBlank(email) ? email : id;
-    }
-    
-    // Append a constant string and lowercase.    
-    return (name + "-sso-" + Instant.now().getMillis()).toLowerCase();
-  }
-  
-  /**
-   * Creates a base use object to be sent to the Users modules in order to
-   * add a user in the eventuality, we didn't match an existing one.
-   * 
-   * @return The user object
-   */
-  @GenIgnore
-  public static JsonObject createUserJSON(
-      @NotNull final String uuid,
-      @NotNull final String username,
-      @NotNull final String firstName,
-      @NotNull final String lastName,
-      @NotNull final String patgronGroupId,
-      final String email) {
-    
-    final JsonObject personal = new JsonObject()
-      // Add defaults for required properties
-      .put("firstName", firstName)
-      .put("lastName", lastName)
-    ;
-    
-    // Default personal info.
-    if (StringUtils.isBlank(email)) {
-      personal.put("email", email);
-    }
-    
-    return new JsonObject()
-      .put("id", uuid)
-      .put("username", username)
-      .put("active", true)
-      .put("patronGroup", patgronGroupId)
-      .put("personal", personal)
-    ;
-  }
-  
-  private static String getStrAtt(final CommonProfile profile, final String attribute) {
-    List<?> samlAttributeList = profile.extractAttributeValues(attribute);
-    if (samlAttributeList == null || samlAttributeList.isEmpty()) {
-      return null;
-    }
-    
-    // Return the first hit.
-    return samlAttributeList.get(0).toString();
-  }
-  
-  private static String getOrDefaultAttribute(final CommonProfile profile, final String attribute, final String defaultValue) {
-    return StringUtils.defaultIfBlank(
-      getStrAtt(profile, attribute),
-      defaultValue
-    );
-  }
-
   /**
    * Creates a base user object from a pac4j common profile and the config for this module.
    * {@link #createUserJSON(firstName, lastName, email) }
@@ -147,7 +76,76 @@ public interface UserService {
     );
   }
   
-  Future<JsonObject> findByAttribute(@NotNull final Map<String, String> headers, @NotNull final String attributeName, @NotNull final String attributeValue);
-  Future<JsonObject> findByID(@NotNull final Map<String, String> headers, @NotNull final String id );
-  Future<JsonObject> save(@NotNull final Map<String, String> headers, @NotNull final JsonObject user );
+  /**
+   * Creates a base use object to be sent to the Users modules in order to
+   * add a user in the eventuality, we didn't match an existing one.
+   * 
+   * @return The user object
+   */
+  @GenIgnore
+  public static JsonObject createUserJSON(
+      @NotNull final String uuid,
+      @NotNull final String username,
+      @NotNull final String firstName,
+      @NotNull final String lastName,
+      @NotNull final String patgronGroupId,
+      final String email) {
+    
+    final JsonObject personal = new JsonObject()
+      // Add defaults for required properties
+      .put("firstName", firstName)
+      .put("lastName", lastName)
+    ;
+    
+    // Default personal info.
+    if (StringUtils.isBlank(email)) {
+      personal.put("email", email);
+    }
+    
+    return new JsonObject()
+      .put("id", uuid)
+      .put("username", username)
+      .put("active", true)
+      .put("patronGroup", patgronGroupId)
+      .put("personal", personal)
+    ;
+  }
+  
+  private static String generateInitialUsername(final String firstName, final String lastName, final String email, @NotNull final String id) {
+    String name;
+    if (!StringUtils.isBlank(lastName)) {
+      name = lastName;
+      
+      // Prepend the first initial if firstname present.
+      if (!StringUtils.isBlank(firstName)) {
+        name = firstName.substring(0,1) + name;
+      }
+    } else {
+      name = StringUtils.isBlank(email) ? email : id;
+    }
+    
+    // Append a constant string and lowercase.    
+    return (name + "-sso-" + Instant.now().getMillis()).toLowerCase();
+  }
+  
+  private static String getOrDefaultAttribute(final CommonProfile profile, final String attribute, final String defaultValue) {
+    return StringUtils.defaultIfBlank(
+      getStrAtt(profile, attribute),
+      defaultValue
+    );
+  }
+
+  private static String getStrAtt(final CommonProfile profile, final String attribute) {
+    List<?> samlAttributeList = profile.extractAttributeValues(attribute);
+    if (samlAttributeList == null || samlAttributeList.isEmpty()) {
+      return null;
+    }
+    
+    // Return the first hit.
+    return samlAttributeList.get(0).toString();
+  }
+  
+  Future<JsonObject> findByAttribute( @NotNull final String attributeName, @NotNull final String attributeValue, @NotNull final Map<String, String> headers );
+  Future<JsonObject> findByID( @NotNull final String id, @NotNull final Map<String, String> headers );
+  Future<JsonObject> save( @NotNull final JsonObject user, @NotNull final Map<String, String> headers );
 }

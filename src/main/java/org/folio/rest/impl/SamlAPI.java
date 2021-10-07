@@ -11,7 +11,10 @@ import static org.pac4j.saml.state.SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUT
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.core.NewCookie;
@@ -43,7 +46,6 @@ import org.pac4j.vertx.VertxWebContext;
 import org.springframework.util.StringUtils;
 
 import io.vertx.core.*;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -52,8 +54,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.PRNG;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 /**
@@ -73,12 +73,10 @@ public class SamlAPI implements Saml {
   public void getSamlCheck(RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    handleThrowablesWithResponse(asyncResultHandler,
-      Client.get(routingContext, false, false)
-        .onComplete(samlClientHandler -> {
-          asyncResultHandler.handle(Future.succeededFuture(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(!samlClientHandler.failed()))));
-        })
-    );
+    Client.get(routingContext, false, false)
+      .onComplete(samlClientHandler -> {
+        asyncResultHandler.handle(Future.succeededFuture(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(!samlClientHandler.failed()))));
+      });
   }
 
   @Override
@@ -197,7 +195,7 @@ public class SamlAPI implements Saml {
             // Grab a proxy to talk to a user service implementation.
             final UserService userService = Services.proxyFor(vertxContext.owner(), UserService.class);
             
-            userService.findByAttribute(okapiHeaders, userPropertyName, samlAttributeValue)
+            userService.findByAttribute(userPropertyName, samlAttributeValue, okapiHeaders)
               .onSuccess(resultObject -> {
                 handleThrowablesWithResponse(asyncResultHandler, () -> {
                   int recordCount = resultObject.getInteger("totalRecords");
@@ -249,64 +247,6 @@ public class SamlAPI implements Saml {
                   asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(message)));
                 }
               });
-            
-            
-//            clientResponse.onSuccess(response -> {
-//              handleThrowablesWithResponse(asyncResultHandler, () -> {
-//
-//                assert2xx(response, "Error querying for user.");
-//              
-//                // Success...
-//                JsonObject resultObject = response.bodyAsJsonObject();
-//                int recordCount = resultObject.getInteger("totalRecords");
-//                if (recordCount > 1) {
-//                  asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond400WithTextPlain("More than one user record found!")));
-//                  // Fail if the saml properties match more than 1 user.
-//                  return;
-//                } else if (recordCount == 0) {
-//                  // No matching user was found. If we shouldn't create when missing then we should log and return.
-//                  if (!"true".equalsIgnoreCase(config.getUserCreateMissing())) {
-//                    String message = "No user found by " + userPropertyName + " == " + samlAttributeValue;
-//                    log.warn(message);
-//                    asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond400WithTextPlain(message)));
-//                    return;
-//                  }
-//                  CommonProfile profile =  credentials.getUserProfile();
-//                  JsonObject userData = UserService.createUserJSON(profile, config);
-//      
-//                  // Also add the property which we are joining on.
-//                  userData.put(userPropertyName, samlAttributeValue);
-//      
-//                  // Attempt to create the missing user.
-//                  handleThrowablesWithResponse(asyncResultHandler, 
-//                    webClient
-//                      .postAbs(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/users"))
-//                      .putHeaders(headers)
-//                      .sendJsonObject(userData)
-//                      
-//                    .onSuccess(createResponse -> {
-//                      assert2xx(createResponse, "Error creating user.");
-//                      
-//                      getTokenForUser(asyncResultHandler, parsedHeaders, createResponse.bodyAsJsonObject(), originalUrl, stripesBaseUrl);
-//                    })
-//                  );
-//                } else {
-//                  // 1 user found! Grab them and then grab a token.
-//                  final JsonObject userObject = resultObject.getJsonArray("users").getJsonObject(0);
-//                  getTokenForUser(asyncResultHandler, parsedHeaders, userObject, originalUrl, stripesBaseUrl);
-//                }
-//
-//              });
-//              
-//            }).onFailure(throwable -> {
-//              
-//              if (throwable instanceof HttpAction) {
-//                asyncResultHandler.handle(Future.succeededFuture(HttpActionMapper.toResponse((HttpAction)throwable)));
-//              } else {
-//                String message = StringUtils.hasText(throwable.getMessage()) ? throwable.getMessage() : "Unknown error: " + throwable.getClass().getName();
-//                asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(message)));
-//              }
-//            });
           }
         });
       });
@@ -319,41 +259,19 @@ public class SamlAPI implements Saml {
 
     handleThrowablesWithResponse(asyncResultHandler, 
       regenerateSaml2Config(routingContext)
-        .onComplete(regenerationHandler -> {
-          if (regenerationHandler.failed()) {
-            log.warn("Cannot regenerate SAML2 metadata.", regenerationHandler.cause());
-            String message =
-                "Cannot regenerate SAML2 matadata. Internal error was: " + regenerationHandler.cause().getMessage();
-            asyncResultHandler
-            .handle(Future.succeededFuture(GetSamlRegenerateResponse.respond500WithTextPlain(message)));
-          } else {
-    
-            ModuleConfig.get(routingContext).onComplete((AsyncResult<ModuleConfig> configRes) -> {
-              ModuleConfig config = configRes.result();
-              config.updateEntry(Config.METADATA_INVALIDATED, "false")
-              .onComplete(configurationEntryStoredEvent -> {
-    
-                if (configurationEntryStoredEvent.failed()) {
-                  asyncResultHandler.handle(Future.succeededFuture(GetSamlRegenerateResponse.respond500WithTextPlain("Cannot persist metadata invalidated flag!")));
-                } else {
-                  String metadata = regenerationHandler.result();
-    
-                  Base64Util.encode(vertxContext, metadata)
-                  .onComplete(base64Result -> {
-                    if (base64Result.failed()) {
-                      String message = base64Result.cause() == null ? "" : base64Result.cause().getMessage();
-                      GetSamlRegenerateResponse response = GetSamlRegenerateResponse.respond500WithTextPlain("Cannot encode file content " + message);
-                      asyncResultHandler.handle(Future.succeededFuture(response));
-                    } else {
+        .compose(metadata -> {
+          return ModuleConfig.get(routingContext)
+            .compose(config -> {
+              return config.updateEntry(Config.METADATA_INVALIDATED, "false")
+                .compose(_void -> {
+                  return Base64Util.encode(vertxContext, metadata)
+                    .onSuccess(base64Result -> {
                       SamlRegenerateResponse responseEntity = new SamlRegenerateResponse()
-                          .withFileContent(base64Result.result().toString(StandardCharsets.UTF_8));
+                          .withFileContent(base64Result.toString(StandardCharsets.UTF_8));
                       asyncResultHandler.handle(Future.succeededFuture(GetSamlRegenerateResponse.respond200WithApplicationJson(responseEntity)));
-                    }
-                  });
-                }
-              });
+                    });
+                });
             });
-          }
         })
     );
   }
@@ -365,7 +283,7 @@ public class SamlAPI implements Saml {
       String userId = userObject.getString("id");
       if (!userObject.getBoolean("active")) {
         asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond403WithTextPlain("Inactive user account!")));
-      } else {     
+      } else {
         
         final JsonObject payload = new JsonObject().put("payload", new JsonObject().put("sub", userObject.getString("username")).put("user_id", userId));
   
@@ -473,8 +391,9 @@ public class SamlAPI implements Saml {
       return;
     }
     
+    // TODO: Actually validate and remove the URL util checker method.
     handleThrowablesWithResponse(asyncResultHandler, 
-        UrlUtil.checkIdpUrl(value, vertxContext.owner())
+      UrlUtil.checkIdpUrl(value, vertxContext.owner())
     )
     .onSuccess(result -> {
       SamlValidateResponse response = new SamlValidateResponse();

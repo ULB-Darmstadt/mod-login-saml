@@ -1,21 +1,19 @@
 package org.folio.sso.saml;
 
 import static org.folio.sso.saml.Constants.MODULE_NAME;
+import static org.folio.sso.saml.Constants.Config.*;
+import static org.folio.util.ErrorHandlingUtil.assert2xx;
+import static org.folio.util.ErrorHandlingUtil.handleThrowables;
 
 import java.net.URI;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.SamlConfig;
 import org.folio.rest.jaxrs.model.SamlDefaultUser;
-import org.folio.sso.saml.Constants.Config;
-import static org.folio.util.ErrorHandlingUtil.*;
 import org.folio.util.HttpUtils;
 import org.folio.util.OkapiHelper;
 import org.folio.util.WebClientFactory;
@@ -60,8 +58,9 @@ public class ModuleConfig implements Configuration {
   private ModuleConfig( final OkapiHeaders okapiHeaders ) {
     this.okapiHeaders = okapiHeaders;
     this.invalidating_keys = new HashSet<String>();
-    this.invalidating_keys.add(Config.IDP_URL);
-    this.invalidating_keys.add(Config.OKAPI_URL);
+    Stream.of(
+      OKAPI_URL,KEYSTORE_FILE,KEYSTORE_PASSWORD,KEYSTORE_PRIVATEKEY_PASSWORD)
+    .forEach(this.invalidating_keys::add);
   }
   
   public static ModuleConfig fromModConfigJson ( final OkapiHeaders okapiHeaders, final JsonArray mcjson ) {
@@ -97,12 +96,12 @@ public class ModuleConfig implements Configuration {
     
     OkapiHeaders okapiHeaders = OkapiHelper.okapiHeaders(routingContext); 
 
-    String query = "(module==" + MODULE_NAME + " AND configName==" + Config.CONFIG_NAME + ")";
+    String query = "(module==" + MODULE_NAME + " AND configName==" + CONFIG_NAME + ")";
 
     handleThrowables(promise, () -> {
     
       String encodedQuery = URLEncoder.encode(query, "UTF-8");
-      final String theUrl = OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), Config.ENDPOINT_ENTRIES + "?limit=10000&query=" + encodedQuery); // this is ugly :/
+      final String theUrl = OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), ENDPOINT_ENTRIES + "?limit=10000&query=" + encodedQuery); // this is ugly :/
       WebClientFactory.getWebClient()
         .getAbs(theUrl)
         .putHeaders(okapiHeaders.securedInteropHeaders())
@@ -129,47 +128,47 @@ public class ModuleConfig implements Configuration {
   
   @Override
   public String getIdpUrl () {
-    return config.get(Config.IDP_URL);
+    return config.get(IDP_URL);
   }
 
   @Override
   public String getKeystore () {
-    return config.get(Config.KEYSTORE_FILE);
+    return config.get(KEYSTORE_FILE);
   }
 
   @Override
   public String getKeystorePassword () {
-    return config.get(Config.KEYSTORE_PASSWORD);
+    return config.get(KEYSTORE_PASSWORD);
   }
 
   @Override
   public String getMetadataInvalidated () {
-    return config.get(Config.METADATA_INVALIDATED);
+    return config.get(METADATA_INVALIDATED);
   }
 
   @Override
   public String getOkapiUrl () {
-    return config.get(Config.OKAPI_URL);
+    return config.get(OKAPI_URL);
   }
 
   @Override
   public String getPrivateKeyPassword () {
-    return config.get(Config.KEYSTORE_PRIVATEKEY_PASSWORD);
+    return config.get(KEYSTORE_PRIVATEKEY_PASSWORD);
   }
 
   @Override
   public String getSamlAttribute () {
-    return config.get(Config.SAML_ATTRIBUTE);
+    return config.get(SAML_ATTRIBUTE);
   }
 
   @Override
   public String getSamlBinding () {
-    return config.get(Config.SAML_BINDING);
+    return config.get(SAML_BINDING);
   }
 
   @Override
   public String getUserCreateMissing () {
-    return config.get(Config.USER_CREATE_MISSING);
+    return config.get(USER_CREATE_MISSING);
   }
 
   @Override
@@ -177,49 +176,49 @@ public class ModuleConfig implements Configuration {
     boolean defaultUser = false;
     Iterator<String> keys = this.config.keySet().iterator();
     while (!defaultUser && (keys.hasNext())) {
-      defaultUser = keys.next().startsWith(Config.DEFAULT_USER + ".");
+      defaultUser = keys.next().startsWith(DEFAULT_USER + ".");
     }
     return defaultUser;
   }
 
   @Override
   public String getUserDefaultEmailAttribute () {
-    return config.get(Config.DU_EMAIL_ATT);
+    return getConfig().get(DU_EMAIL_ATT);
   }
 
   @Override
   public String getUserDefaultFirstNameAttribute () {
-    return config.get(Config.DU_FIRST_NM_ATT);
+    return getConfig().get(DU_FIRST_NM_ATT);
   }
 
   @Override
   public String getUserDefaultFirstNameDefault () {
-    return config.get(Config.DU_FIRST_NM_DEFAULT);
+    return getConfig().get(DU_FIRST_NM_DEFAULT);
   }
 
   @Override
   public String getUserDefaultLastNameAttribute () {
-    return config.get(Config.DU_LAST_NM_ATT);
+    return getConfig().get(DU_LAST_NM_ATT);
   }
 
   @Override
   public String getUserDefaultLastNameDefault () {
-    return config.get(Config.DU_LAST_NM_DEFAULT);
+    return getConfig().get(DU_LAST_NM_DEFAULT);
   }
 
   @Override
   public String getUserDefaultPatronGroup () {
-    return config.get(Config.DU_PATRON_GRP);
+    return config.get(DU_PATRON_GRP);
   }
 
   @Override
   public String getUserDefaultUsernameAttribute () {
-    return config.get(Config.DU_UN_ATT);
+    return getConfig().get(DU_UN_ATT);
   }
 
   @Override
   public String getUserProperty () {
-    return config.get(Config.USER_PROPERTY);
+    return getConfig().get(USER_PROPERTY);
   }
   
   /**
@@ -254,7 +253,7 @@ public class ModuleConfig implements Configuration {
   
       final JsonObject requestBody = new JsonObject()
         .put("module", MODULE_NAME)
-        .put("configName", Config.CONFIG_NAME)
+        .put("configName", CONFIG_NAME)
         .put("code", code)
         .put("value", value);
   
@@ -262,7 +261,7 @@ public class ModuleConfig implements Configuration {
   
       // not existing -> POST, existing->PUT
       final HttpMethod httpMethod = configId == null ? HttpMethod.POST : HttpMethod.PUT;
-      final String endpoint = Config.ENDPOINT_ENTRIES + (configId == null ? "" : "/" + configId);
+      final String endpoint = ENDPOINT_ENTRIES + (configId == null ? "" : "/" + configId);
 
       WebClientFactory.getWebClient()
         .requestAbs(httpMethod, OkapiHelper.toOkapiUrl(okapiHeaders.getUrl(), endpoint))
@@ -299,7 +298,7 @@ public class ModuleConfig implements Configuration {
               
               // Invalidate also by recursively calling this method. And use
               // That result for the success.
-              updateEntry(Config.METADATA_INVALIDATED, "true")
+              updateEntry(METADATA_INVALIDATED, "true")
                 .onSuccess( h -> {
                   Client.forceReinit(okapiHeaders.getTenant());
                   result.complete();

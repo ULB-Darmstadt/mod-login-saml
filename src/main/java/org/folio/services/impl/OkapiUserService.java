@@ -12,7 +12,6 @@ import org.folio.services.UserService;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.predicate.ResponsePredicate;
 
 /**
  * @author Steve Osguthorpe
@@ -22,36 +21,36 @@ public class OkapiUserService extends AbstractOkapiHttpService implements UserSe
   private static final String BASE_PATH = "/users";
 
   @Override
-  public Future<JsonObject> save (@NotNull final Map<String, String> headers, @NotNull final JsonObject user) {
+  public Future<JsonObject> save ( @NotNull final JsonObject user, @NotNull final Map<String, String> headers ) {
     log.debug("OkapiUserService::save {}", user);
-    return Future.succeededFuture(user);
+    return doWithErrorHandling(() -> { return Future.succeededFuture(user); });
   }
 
   @Override
-  public Future<JsonObject> findByID (@NotNull final Map<String, String> headers, @NotNull String user) {
+  public Future<JsonObject> findByID ( @NotNull String user, @NotNull final Map<String, String> headers ) {
     return null;
   }
 
   @Override
-  public Future<JsonObject> findByAttribute (@NotNull final Map<String, String> headers, @NotNull final String attributeName, @NotNull String attributeValue) {
+  public Future<JsonObject> findByAttribute ( @NotNull final String attributeName, @NotNull String attributeValue, @NotNull final Map<String, String> headers ) {
     
-    try {
+    // the doWithErrorHandling method wraps the code wit hthe boiler plate error handling and conversion.    
+    return doWithErrorHandling(() -> {
+      // The CQL template
       final String usersCql = String.format("%s==\"%s\"", attributeName, attributeValue);
 
+      // Create the URI
       final UriBuilder userQuery = 
         UriBuilder.fromPath(BASE_PATH)
           .queryParam("query", usersCql);
+      
+      // This future is propagatedby the handleThrowables method.
       return get(userQuery.build(), headers)
-        .expect(ResponsePredicate.SC_SUCCESS)
+        .expect(SERVICE_SC_SUCCESS) // 2xx response only
         .send()
         .compose(response -> {
           return Future.succeededFuture(response.bodyAsJsonObject());
-        })
-      ;
-    } catch (Exception e) {
-      log.error("Error attempting to find user", e);
-    }
-    return null;
+        });
+    });
   }
-
 }

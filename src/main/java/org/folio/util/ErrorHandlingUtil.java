@@ -1,5 +1,7 @@
 package org.folio.util;
 
+import java.util.function.Function;
+
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
@@ -22,9 +24,20 @@ public class ErrorHandlingUtil {
   
   private ErrorHandlingUtil() {}
   
+  private static final Function<Throwable, Throwable> ERROR_CONVERTER = (throwable) -> {
+    // Default throwable handler just logs and returns the original.
+    defaultLoggingForThrowable(throwable);
+    return throwable;
+  };
+  
   @FunctionalInterface
   public static interface ThrowingBody {
     void exec() throws Throwable;
+  }
+  
+  @FunctionalInterface
+  public static interface ThrowingSupplier<R> {
+    R get() throws Throwable;
   }
   
   private static final Logger log = LogManager.getLogger(ErrorHandlingUtil.class);
@@ -44,17 +57,32 @@ public class ErrorHandlingUtil {
   }
   
   /**
-   * Adds an onFailure handler to propegate the general throwable failure from
+   * Adds an onFailure handler to propagate the general throwable failure from
    * the promise and to the other handler.
    *  
-   * @param handler
-   * @param future
+   * @param handler The handler which should be failed when the future fails
+   * @param future The future which we listen to for failure
    */
   public static <T, D> Future<T> handleThrowables (Handler<AsyncResult<D>> handler, Future<T> future) {
+    return handleThrowables(handler, future, ERROR_CONVERTER); 
+  }
+  
+
+  /**
+   * Adds an onFailure handler to propagate the general throwable failure from
+   * the promise and to the other handler.
+   *  
+   * @param handler The handler which should be failed when the future fails
+   * @param future The future which we listen to for failure
+   * @param errorConverter Takes in the exception and allows for creation of a new exception that will be used to fail the handler.
+   */
+  public static <T, D> Future<T> handleThrowables (Handler<AsyncResult<D>> handler, Future<T> future, Function<Throwable, Throwable> errorConverter) {
     return future.onFailure(throwable -> {
-      defaultLoggingForThrowable(throwable);
       
-      handler.handle(Future.failedFuture(throwable));
+      // Anything failing in the function should be used to fail the handler instead.
+      handleThrowables(handler, () -> {
+        handler.handle(Future.failedFuture(errorConverter.apply(throwable)));
+      });
     });
   }
   
@@ -67,12 +95,54 @@ public class ErrorHandlingUtil {
    * @param body
    */
   public static <D, T extends Handler<AsyncResult<D>>> void handleThrowables (T handler, ThrowingBody body) {
+    handleThrowables(handler, body, ERROR_CONVERTER);
+  }
+  
+  /**
+   * Handles exceptions in the supplied body by failing the supplied Handler.
+   * Because vertx promises extend Handler<AsyncResult<T>>, you can also use
+   * this with promises.
+   *  
+   * @param handler
+   * @param body
+   * @param errorConverter Takes in the exception and allows for creation of a new exception that will be used to fail the handler.
+   */
+  public static <D, T extends Handler<AsyncResult<D>>> void handleThrowables (T handler, ThrowingBody body, Function<Throwable, Throwable> errorConverter) {
     
     try {
       body.exec();
     } catch (Throwable t) {
-      defaultLoggingForThrowable(t);
-      handler.handle(Future.failedFuture(t));
+      handler.handle(Future.failedFuture(errorConverter.apply(t)));
+    }
+  }
+  
+  /**
+   * Handles exceptions in the supplied function by returning a failed future.
+   * Or the results of the body if successful. Helps for cleaner traditional try catch
+   * type code, while making testing easier.
+   *  
+   * @param handler
+   * @param body
+   */
+  public static <D> Future<D> handleThrowables (ThrowingSupplier<Future<D>> body) {
+    return handleThrowables(body, ERROR_CONVERTER);
+  }
+  
+  /**
+   * Handles exceptions in the supplied function by returning a failed future.
+   * Or the results of the body if successful. Helps for cleaner traditional try catch
+   * type code, while making testing easier.
+   *  
+   * @param handler
+   * @param body
+   * @param errorConverter Takes in the exception and allows for creation of a new exception that will be used to fail the handler.
+   */
+  public static <D> Future<D> handleThrowables (ThrowingSupplier<Future<D>> body, Function<Throwable, Throwable> errorConverter) {
+    
+    try {
+      return body.get();
+    } catch (Throwable t) {
+      return Future.failedFuture(errorConverter.apply(t));
     }
   }
   
