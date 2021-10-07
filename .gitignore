@@ -1,10 +1,9 @@
 *.iml
-.idea
 target
-.settings/
 bin/
 *.jks
-.classpath
-.project
-/.apt_generated/
-/.apt_generated_tests/
+
+# Exclude all dot files.
+.*
+!.editorconfig
+!.git*
