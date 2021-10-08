@@ -64,7 +64,6 @@ import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 public class SamlAPI implements Saml {
 
   private static final Logger log = LogManager.getLogger(SamlAPI.class);
-  public static final String QUOTATION_MARK_CHARACTER = "\"";
 
   /**
    * Check that client can be loaded, SAML-Login button can be displayed.
