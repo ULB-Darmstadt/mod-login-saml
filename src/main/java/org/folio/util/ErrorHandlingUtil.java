@@ -2,8 +2,6 @@ package org.folio.util;
 
 import java.util.function.Function;
 
-import javax.ws.rs.core.Response;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.ext.web.client.HttpResponse;
 
 /**
@@ -22,9 +21,26 @@ import io.vertx.ext.web.client.HttpResponse;
  */
 public class ErrorHandlingUtil {
   
+  /**
+   * Produce a future that fails if the handler throws any throwables. This is an improvement on the
+   * native implementation that only allows the handler to throw runtime exceptions.
+   * 
+   * @param <T> The generic type for the future
+   * @param handler The handler which may throw none runtime type exceptions.
+   * @return The future
+   */
+  public static <T> Future<T> checkedFuture(ThrowingHandler<Promise<T>> handler) {
+    
+    return Future.future((Promise<T> event) -> {
+      ErrorHandlingUtil.handleThrowables(event, () -> {
+        handler.handle(event);
+      });
+    });
+  }
+  
   private ErrorHandlingUtil() {}
   
-  private static final Function<Throwable, Throwable> ERROR_CONVERTER = (throwable) -> {
+  private static final Throwable ERROR_CONVERTER (Throwable throwable) {
     // Default throwable handler just logs and returns the original.
     defaultLoggingForThrowable(throwable);
     return throwable;
@@ -33,11 +49,6 @@ public class ErrorHandlingUtil {
   @FunctionalInterface
   public static interface ThrowingBody {
     void exec() throws Throwable;
-  }
-  
-  @FunctionalInterface
-  public static interface ThrowingSupplier<R> {
-    R get() throws Throwable;
   }
   
   private static final Logger log = LogManager.getLogger(ErrorHandlingUtil.class);
@@ -64,7 +75,7 @@ public class ErrorHandlingUtil {
    * @param future The future which we listen to for failure
    */
   public static <T, D> Future<T> handleThrowables (Handler<AsyncResult<D>> handler, Future<T> future) {
-    return handleThrowables(handler, future, ERROR_CONVERTER); 
+    return handleThrowables(handler, future, ErrorHandlingUtil::ERROR_CONVERTER); 
   }
   
 
@@ -95,7 +106,7 @@ public class ErrorHandlingUtil {
    * @param body
    */
   public static <D, T extends Handler<AsyncResult<D>>> void handleThrowables (T handler, ThrowingBody body) {
-    handleThrowables(handler, body, ERROR_CONVERTER);
+    handleThrowables(handler, body, ErrorHandlingUtil::ERROR_CONVERTER);
   }
   
   /**
@@ -125,7 +136,7 @@ public class ErrorHandlingUtil {
    * @param body
    */
   public static <D> Future<D> handleThrowables (ThrowingSupplier<Future<D>> body) {
-    return handleThrowables(body, ERROR_CONVERTER);
+    return handleThrowables(body, ErrorHandlingUtil::ERROR_CONVERTER);
   }
   
   /**
@@ -144,45 +155,6 @@ public class ErrorHandlingUtil {
     } catch (Throwable t) {
       return Future.failedFuture(errorConverter.apply(t));
     }
-  }
-  
-  /**
-   * Adds an onFailure handler to handle the general throwable failure.
-   *  
-   * @param handler
-   * @param future
-   */
-  public static <T, D extends Handler<AsyncResult<Response>>> Future<T> handleThrowablesWithResponse (D handler, Future<T> future) {
-    return future.onFailure(throwable -> {
-      defaultLoggingForThrowable(throwable);
-      throwableToResponseHandler(throwable, handler);
-    });
-  }
-  
-  /**
-   * Handles exceptions in the supplied body by succeeding the supplied Handler
-   * by sending an error 500 and setting the text response text.
-   *  
-   * @param handler
-   * @param body
-   */
-  public static <T extends Handler<AsyncResult<Response>>> void handleThrowablesWithResponse (T handler, ThrowingBody body) {
-    try {
-      body.exec();
-    } catch (Throwable t) {
-      defaultLoggingForThrowable(t);
-      throwableToResponseHandler(t, handler);
-    }
-  }
-  
-  private static void throwableToResponseHandler (Throwable throwable, Handler<AsyncResult<Response>> handler) {
-    final String text = throwable.getMessage();
-    handler.handle(Future.succeededFuture(Response
-      .status(500)
-      .header("Content-Type", "text/plain")
-      .entity(text)
-        .build()
-    ));
   }
   
   /**

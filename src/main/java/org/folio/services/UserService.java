@@ -146,6 +146,5 @@ public interface UserService {
   }
   
   Future<JsonObject> findByAttribute( @NotNull final String attributeName, @NotNull final String attributeValue, @NotNull final Map<String, String> headers );
-  Future<JsonObject> findByID( @NotNull final String id, @NotNull final Map<String, String> headers );
-  Future<JsonObject> save( @NotNull final JsonObject user, @NotNull final Map<String, String> headers );
+  Future<JsonObject> create( @NotNull final JsonObject user, @NotNull final Map<String, String> headers );
 }

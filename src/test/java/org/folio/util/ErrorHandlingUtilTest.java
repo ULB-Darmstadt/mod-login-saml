@@ -1,11 +1,9 @@
 package org.folio.util;
 
-import static org.folio.util.ErrorHandlingUtil.*;
+import static org.folio.util.ErrorHandlingUtil.assert2xx;
 import static org.folio.util.ErrorHandlingUtil.handleThrowables;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-
-import javax.ws.rs.core.Response;
 
 import org.folio.test.mock.MockHttpResponse;
 import org.folio.util.ErrorHandlingUtil.CriticalDependencyException;
@@ -93,14 +91,6 @@ public class ErrorHandlingUtilTest {
     });
   }
   
-  private Handler<AsyncResult<Response>> withRequestHandler(final TestContext context, final String message) {
-    return context.asyncAssertSuccess((Response res) -> {
-      context.assertTrue(res.getStatus() == 500, "Response exected: 500, received: " + res.getStatus());
-      context.assertEquals(res.getEntity(), message, "Response message expected: '" + message + 
-          "', found '" + res.getEntity() + "'");
-    });
-  }
-  
   @Test
   public void futureFailureFailsHandler(TestContext context) {
     final String message = "Failed doing stuff";
@@ -123,24 +113,6 @@ public class ErrorHandlingUtilTest {
     final String message = "This body allows throwables and should trigger handler failure";
     
     handleThrowables(withThrowableHandler(context, message), () -> {
-      throw new Exception (message);
-    });
-  }
-  
-  @Test
-  public void futureFailureSucceedsHandlerWith500Response (TestContext context) {
-    final String message = "Failed doing stuff";
-    handleThrowablesWithResponse(
-      withRequestHandler(context, message),
-      Future.failedFuture(message)
-    );
-  }
-  
-  @Test
-  public void thrownExceptionSucceedsHandlerWith500Response (TestContext context) {
-    final String message = "This body allows throwables and should trigger handler failure";
-    
-    handleThrowablesWithResponse(withRequestHandler(context, message), () -> {
       throw new Exception (message);
     });
   }

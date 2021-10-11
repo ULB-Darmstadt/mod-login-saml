@@ -11,6 +11,7 @@ import org.folio.services.AbstractOkapiHttpService;
 import org.folio.services.UserService;
 
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -21,22 +22,26 @@ public class OkapiUserService extends AbstractOkapiHttpService implements UserSe
   private static final String BASE_PATH = "/users";
 
   @Override
-  public Future<JsonObject> save ( @NotNull final JsonObject user, @NotNull final Map<String, String> headers ) {
-    log.debug("OkapiUserService::save {}", user);
-    return doWithErrorHandling(() -> { return Future.succeededFuture(user); });
-  }
-
-  @Override
-  public Future<JsonObject> findByID ( @NotNull String user, @NotNull final Map<String, String> headers ) {
-    return null;
+  public Future<JsonObject> create ( @NotNull final JsonObject userData, @NotNull final Map<String, String> headers ) {
+    
+    return Future.future((Promise<JsonObject> handler) -> {
+      log.debug("OkapiUserService::create");
+      if (log.isTraceEnabled()) log.trace("userdata: {}", userData);
+      
+      post(BASE_PATH, headers)
+        .expect(SERVICE_SC_SUCCESS) // 2xx response only
+        .sendJsonObject(userData)
+        
+      .map(response -> response.bodyAsJsonObject())
+      .onComplete(handler);
+      
+    }).recover(OkapiUserService::FAIL_WITH_SERVICE_EXCEPTION);
   }
 
   @Override
   public Future<JsonObject> findByAttribute ( @NotNull final String attributeName, @NotNull String attributeValue, @NotNull final Map<String, String> headers ) {
-    
-    // the doWithErrorHandling method wraps the code wit hthe boiler plate error handling and conversion.    
-    return doWithErrorHandling(() -> {
-      // The CQL template
+        
+    return Future.future((Promise<JsonObject> handler) -> {
       final String usersCql = String.format("%s==\"%s\"", attributeName, attributeValue);
 
       // Create the URI
@@ -44,13 +49,13 @@ public class OkapiUserService extends AbstractOkapiHttpService implements UserSe
         UriBuilder.fromPath(BASE_PATH)
           .queryParam("query", usersCql);
       
-      // This future is propagatedby the handleThrowables method.
-      return get(userQuery.build(), headers)
+      get(userQuery.build(), headers)
         .expect(SERVICE_SC_SUCCESS) // 2xx response only
         .send()
-        .compose(response -> {
-          return Future.succeededFuture(response.bodyAsJsonObject());
-        });
-    });
+        
+      .map(response -> response.bodyAsJsonObject())
+      .onComplete(handler);
+      
+    }).recover(OkapiUserService::FAIL_WITH_SERVICE_EXCEPTION);
   }
 }

@@ -3,7 +3,7 @@ package org.folio.sso.saml;
 /**
  * Interface for configuration object.
  *
- * @author Steve Osguthorpe<steve.osguthorpe@k-int.com>
+ * @author Steve Osguthorpe
  */
 public interface Configuration {
 

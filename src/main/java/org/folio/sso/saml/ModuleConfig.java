@@ -34,7 +34,7 @@ import io.vertx.ext.web.RoutingContext;
 /**
  * Module Config Object
  *
- * @author Steve Osguthorpe<steve.osguthorpe@k-int.com>
+ * @author Steve Osguthorpe
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ModuleConfig implements Configuration {

@@ -1,15 +1,17 @@
 package org.folio.util.model;
 
+import static org.folio.sso.saml.Constants.Exceptions.MSG_MISSING_HDR_OKAPI_URL;
+import static org.folio.sso.saml.Constants.Exceptions.MSG_MISSING_HDR_TENANT;
+import static org.folio.sso.saml.Constants.Exceptions.MSG_MISSING_HDR_TOKEN;
+
+import java.io.Serializable;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Strings;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
-
-import static org.folio.sso.saml.Constants.Exceptions.*;
-
-import java.io.Serializable;
 
 /**
  * POJO for Okapi headers parsing
@@ -63,11 +65,11 @@ public class OkapiHeaders implements Serializable {
     this.permissions = permissions;
   }
 
-  public static class MissingHeaderException extends Exception {
+  public static class MissingHeaderException extends RuntimeException {
     private static final long serialVersionUID = 7340537453740028325L;
 
     public MissingHeaderException(String message) {
-      super(message);
+      super(message, null, false, false);
     }
   }
   
