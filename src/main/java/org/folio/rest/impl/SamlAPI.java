@@ -268,49 +268,6 @@ public class SamlAPI implements Saml {
       return Future.succeededFuture( PostSamlCallbackResponse.respond302(headers302) );
   }
 
-  private static Future<Response> getTokenForUser(OkapiHeaders parsedHeaders, JsonObject userObject, URI originalUrl, URI stripesBaseUrl) {
-    
-    // We can skip early.
-    if (!userObject.getBoolean("active")) {
-      return Future.succeededFuture (PostSamlCallbackResponse.respond403WithTextPlain("Inactive user account!"));
-    }
-    
-    String userId = userObject.getString("id");
-    final JsonObject payload = new JsonObject().put("payload", new JsonObject().put("sub", userObject.getString("username")).put("user_id", userId));
-    return checkedFuture(handler -> {
-      WebClientFactory.getWebClient()
-        .postAbs(OkapiHelper.toOkapiUrl(parsedHeaders.getUrl(), "/token"))
-        .putHeaders(parsedHeaders.securedInteropHeaders())
-        .sendJsonObject(payload)
-        .map(tokenResponse -> {
-          assert2xx(tokenResponse, "Error creating token.");
-            
-          String candidateAuthToken = null;
-          if(tokenResponse.statusCode() == 200) {
-            candidateAuthToken = tokenResponse.headers().get(OkapiHeaders.OKAPI_TOKEN_HEADER);
-          } else {
-            //mod-authtoken v2.x returns 201, with token in JSON response body
-            candidateAuthToken = tokenResponse.bodyAsJsonObject().getString("token");
-          }
-          
-          final String authToken = candidateAuthToken;
-  
-          final String location = UriBuilder.fromUri(stripesBaseUrl)
-            .path("sso-landing")
-            .queryParam("ssoToken", authToken)
-            .queryParam("fwd", originalUrl.getPath())
-            .build()
-            .toString();
-  
-          final String cookie = new NewCookie("ssoToken", authToken, "", originalUrl.getHost(), "", 3600, false).toString();
-    
-          HeadersFor302 headers302 = PostSamlCallbackResponse.headersFor302().withSetCookie(cookie).withXOkapiToken(authToken).withLocation(location);
-          return (Response)PostSamlCallbackResponse.respond302(headers302);
-        })
-        .onComplete(handler);
-    });
-  }
-
   @Override
   public void getSamlConfiguration(RoutingContext rc, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
