@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 import org.folio.util.model.OkapiHeaders.MissingHeaderException;
 import org.junit.Test;
 
-public class OKapiHeadersTest {
+public class OkapiHeadersTest {
 
   @Test
   public void testVerifyOkapiSecuredInteropHeadersAllPresent() throws MissingHeaderException {
