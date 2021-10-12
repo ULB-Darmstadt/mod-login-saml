@@ -8,11 +8,15 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.services.AbstractOkapiHttpService;
+import org.folio.services.Services;
+import org.folio.services.TokenService;
 import org.folio.services.UserService;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.serviceproxy.ServiceException;
 
 /**
  * @author Steve Osguthorpe
@@ -55,6 +59,32 @@ public class OkapiUserService extends AbstractOkapiHttpService implements UserSe
         
       .map(response -> response.bodyAsJsonObject())
       .onComplete(handler);
+      
+    }).recover(OkapiUserService::FAIL_WITH_SERVICE_EXCEPTION);
+  }
+
+  @Override
+  public Future<String> getToken (@NotNull JsonObject user,
+      @NotNull Map<String, String> headers) {
+    
+    return Future.future((Promise<String> handler) -> {
+      
+      // We know the okapi user object should have an active status of true for this to be valid.
+      // We can check and bail early.
+      if (!user.getBoolean("active")) {
+        handler.handle(ServiceException.fail(403, "Inactive user account!"));
+        return;
+      }
+
+      final String userId = user.getString("id");
+      final String subject = user.getString("username");
+      
+      // Grab the token service implementation present.
+      final TokenService tokenService = Services.proxyFor(Vertx.currentContext().owner(), TokenService.class);
+      
+      // Use the handler to propagate the result.
+      tokenService.create(subject, userId, headers)
+        .onComplete(handler);
       
     }).recover(OkapiUserService::FAIL_WITH_SERVICE_EXCEPTION);
   }

@@ -19,6 +19,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 
@@ -95,7 +96,8 @@ public class HttpMockingVertx extends WireMockRule {
     props.put("https.proxyHost", "localhost");
     props.put("https.proxyPort", "" + mockServerPort);
     
-    vertx = Vertx.vertx();
+    vertx = Vertx.vertx(new VertxOptions()
+        .setBlockedThreadCheckInterval(10000*60*60));
     
     DeploymentOptions options = new DeploymentOptions()
       .setConfig(new JsonObject()

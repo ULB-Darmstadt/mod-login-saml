@@ -19,7 +19,6 @@ import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.HttpRequest;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.predicate.ErrorConverter;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.serviceproxy.ServiceException;
@@ -48,22 +47,12 @@ public abstract class AbstractOkapiHttpService {
     ResponsePredicate.SC_SUCCESS,
     RESPONSE_TO_SERVICE_EXCEPTION
   );
-
-  private final WebClient webClient;
-
-  protected AbstractOkapiHttpService(WebClient wc) {
-    webClient = wc;
-  }
-
-  protected AbstractOkapiHttpService() {
-    this(WebClientFactory.getWebClient());
-  }
   
   private HttpRequest<Buffer> request ( @NotNull final HttpMethod method, @NotNull final String path, @NotNull final Map<String, String> headers ) throws MissingHeaderException {
     
     final OkapiHeaders okh = OkapiHelper.okapiHeaders(headers);
     
-    return webClient
+    return WebClientFactory.getWebClient()
       .requestAbs(method, OkapiHelper.toOkapiUrl(okh.getUrl(), path))
       .putHeaders(okh.securedInteropHeaders())
     ;

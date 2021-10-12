@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -128,8 +129,8 @@ public class SamlAPI implements Saml {
   }
 
   @Override
-  public void postSamlCallback(RoutingContext routingContext, Map<String, String> okapiHeaders,
-      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void postSamlCallback(final RoutingContext routingContext, final Map<String, String> okapiHeaders,
+      final Handler<AsyncResult<Response>> asyncResultHandler, final Context vertxContext) {
 
     respondWith(asyncResultHandler, response -> {
       registerFakeSession(routingContext);
@@ -151,6 +152,8 @@ public class SamlAPI implements Saml {
       }
       
       final URI stripesBaseUrl = UrlUtil.parseBaseUrl(relayStateUrl);
+      
+      // Grab the ModuleConfig and the Saml client 
       CompositeFuture.all(
         ModuleConfig.get(routingContext),
         Client.get(routingContext, false, false)
@@ -172,10 +175,7 @@ public class SamlAPI implements Saml {
           return Future.succeededFuture(PostSamlCallbackResponse.respond400WithTextPlain("SAML attribute doesn't exist: " + samlAttributeName));
         }
         
-        
         final String samlAttributeValue = samlAttributeList.get(0).toString();
-
-        final OkapiHeaders parsedHeaders = OkapiHelper.okapiHeaders(okapiHeaders);
 
         // Grab a proxy to talk to a user service implementation.
         final UserService userService = Services.proxyFor(vertxContext.owner(), UserService.class);
@@ -202,15 +202,16 @@ public class SamlAPI implements Saml {
                 // Attempt to create the missing user.
                 return userService
                   .create(userData, okapiHeaders)
-                  .compose(createdUser -> {
-                    return getTokenForUser(parsedHeaders, createdUser, relayStateUrl, stripesBaseUrl);
-                  });
+                  .compose(createdUser -> userService.getToken(userData, okapiHeaders)
+                      .compose(token -> respondWithToken(stripesBaseUrl, relayStateUrl, token))
+                  );
                 // break;
                 
               case 1:
                 // 1 user found! Grab them and then grab a token.
                 final JsonObject userObject = resultObject.getJsonArray("users").getJsonObject(0);
-                return getTokenForUser(parsedHeaders, userObject, relayStateUrl, stripesBaseUrl);
+                return userService.getToken(userObject, okapiHeaders)
+                  .compose(token -> respondWithToken(stripesBaseUrl, relayStateUrl, token));
                 // break;
                
               default:
@@ -252,8 +253,22 @@ public class SamlAPI implements Saml {
       
     });
   }
+  
+  private static Future<Response> respondWithToken( @NotNull final URI allowedOrigin, @NotNull final URI returUrl, @NotNull final String token) {
+    final String location = UriBuilder.fromUri(allowedOrigin)
+        .path("sso-landing")
+        .queryParam("ssoToken", token)
+        .queryParam("fwd", returUrl.getPath())
+        .build()
+        .toString();
 
-  public static Future<Response> getTokenForUser(OkapiHeaders parsedHeaders, JsonObject userObject, URI originalUrl, URI stripesBaseUrl) {
+      final String cookie = new NewCookie("ssoToken", token, "", returUrl.getHost(), "", 3600, false).toString();
+
+      HeadersFor302 headers302 = PostSamlCallbackResponse.headersFor302().withSetCookie(cookie).withXOkapiToken(token).withLocation(location);
+      return Future.succeededFuture( PostSamlCallbackResponse.respond302(headers302) );
+  }
+
+  private static Future<Response> getTokenForUser(OkapiHeaders parsedHeaders, JsonObject userObject, URI originalUrl, URI stripesBaseUrl) {
     
     // We can skip early.
     if (!userObject.getBoolean("active")) {
@@ -311,7 +326,7 @@ public class SamlAPI implements Saml {
   @Override
   public void putSamlConfiguration(SamlConfigRequest updatedConfig, RoutingContext rc, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     
-    respondWith(asyncResultHandler, (Promise<Response> response) -> {
+    respondWith(asyncResultHandler, response -> {
       
       ModuleConfig.get(rc)
         .compose(config -> {
@@ -333,12 +348,9 @@ public class SamlAPI implements Saml {
             config.updateEntry(Config.DU_UN_ATT, sdu == null ? null : sdu.getUsernameAttribute())
             
             }))
-            .map(allUpdates -> {
-              // Config is updated at the same time now.
-              SamlConfig dto = config.getSamlConfig();
-              return (Response)PutSamlConfigurationResponse.respond200WithApplicationJson(dto);
-            });
+            .map(allUpdates -> (Response)PutSamlConfigurationResponse.respond200WithApplicationJson(config.getSamlConfig()));
         })
+        
       .onComplete(response);
     });
   }

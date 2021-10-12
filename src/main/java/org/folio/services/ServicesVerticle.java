@@ -3,6 +3,7 @@ package org.folio.services;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.folio.services.impl.OkapiTokenService;
 import org.folio.services.impl.OkapiUserService;
 
 import io.vertx.core.AbstractVerticle;
@@ -19,6 +20,7 @@ public class ServicesVerticle extends AbstractVerticle {
   public void start() {
     binder = new ServiceBinder(vertx);
     register(UserService.class, new OkapiUserService());
+    register(TokenService.class, new OkapiTokenService());
   }
   
   private <T, D extends T> void register( final Class<T> serviceClass, D inst ) {
