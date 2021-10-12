@@ -5,8 +5,6 @@ import static org.folio.sso.saml.Constants.COOKIE_RELAY_STATE;
 import static org.folio.sso.saml.Constants.QUERY_PARAM_CSRF_TOKEN;
 import static org.folio.util.APIUtils.blockingRespondWith;
 import static org.folio.util.APIUtils.respondWith;
-import static org.folio.util.ErrorHandlingUtil.assert2xx;
-import static org.folio.util.ErrorHandlingUtil.checkedFuture;
 import static org.pac4j.saml.state.SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUTE;
 
 import java.net.URI;
@@ -37,7 +35,6 @@ import org.folio.sso.saml.ModuleConfig;
 import org.folio.sso.saml.metadata.DiscoAwareServiceProviderMetadataResolver;
 import org.folio.sso.saml.metadata.FederationIdentityProviderMetadataResolver;
 import org.folio.util.*;
-import org.folio.util.model.OkapiHeaders;
 import org.pac4j.core.exception.http.HttpAction;
 import org.pac4j.core.exception.http.OkAction;
 import org.pac4j.core.exception.http.RedirectionAction;
