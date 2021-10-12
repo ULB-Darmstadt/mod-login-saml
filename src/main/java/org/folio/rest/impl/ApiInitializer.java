@@ -30,9 +30,8 @@ public class ApiInitializer implements InitAPI {
 
     vertx.deployVerticle(new ServicesVerticle(), ar -> {
       log.debug("Deployed services verticle");
+      handler.handle(ar.map(true));
     });
-    
-    handler.handle(Future.succeededFuture(true));
   }
 
   /**

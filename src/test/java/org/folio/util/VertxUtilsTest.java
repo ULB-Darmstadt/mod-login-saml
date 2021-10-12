@@ -5,12 +5,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Optional;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.tools.utils.NetworkUtils;
 import org.folio.util.VertxUtils.DummySessionStore;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.pac4j.core.context.session.SessionStore;
@@ -26,8 +28,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 
-import java.util.Optional;
-
 @RunWith(VertxUnitRunner.class)
 public class VertxUtilsTest {
 
@@ -37,25 +37,44 @@ public class VertxUtilsTest {
   public static final String VALUE = "foo";
   public static final String VALUE2 = "bar";
 
-  public final Vertx vertx = Vertx.vertx();
-  public final int port = NetworkUtils.nextFreePort();
-  public HttpServer server;
+  private static Vertx vertx;
+  private static int port;
+  private static HttpServer server;
 
-  @Before
-  public void before(TestContext context) {
+  @BeforeClass
+  public static void beforeClass(TestContext context) {
+    vertx = Vertx.vertx();
+    port = NetworkUtils.nextFreePort();
+    
     Router router = Router.router(vertx);
     server = vertx.createHttpServer();
 
     router.route("/foo")
-      .handler(this::handle);
+      .handler(VertxUtilsTest::handle);
 
     server.requestHandler(router)
-      .listen(port, context.asyncAssertSuccess());
+      .listen(port, result -> {
+        if (result.failed()) {
+          logger.error("Error starting server", result.cause());
+        }
+        
+        context.asyncAssertSuccess().handle(
+          result.map(server -> ((Object)server))
+        );
+      });
   }
 
-  @After
-  public void after(TestContext context) {
-    server.close(context.asyncAssertSuccess());
+  @AfterClass
+  public static void afterClass(TestContext context) {
+    
+    server.close(result -> {
+      if (result.failed()) {
+        logger.error("Error closing server", result.cause());
+      }
+      // Always close vertx.
+      vertx.close(context.asyncAssertSuccess());
+    });
+    
   }
 
   @Test
@@ -65,7 +84,7 @@ public class VertxUtilsTest {
       .statusCode(200).log().ifValidationFails();
   }
 
-  private void handle(RoutingContext rc) {
+  private static void handle(RoutingContext rc) {
     try {
       Session session = new SharedDataSessionImpl(new PRNG(vertx));
       session.put(KEY, VALUE);

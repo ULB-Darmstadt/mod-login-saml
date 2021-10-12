@@ -40,11 +40,12 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- remove xerces exclusion when upgrading to RMB >= 33.0.3: https://issues.folio.org/browse/RMB-859 -->
-    <raml-module-builder-version>33.0.2</raml-module-builder-version>
+    <raml-module-builder-version>33.1.1</raml-module-builder-version>
     <generate_routing_context>
       /saml/callback,/saml/regenerate,/saml/login,/saml/check,/saml/configuration,/saml/metadata,/saml/configuration/idps-all
     </generate_routing_context>
 
+    <vertx.version>4.1.4</vertx.version>
     <pac4j.version>4.5.2</pac4j.version>
     <rest-assured.version>4.3.1</rest-assured.version>
     <vertx-pac4j.version>5.0.2-FOLIO.1</vertx-pac4j.version>
@@ -58,7 +59,7 @@
       <dependency>
         <groupId>io.vertx</groupId>
         <artifactId>vertx-stack-depchain</artifactId>
-        <version>4.1.0</version>
+        <version>${vertx.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -211,7 +212,7 @@
   <build>
     <pluginManagement>
       <plugins>
-        <!--This plugin's configuration is used to store Eclipse m2e settings 
+        <!--This plugin's configuration is used to store Eclipse m2e settings
           only. It has no influence on the Maven build itself. -->
         <plugin>
           <groupId>org.eclipse.m2e</groupId>
@@ -260,6 +261,8 @@
         <configuration>
           <release>11</release>
           <encoding>UTF-8</encoding>
+          <!-- Important: there are issues with apt and incremental compilation in the maven-compiler-plugin -->
+          <useIncrementalCompilation>false</useIncrementalCompilation>
         </configuration>
       </plugin>
 
@@ -283,6 +286,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0-M4</version>
+        <configuration>
+          <reuseForks>false</reuseForks>
+          <forkCount>1</forkCount>
+        </configuration>
       </plugin>
 
       <plugin>

@@ -55,7 +55,7 @@ public class HttpMockingVertx extends WireMockRule {
       wireMockConfig()
         .port(mockServerPort)
         .enableBrowserProxying(true)
-        .notifier(new ConsoleNotifier(true))
+        .notifier(new ConsoleNotifier(false))
         .extensions(new ResponseTemplateTransformer(false, getHelpers()))
       , false);
     this.mockServerPort = mockServerPort;

@@ -10,10 +10,9 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.RestVerticle;
+import org.folio.rest.tools.utils.NetworkUtils;
 import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import io.restassured.RestAssured;
@@ -41,12 +40,14 @@ public class CorsTest {
   private static final Header TENANT_HEADER = new Header("X-Okapi-Tenant", TENANT_NAME);
   private static final Header TOKEN_HEADER = new Header("X-Okapi-Token", "saml-test");
   private static final Header OKAPI_URL_HEADER = new Header("X-Okapi-Url", okapi.toString());
-  private Vertx vertx;
+  private static Vertx vertx;
+  private static int PORT;
   
-  public static final int PORT = 8081;
-  
-  @Before
-  public void setUp(TestContext context) throws IOException {
+  @BeforeClass
+  public static void setUpClass(TestContext context) throws IOException {
+    
+    PORT = NetworkUtils.nextFreePort();
+    
     vertx = Vertx.vertx();
 
     DeploymentOptions options = new DeploymentOptions()
@@ -59,10 +60,11 @@ public class CorsTest {
     vertx.deployVerticle(new RestVerticle(), options, context.asyncAssertSuccess());
   }
 
-  @After
-  public void tearDown(TestContext context) {
+  @AfterClass
+  public static void tearDownClass(TestContext context) {
     // Need to clear singleton to maintain test/order independence
     vertx.close(context.asyncAssertSuccess());
+    vertx = null;
   }
   
   @Test
