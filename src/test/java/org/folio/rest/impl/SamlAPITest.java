@@ -12,12 +12,14 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.util.Arrays;
 
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.junit.rules.HttpMockingVertx;
+import org.folio.rest.jaxrs.model.HomeInstitution;
 import org.folio.rest.jaxrs.model.SamlConfigRequest;
 import org.folio.sso.saml.Client;
 import org.folio.util.TestingClasspathResolver;
@@ -388,36 +390,39 @@ public class SamlAPITest {
         .withIdpUrl(URI.create("http://mock-idp/xml"))
         .withSamlAttribute("UserID")
         .withSamlBinding(SamlConfigRequest.SamlBinding.REDIRECT)
-        .withUserProperty("externalSystemId")
+        .withUserProperty("externalSystemId")        
         .withUserCreateMissing(false)
         .withOkapiUrl(URI.create("http://localhost:9130"));
 
     String jsonString = Json.encode(samlConfigRequest);
 
     given()
-    .header(TENANT_HEADER)
-    .header(TOKEN_HEADER)
-    .header(OKAPI_URL_HEADER)
-    .header(JSON_CONTENT_TYPE_HEADER)
-    .body(jsonString)
-    .put("/saml/configuration")
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .header(JSON_CONTENT_TYPE_HEADER)
+      .body(jsonString)
+      .put("/saml/configuration")
+      
     .then()
-    .statusCode(200)
-    .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlConfig.json"));
+      .statusCode(200)
+      .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlConfig.json"));
 
     // Get metadata, ensure it's changed
-    String regeneratedMetadata = given()
-        .header(TENANT_HEADER)
-        .header(TOKEN_HEADER)
-        .header(OKAPI_URL_HEADER)
-        .get("/saml/regenerate")
-        .then()
-        .contentType(ContentType.JSON)
-        .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlRegenerateResponse.json"))
-        .body("fileContent", matchesBase64XsdInClasspath("schemas/saml-schema-metadata-2.0.xsd", resolver))
-        .statusCode(200)
-        .extract().asString();
+    final String regeneratedMetadata = given()
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .get("/saml/regenerate")
+      
+    .then()
+      .contentType(ContentType.JSON)
+      .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlRegenerateResponse.json"))
+      .body("fileContent", matchesBase64XsdInClasspath("schemas/saml-schema-metadata-2.0.xsd", resolver))
+      .statusCode(200)
+      .extract().asString();
 
+    
     assertNotEquals(metadata, regeneratedMetadata);
   }
 
@@ -570,6 +575,14 @@ public class SamlAPITest {
         .withUserCreateMissing(false)
         .withSamlBinding(SamlConfigRequest.SamlBinding.POST)
         .withUserProperty("externalSystemId")
+        .withHomeInstitution(new HomeInstitution()
+            .withId("http://test.id")
+            .withPatronGroup("58109b10-2d1c-11ec-a778-d7c066ba98f4"))
+          .withSelectedIdentityProviders(Arrays.asList(new HomeInstitution[] {
+            new HomeInstitution()
+              .withId("http://test2.id")
+              .withPatronGroup("58109b10-2d1c-11ec-a778-d7c066ba98f4")
+          }))
         .withOkapiUrl(URI.create("http://localhost:9130"));
 
     String jsonString = Json.encode(samlConfigRequest);
@@ -584,7 +597,9 @@ public class SamlAPITest {
     .put("/saml/configuration")
     .then()
     .statusCode(200)
-    .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlConfig.json"));
+    .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlConfig.json"))
+    .body("homeInstitution", Matchers.aMapWithSize(2))
+    .body("selectedIdentityProviders", Matchers.hasSize(1));
   }
 
   @Test

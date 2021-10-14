@@ -273,7 +273,6 @@ public class ModuleConfig implements Configuration {
    */
   public Future<Void> updateEntry(final String code, final String value) {
 
-    
     Assert.hasText(code, "config entry CODE is mandatory");
     
     // Grab the existing one from here...

@@ -3,6 +3,9 @@ package org.folio.rest.impl;
 import static io.vertx.core.http.HttpHeaders.*;
 import static org.folio.sso.saml.Constants.COOKIE_RELAY_STATE;
 import static org.folio.sso.saml.Constants.QUERY_PARAM_CSRF_TOKEN;
+import static org.folio.sso.saml.Constants.Config.INST_ID;
+import static org.folio.sso.saml.Constants.Config.PATRON_GRP;
+import static org.folio.sso.saml.Constants.Config.SELECTED_IDPS;
 import static org.folio.util.APIUtils.blockingRespondWith;
 import static org.folio.util.APIUtils.respondWith;
 import static org.pac4j.saml.state.SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUTE;
@@ -12,7 +15,6 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.NewCookie;
@@ -284,8 +286,10 @@ public class SamlAPI implements Saml {
         .compose(config -> {
           final SamlDefaultUser sdu = updatedConfig.getSamlDefaultUser();
           final HomeInstitution hi = updatedConfig.getHomeInstitution();
+          
+          
           @SuppressWarnings("rawtypes")
-          final List<Future> futures = Arrays.asList(new Future[] {
+          final List<Future> futures = new ArrayList<>(Arrays.asList(new Future[] {
 
             config.updateEntry(Config.VERSION_PROPERTY,
                 Optional.ofNullable(updatedConfig.getVersion()).map(val -> (val + "")).orElse(null)),
@@ -308,14 +312,20 @@ public class SamlAPI implements Saml {
             config.updateEntry(Config.HI_ID, hi == null ? null : hi.getId()),
             config.updateEntry(Config.HI_PATRON_GRP, hi == null ? null : hi.getPatronGroup())
             
-          });
+          }));
           
           // Also add the futures for the configured IDPs
-          updatedConfig.getSelectedIdentityProviders().parallelStream()
-            .forEach(sidp -> Stream.of(
-              config.updateEntry(Config.HI_ID, sidp == null ? null : sidp.getId()),
-              config.updateEntry(Config.HI_PATRON_GRP, sidp == null ? null : sidp.getPatronGroup())
-            ).forEach(futures::add));
+          List<HomeInstitution> providers = updatedConfig.getSelectedIdentityProviders();
+          for (int i=0; i<providers.size(); i++) {
+            final HomeInstitution sidp = providers.get(i);
+            final String prefix = String.format("%s[%d]", SELECTED_IDPS, i);
+            
+            final String instId = prefix + INST_ID;
+            final String patronGrp = prefix + PATRON_GRP; 
+            
+            futures.add(config.updateEntry(instId, sidp.getId()));
+            futures.add(config.updateEntry(patronGrp, sidp.getPatronGroup()));
+          }
           
           return CompositeFuture.all(futures)
             .map(allUpdates -> (Response)PutSamlConfigurationResponse.respond200WithApplicationJson(config.getSamlConfig()));
