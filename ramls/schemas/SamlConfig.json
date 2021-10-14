@@ -1,13 +1,13 @@
 {
-  "$schema": "http://json-schema.org/draft-03/schema#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "description": "Holds SAML configuration properties",
+  "required" : [ "idpUrl", "userCreateMissing" , "okapiUrl" ],
   "properties": {
     "idpUrl": {
       "description": "the URL of the identity provider",
       "type": "string",
-      "format": "uri",
-      "required": true
+      "format": "uri"
     },
     "samlBinding": {
       "description": "the SAML binding to use",
@@ -15,38 +15,52 @@
       "enum": [
         "POST",
         "REDIRECT"
-      ],
-      "required": false
+      ]
     },
     "samlAttribute": {
       "description": "the SAML attribute to use for matching against a FOLIO user",
-      "type": "string",
-      "required": false
+      "type": "string"
     },
     "userProperty": {
       "description": "the property from the user record to use for matching against the SAML attribute",
-      "type": "string",
-      "required": false
+      "type": "string"
     },
     "userCreateMissing": {
       "description": "Create local user accounts when a successful SAML authentication cannot be matched to an existing user",
       "type": "boolean",
-      "example": false,
-      "required": true
+      "example": false
     },
     "samlDefaultUser": {
       "$ref": "SamlDefaultUser.json"
     },
     "metadataInvalidated": {
       "type": "boolean",
-      "description": "Indicates that there is a change in configuration that can break working of module, like IdP URL or encryption key changed.",
-      "required": false
+      "description": "Indicates that there is a change in configuration that can break working of module, like IdP URL or encryption key changed."
+    },
+    "homeInstitution": {
+      "$ref": "SamlConfigIdpEntry.json"
+    },
+    "selectedIdentityProviders": {
+      "type": "array",
+      "items": {
+        "$ref": "SamlConfigIdpEntry.json"
+      }
     },
     "okapiUrl": {
       "description": "Where to find OKAPI",
       "type": "string",
-      "format": "uri",
-      "required": true
+      "format": "uri"
+    },
+    "_version": { "type": "number", "multipleOf": 0.1 }
+  },
+  "anyOf": [{
+    "properties": {
+      "_version": { "maximum": 2.2 }
     }
-  }
+  },{
+    "properties": {
+      "_version": { "minimum": 2.3 }
+    },
+    "required": ["_version", "homeInstitution"]
+  }]
 }

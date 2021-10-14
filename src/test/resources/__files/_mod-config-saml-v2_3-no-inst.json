@@ -5,7 +5,7 @@
       "module": "LOGIN-SAML",
       "configName": "saml",
       "code": "idp.url",
-      "value": "http://mock-metadata-target/metadata"
+      "value": "https://idp.ssocircle.com"
     },
     {
       "id": "022d8342-fa51-44d1-8b2b-27da36e11f07",
@@ -48,7 +48,14 @@
       "configName": "saml",
       "code": "okapi.url",
       "value": "http://localhost:9130"
+    },
+    {
+      "id": "c7cc1c3c-2ce4-11ec-8218-f7608f8ec800",
+      "module": "LOGIN-SAML",
+      "configName": "saml",
+      "code": "_version",
+      "value": "2.3"
     }
   ],
-  "totalRecords": 7
+  "totalRecords": 8
 }

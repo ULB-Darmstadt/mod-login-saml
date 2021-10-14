@@ -8,10 +8,14 @@ import static org.folio.util.ErrorHandlingUtil.handleThrowables;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.validation.constraints.NotNull;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.rest.jaxrs.model.HomeInstitution;
 import org.folio.rest.jaxrs.model.SamlConfig;
 import org.folio.rest.jaxrs.model.SamlDefaultUser;
 import org.folio.util.HttpUtils;
@@ -128,47 +132,47 @@ public class ModuleConfig implements Configuration {
   
   @Override
   public String getIdpUrl () {
-    return config.get(IDP_URL);
+    return getConfig().get(IDP_URL);
   }
 
   @Override
   public String getKeystore () {
-    return config.get(KEYSTORE_FILE);
+    return getConfig().get(KEYSTORE_FILE);
   }
 
   @Override
   public String getKeystorePassword () {
-    return config.get(KEYSTORE_PASSWORD);
+    return getConfig().get(KEYSTORE_PASSWORD);
   }
 
   @Override
   public String getMetadataInvalidated () {
-    return config.get(METADATA_INVALIDATED);
+    return getConfig().get(METADATA_INVALIDATED);
   }
 
   @Override
   public String getOkapiUrl () {
-    return config.get(OKAPI_URL);
+    return getConfig().get(OKAPI_URL);
   }
 
   @Override
   public String getPrivateKeyPassword () {
-    return config.get(KEYSTORE_PRIVATEKEY_PASSWORD);
+    return getConfig().get(KEYSTORE_PRIVATEKEY_PASSWORD);
   }
 
   @Override
   public String getSamlAttribute () {
-    return config.get(SAML_ATTRIBUTE);
+    return getConfig().get(SAML_ATTRIBUTE);
   }
 
   @Override
   public String getSamlBinding () {
-    return config.get(SAML_BINDING);
+    return getConfig().get(SAML_BINDING);
   }
 
   @Override
   public String getUserCreateMissing () {
-    return config.get(USER_CREATE_MISSING);
+    return getConfig().get(USER_CREATE_MISSING);
   }
 
   @Override
@@ -179,6 +183,12 @@ public class ModuleConfig implements Configuration {
       defaultUser = keys.next().startsWith(DEFAULT_USER + ".");
     }
     return defaultUser;
+  }
+  
+  @Override
+  public Double getVersion () {
+    final String strVersion = getConfig().get(VERSION_PROPERTY);
+    return strVersion == null ? null : Double.valueOf(strVersion);
   }
 
   @Override
@@ -208,7 +218,7 @@ public class ModuleConfig implements Configuration {
 
   @Override
   public String getUserDefaultPatronGroup () {
-    return config.get(DU_PATRON_GRP);
+    return getConfig().get(DU_PATRON_GRP);
   }
 
   @Override
@@ -219,6 +229,38 @@ public class ModuleConfig implements Configuration {
   @Override
   public String getUserProperty () {
     return getConfig().get(USER_PROPERTY);
+  }
+  
+  private HomeInstitution attributesToInstitution(@NotNull final String keyPrefix) {
+    final String instId = getConfig().get(keyPrefix + INST_ID);
+    final String patronGrp = getConfig().get(keyPrefix + PATRON_GRP);    
+    
+    if (instId == null || patronGrp == null) {
+      return null;
+    }
+      
+    return new HomeInstitution()
+      .withId(instId)
+      .withPatronGroup(patronGrp);
+  }
+  
+  @Override
+  public HomeInstitution getHomeInstitution () {
+    return attributesToInstitution(HOME_INSTITUTION);
+  }
+
+  @Override
+  public List<HomeInstitution> getSelectedIdentityProviders () {
+    return getConfig().keySet()
+      .stream().filter( entry -> {
+        return entry.matches(SELECTED_IDP_ID_REGEX);
+      })
+      .map(entry -> Integer.valueOf(entry.replaceAll(SELECTED_IDP_ID_REGEX, "$1")))
+      .sorted()
+      .map(idx -> String.format("%s[%d]", SELECTED_IDPS, idx))
+      .map(this::attributesToInstitution)
+      .filter( Objects::nonNull )
+      .collect(Collectors.toUnmodifiableList());
   }
   
   /**
@@ -357,7 +399,7 @@ public class ModuleConfig implements Configuration {
         ;
     return defaultUser;
   }
-  
+    
   /**
    * Converts to the RMB managed model for the Config.
    */
@@ -365,8 +407,11 @@ public class ModuleConfig implements Configuration {
     SamlConfig samlConfig = new SamlConfig()
       .withSamlAttribute(getSamlAttribute())
       .withUserProperty(getUserProperty())
+      .withHomeInstitution(getHomeInstitution())
+      .withSelectedIdentityProviders(getSelectedIdentityProviders())
       .withMetadataInvalidated(Boolean.valueOf(getMetadataInvalidated()))
       .withUserCreateMissing(Boolean.valueOf(getUserCreateMissing()))
+      .withVersion(getVersion())
       .withSamlDefaultUser(getSamlDefaultUser())
     ;
 

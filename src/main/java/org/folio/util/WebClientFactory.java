@@ -84,6 +84,7 @@ public class WebClientFactory {
 
   private static WebClient init(Vertx vertx) throws Exception {
     
+    // Move this to a central service. Allow for defaults then add mod config for overrides.
     ConfigRetriever configRetriever = ConfigRetriever.create(vertx);
     Future<WebClient> wcFuture = configRetriever.getConfig().compose(conf -> {
       

@@ -5,7 +5,7 @@
       "module": "LOGIN-SAML",
       "configName": "saml",
       "code": "idp.url",
-      "value": "http://mock-metadata-target/metadata"
+      "value": "https://idp.ssocircle.com"
     },
     {
       "id": "022d8342-fa51-44d1-8b2b-27da36e11f07",
@@ -48,7 +48,42 @@
       "configName": "saml",
       "code": "okapi.url",
       "value": "http://localhost:9130"
+    },
+    {
+      "id": "c7cc1c3c-2ce4-11ec-8218-f7608f8ec800",
+      "module": "LOGIN-SAML",
+      "configName": "saml",
+      "code": "_version",
+      "value": "2.3"
+    },
+    {
+      "id": "42f5d600-2ce5-11ec-80cf-6719c44ec7d3",
+      "module": "LOGIN-SAML",
+      "configName": "saml",
+      "code": "homeInstitution.id",
+      "value": "http://inst.id"
+    },
+    {
+      "id": "43692d3a-2ce5-11ec-8a19-534a5dc1105a",
+      "module": "LOGIN-SAML",
+      "configName": "saml",
+      "code": "homeInstitution.patronGroup",
+      "value": "7401f30a-2ce5-11ec-813f-4ba3cc071e80"
+    },
+    {
+      "id": "a1b1968c-2cf6-11ec-8194-03f5bb5b9c7d",
+      "module": "LOGIN-SAML",
+      "configName": "saml",
+      "code": "selectedIdentityProviders[0].id",
+      "value": "http://inst2.id"
+    },
+    {
+      "id": "a1f6f2f4-2cf6-11ec-8c0d-db1b59a5cfff",
+      "module": "LOGIN-SAML",
+      "configName": "saml",
+      "code": "selectedIdentityProviders[0].patronGroup",
+      "value": "a2393a42-2cf6-11ec-87bc-d7e122947a20"
     }
   ],
-  "totalRecords": 7
+  "totalRecords": 12
 }

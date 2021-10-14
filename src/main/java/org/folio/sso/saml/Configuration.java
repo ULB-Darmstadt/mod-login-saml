@@ -1,5 +1,9 @@
 package org.folio.sso.saml;
 
+import java.util.List;
+
+import org.folio.rest.jaxrs.model.HomeInstitution;
+
 /**
  * Interface for configuration object.
  *
@@ -42,4 +46,10 @@ public interface Configuration {
   public String getUserDefaultUsernameAttribute();
 
   public String getUserProperty();
+
+  public HomeInstitution getHomeInstitution();
+  
+  public Double getVersion();
+  
+  public List<HomeInstitution> getSelectedIdentityProviders();
 }

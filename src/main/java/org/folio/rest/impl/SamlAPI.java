@@ -10,11 +10,9 @@ import static org.pac4j.saml.state.SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUT
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.NewCookie;
@@ -285,7 +283,13 @@ public class SamlAPI implements Saml {
       ModuleConfig.get(rc)
         .compose(config -> {
           final SamlDefaultUser sdu = updatedConfig.getSamlDefaultUser();
-          return CompositeFuture.all(Arrays.asList(new Future[] {
+          final HomeInstitution hi = updatedConfig.getHomeInstitution();
+          @SuppressWarnings("rawtypes")
+          final List<Future> futures = Arrays.asList(new Future[] {
+
+            config.updateEntry(Config.VERSION_PROPERTY,
+                Optional.ofNullable(updatedConfig.getVersion()).map(val -> (val + "")).orElse(null)),
+
             config.updateEntry(Config.IDP_URL, updatedConfig.getIdpUrl().toString()),
             config.updateEntry(Config.SAML_BINDING, updatedConfig.getSamlBinding().toString()),
             config.updateEntry(Config.SAML_ATTRIBUTE, updatedConfig.getSamlAttribute().toString()),
@@ -299,9 +303,21 @@ public class SamlAPI implements Saml {
             config.updateEntry(Config.DU_LAST_NM_ATT, sdu == null ? null : sdu.getLastNameAttribute()),
             config.updateEntry(Config.DU_LAST_NM_DEFAULT, sdu == null ? null : sdu.getLastNameDefault()),
             config.updateEntry(Config.DU_PATRON_GRP, sdu == null ? null : sdu.getPatronGroup()),
-            config.updateEntry(Config.DU_UN_ATT, sdu == null ? null : sdu.getUsernameAttribute())
+            config.updateEntry(Config.DU_UN_ATT, sdu == null ? null : sdu.getUsernameAttribute()),
             
-            }))
+            config.updateEntry(Config.HI_ID, hi == null ? null : hi.getId()),
+            config.updateEntry(Config.HI_PATRON_GRP, hi == null ? null : hi.getPatronGroup())
+            
+          });
+          
+          // Also add the futures for the configured IDPs
+          updatedConfig.getSelectedIdentityProviders().parallelStream()
+            .forEach(sidp -> Stream.of(
+              config.updateEntry(Config.HI_ID, sidp == null ? null : sidp.getId()),
+              config.updateEntry(Config.HI_PATRON_GRP, sidp == null ? null : sidp.getPatronGroup())
+            ).forEach(futures::add));
+          
+          return CompositeFuture.all(futures)
             .map(allUpdates -> (Response)PutSamlConfigurationResponse.respond200WithApplicationJson(config.getSamlConfig()));
         })
         

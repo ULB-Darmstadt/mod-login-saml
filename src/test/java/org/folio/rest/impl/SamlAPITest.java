@@ -184,6 +184,32 @@ public class SamlAPITest {
                 ))
         );
 
+    // Return the correct code. No persistence happens here, but we should be able
+    // to replace the entries in the mock to reflect the new state.
+    stubFor(
+        put(urlPathMatching(okapi.getPath() + "/configurations/entries/.*"))
+        .withHost(equalTo(okapi.getHost()))
+        .withPort(okapi.getPort())
+
+        .willReturn(
+            noContent()
+            )
+        );
+
+    stubFor(
+        post(urlPathMatching(okapi.getPath() + "/configurations/entries"))
+        .withHost(equalTo(okapi.getHost()))
+        .withPort(okapi.getPort())
+        .willReturn(
+            created()
+            .withBody(
+                "{{parseJson request.body 'bodyMap'}}" +
+                    "{{set-value bodyMap 'id' (randomValue type='UUID')}}" +
+                "{{{json bodyMap}}}").withTransformers("response-template")
+            )
+        );
+
+
     stubFor(
         get(urlPathMatching(okapi.getPath() + "/users"))
         .withHost(equalTo(okapi.getHost()))
@@ -217,32 +243,7 @@ public class SamlAPITest {
                 .put("token", "saml-token").encode()
                 ))
         );
-
-    // Return the correct code. No persistence happens here, but we should be able
-    // to replace the entries in the mock to reflect the new state.
-    stubFor(
-        put(urlPathMatching(okapi.getPath() + "/configurations/entries/.*"))
-        .withHost(equalTo(okapi.getHost()))
-        .withPort(okapi.getPort())
-
-        .willReturn(
-            noContent()
-            )
-        );
-
-    stubFor(
-        post(urlPathMatching(okapi.getPath() + "/configurations/entries"))
-        .withHost(equalTo(okapi.getHost()))
-        .withPort(okapi.getPort())
-        .willReturn(
-            created()
-            .withBody(
-                "{{parseJson request.body 'bodyMap'}}" +
-                    "{{set-value bodyMap 'id' (randomValue type='UUID')}}" +
-                "{{{json bodyMap}}}").withTransformers("response-template")
-            )
-        );
-
+    
     stubFor(
         get(urlEqualTo("/xml"))
         .withHost(equalTo("mock-idp"))
@@ -496,6 +497,24 @@ public class SamlAPITest {
 
   @Test
   public void getConfigurationEndpoint() {
+
+    // GET
+    given()
+    .header(TENANT_HEADER)
+    .header(TOKEN_HEADER)
+    .header(OKAPI_URL_HEADER)
+    .header(JSON_CONTENT_TYPE_HEADER)
+    .get("/saml/configuration")
+    .then()
+    .statusCode(200)
+    .body(matchesJsonSchemaInClasspath("apidocs/raml/schemas/SamlConfig.json"))
+    .body("idpUrl", Matchers.equalTo("https://idp.ssocircle.com"))
+    .body("samlBinding", Matchers.equalTo("POST"))
+    .body("metadataInvalidated", Matchers.equalTo(Boolean.FALSE));
+  }
+  
+  @Test
+  public void getConfigurationWithVersionEndpoint() {
 
     // GET
     given()
