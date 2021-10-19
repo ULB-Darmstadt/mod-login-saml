@@ -5,12 +5,32 @@
   "required": ["valid"],
   "properties": {
     "valid": {
+      "readOnly": true,
       "description": "Indicates whether or not the SAML configuration is valid",
       "type": "boolean"
     },
     "error": {
+      "readOnly": true,
       "description": "Describes errors with the SAML configuration",
       "type": "string"
+    },
+    "idps": {
+      "readOnly": true,
+      "type": "array",
+      "items": {
+        "$ref": "SamlIdpEntry.json"
+      }
     }
-  }
+  },
+    
+  "anyOf": [{
+    "properties": {
+      "valid": { "type": "boolean", "enum": [ false ] }
+    }
+  },{
+    "properties": {
+      "valid": { "type": "boolean", "enum": [ true ] }
+    },
+    "required": ["idps"]
+  }]
 }
