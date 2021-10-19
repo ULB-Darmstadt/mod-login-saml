@@ -70,10 +70,12 @@ public class SamlAPI implements Saml {
   public void getSamlCheck(RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    Client.get(routingContext, false, false)
-      .onComplete(samlClientHandler -> {
-        asyncResultHandler.handle(Future.succeededFuture(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(!samlClientHandler.failed()))));
-      });
+    respondWith(asyncResultHandler, handler -> {
+      Client.get(routingContext, false, false)
+        .onComplete(samlClientHandler -> {
+          handler.complete(GetSamlCheckResponse.respond200WithApplicationJson(new SamlCheck().withActive(!samlClientHandler.failed())));
+        });
+    });
   }
 
   @Override
