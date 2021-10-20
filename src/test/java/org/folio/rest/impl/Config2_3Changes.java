@@ -11,7 +11,6 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.junit.rules.HttpMockingVertx;
-import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.*;
 import org.junit.rules.TestName;
@@ -19,9 +18,6 @@ import org.junit.runners.MethodSorters;
 
 import io.restassured.RestAssured;
 import io.restassured.http.Header;
-import io.restassured.matcher.ResponseAwareMatcher;
-import io.restassured.response.Response;
-import io.restassured.response.ResponseBody;
 
 /**
  * @author rsass

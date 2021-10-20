@@ -22,7 +22,6 @@ import org.w3c.dom.Element;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.json.JsonObject;
 import net.shibboleth.utilities.java.support.xml.ParserPool;
 
 /**
