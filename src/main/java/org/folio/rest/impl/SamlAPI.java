@@ -339,17 +339,26 @@ public class SamlAPI implements Saml {
   }
 
   @Override
-  public void getSamlValidate(final SamlValidateGetType type, final String value, final Map<String, String> okapiHeaders, final Handler<AsyncResult<Response>> asyncResultHandler, final Context vertxContext) {
+  public void getSamlValidate(final SamlValidateGetType type, final String value, final RoutingContext routingContext, final Map<String, String> okapiHeaders, final Handler<AsyncResult<Response>> asyncResultHandler, final Context vertxContext) {
 
     respondWith(asyncResultHandler, response -> {
+      
       // Bail early.
       if (SamlValidateGetType.IDPURL != type) {
         response.complete(GetSamlValidateResponse.respond500WithTextPlain(type != null ? "unknown type: " + type.toString() : "type not supplied"));
         return;
       }
       
+      final List<String> langs = routingContext.acceptableLanguages().stream().map( langHeader -> {
+        return langHeader.rawValue();
+      }).collect(Collectors.toUnmodifiableList());
+      
+      // The language header also affects what we supply in the root of the JSON so we should flag that
+      // to anything that might cache the results of this endpoint.
+      Utils.appendToMapIfAbsent(routingContext.response().headers(), VARY, ",", ACCEPT_LANGUAGE);
+      
       IdpMetadataService service = Services.proxyFor(vertxContext.owner(), IdpMetadataService.class);
-      service.parse(value)
+      service.parse(value, langs)
         .map(validateResponse -> (Response)GetSamlValidateResponse.respond200WithApplicationJson(validateResponse))
         .onComplete(response);
     });

@@ -5,6 +5,7 @@ package org.folio.services.impl;
 
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.List;
 
 import javax.validation.constraints.NotNull;
 
@@ -38,9 +39,10 @@ public class OpenSamlIdpMetadataService implements IdpMetadataService {
     return _parserPool;
   }
 
-  private Future<SamlValidateResponse> parse (@NotNull Resource url) {
+  private Future<SamlValidateResponse> parse (@NotNull Resource url, List<String> langs) {
 
     return ErrorHandlingUtil.checkedFuture((Promise<SamlValidateResponse> handler) -> {
+      
       final DOMMetadataResolver resolver;
 
       // Always close the stream.
@@ -62,7 +64,7 @@ public class OpenSamlIdpMetadataService implements IdpMetadataService {
           // If we get this far the file is likely valid.
           SamlValidateResponse resp = new SamlValidateResponse()
             .withValid(true)
-            .withIdps(SamlMetadataUtil.extractIDPList(resolver).getIdps());
+            .withIdps(SamlMetadataUtil.extractIDPList(resolver, langs != null ? langs : Collections.emptyList()).getIdps());
           
           handler.complete(resp);
         } finally {
@@ -79,12 +81,12 @@ public class OpenSamlIdpMetadataService implements IdpMetadataService {
   }
 
   @Override
-  public Future<SamlValidateResponse> parse (@NotNull String url) {
+  public Future<SamlValidateResponse> parse (@NotNull String url, List<String> langs) {
     return ErrorHandlingUtil.checkedFuture( (Promise<Resource> handler) -> {
       
       handler.complete(new UrlResource(url));
       
-    }).compose(this::parse, throwable -> Future.succeededFuture(
+    }).compose(theResource -> parse(theResource, langs), throwable -> Future.succeededFuture(
         new SamlValidateResponse()
         .withValid(false)
         .withError(throwable.getMessage())

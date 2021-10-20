@@ -40,11 +40,13 @@ public class SamlMetadataUtil {
       Arrays.asList(new QName[] {IDPSSODescriptor.DEFAULT_ELEMENT_NAME}));
   
   public static SamlIdpList extractIDPList (@NotNull final IterableMetadataSource mdSource) {
-    return extractIDPList(mdSource, Stream.of( I18N_DEFAULT_LANG ).collect(Collectors.toUnmodifiableList()));
+    return extractIDPList(mdSource, null);
   }
   
-  public static SamlIdpList extractIDPList (@NotNull final IterableMetadataSource mdSource, @NotNull final List<String> orderedLangCodes) {
-    log.debug("Languages requested: {}", orderedLangCodes.toString());
+  public static SamlIdpList extractIDPList (@NotNull final IterableMetadataSource mdSource, final List<String> langCodes) {
+    final List<String> orderedLangCodes = langCodes != null ? langCodes : Stream.of( I18N_DEFAULT_LANG ).collect(Collectors.toUnmodifiableList());
+    
+    log.debug("Languages requested: {}", langCodes != null ? langCodes.toString() : "none, defaulting to " + orderedLangCodes.toString());
     final List<Idp> idpList = new ArrayList<Idp>();
     
     Iterator<EntityDescriptor> entityDesc;
