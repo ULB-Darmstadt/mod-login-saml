@@ -23,6 +23,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
+//TODO: Make real tests that exercise new IDP validation.
 @RunWith(VertxUnitRunner.class)
 public class UrlUtilTest {
 
