@@ -141,6 +141,12 @@
       <artifactId>nimbus-jose-jwt</artifactId>
       <version>8.20</version>
     </dependency>
+    
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <version>3.0.4</version>
+    </dependency>
 
     <dependency>
       <groupId>io.rest-assured</groupId>

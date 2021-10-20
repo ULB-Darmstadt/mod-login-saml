@@ -6,10 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
+import io.vertx.core.*;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.serviceproxy.ServiceException;
 
@@ -37,6 +34,22 @@ public class ErrorHandlingUtil {
   public static <T> Future<T> checkedFuture(ThrowingHandler<Promise<T>> handler) {
     
     return Future.future((Promise<T> event) -> {
+      ErrorHandlingUtil.handleThrowables(event, () -> {
+        handler.handle(event);
+      });
+    });
+  }
+  
+  /**
+   * Produce a future that fails if the handler throws any throwables. This is an improvement on the
+   * native implementation that only allows the handler to throw runtime exceptions.
+   * 
+   * @param <T> The generic type for the future
+   * @param handler The handler which may throw none runtime type exceptions.
+   * @return The future
+   */
+  public static <T> Future<T> blockingCheckedFuture(Context context, ThrowingHandler<Promise<T>> handler) {
+    return context.executeBlocking((Promise<T> event) -> {
       ErrorHandlingUtil.handleThrowables(event, () -> {
         handler.handle(event);
       });

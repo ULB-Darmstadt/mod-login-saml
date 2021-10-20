@@ -77,7 +77,7 @@ public class ServicesVerticle extends AbstractVerticle {
     consumers.add(
       binder
         .setAddress(String.format("%s:%s", Services.MODULE_NAME, serviceClass.getCanonicalName()))
-        .register(serviceClass, inst)
+        .registerLocal(serviceClass, inst)
     );
   }
   
