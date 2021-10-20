@@ -26,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.*;
 import org.folio.rest.jaxrs.resource.Saml;
 import org.folio.rest.jaxrs.resource.Saml.PostSamlCallbackResponse.HeadersFor302;
+import org.folio.services.IdpMetadataService;
 import org.folio.services.Services;
 import org.folio.services.UserService;
 import org.folio.session.NoopSession;
@@ -338,26 +339,19 @@ public class SamlAPI implements Saml {
   }
 
   @Override
-  public void getSamlValidate(SamlValidateGetType type, String value, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getSamlValidate(final SamlValidateGetType type, final String value, final Map<String, String> okapiHeaders, final Handler<AsyncResult<Response>> asyncResultHandler, final Context vertxContext) {
 
-    // TODO: Actually validate and remove the URL util checker method.
     respondWith(asyncResultHandler, response -> {
       // Bail early.
       if (SamlValidateGetType.IDPURL != type) {
-        response.complete(GetSamlValidateResponse.respond500WithTextPlain("unknown type: " + type.toString()));
+        response.complete(GetSamlValidateResponse.respond500WithTextPlain(type != null ? "unknown type: " + type.toString() : "type not supplied"));
         return;
       }
       
-      UrlUtil.checkIdpUrl(value, vertxContext.owner())
-        .map(result -> {
-          
-          return (Response)GetSamlValidateResponse.respond200WithApplicationJson(new SamlValidateResponse()
-            .withValid(result.isSuccess())
-            .withError(result.isSuccess() ? null : result.getMessage())
-          );
-        })
-      
-      .onComplete(response);
+      IdpMetadataService service = Services.proxyFor(vertxContext.owner(), IdpMetadataService.class);
+      service.parse(value)
+        .map(validateResponse -> (Response)GetSamlValidateResponse.respond200WithApplicationJson(validateResponse))
+        .onComplete(response);
     });
   }
 

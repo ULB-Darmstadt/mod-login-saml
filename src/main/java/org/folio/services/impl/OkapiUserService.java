@@ -11,6 +11,7 @@ import org.folio.services.AbstractOkapiHttpService;
 import org.folio.services.Services;
 import org.folio.services.TokenService;
 import org.folio.services.UserService;
+import org.folio.util.ErrorHandlingUtil;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -39,7 +40,7 @@ public class OkapiUserService extends AbstractOkapiHttpService implements UserSe
       .map(response -> response.bodyAsJsonObject())
       .onComplete(handler);
       
-    }).recover(OkapiUserService::FAIL_WITH_SERVICE_EXCEPTION);
+    }).recover(ErrorHandlingUtil::FAIL_WITH_SERVICE_EXCEPTION);
   }
 
   @Override
@@ -60,7 +61,7 @@ public class OkapiUserService extends AbstractOkapiHttpService implements UserSe
       .map(response -> response.bodyAsJsonObject())
       .onComplete(handler);
       
-    }).recover(OkapiUserService::FAIL_WITH_SERVICE_EXCEPTION);
+    }).recover(ErrorHandlingUtil::FAIL_WITH_SERVICE_EXCEPTION);
   }
 
   @Override
@@ -86,6 +87,6 @@ public class OkapiUserService extends AbstractOkapiHttpService implements UserSe
       tokenService.create(subject, userId, headers)
         .onComplete(handler);
       
-    }).recover(OkapiUserService::FAIL_WITH_SERVICE_EXCEPTION);
+    }).recover(ErrorHandlingUtil::FAIL_WITH_SERVICE_EXCEPTION);
   }
 }

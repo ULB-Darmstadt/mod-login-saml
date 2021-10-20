@@ -8,10 +8,17 @@ import javax.net.ssl.*;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.rest.jaxrs.model.SamlValidateResponse;
 import org.folio.rest.resource.interfaces.InitAPI;
 import org.folio.services.ServicesVerticle;
 
-import io.vertx.core.*;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.MessageCodec;
+import io.vertx.core.json.Json;
 
 public class ApiInitializer implements InitAPI {
 
@@ -27,6 +34,49 @@ public class ApiInitializer implements InitAPI {
 
     String disableResolver = System.getProperty("vertx.disableDnsResolver");
     log.info("vertx.disableDnsResolver (netty workaround): " + disableResolver);
+    
+//    vertx.eventBus().registerDefaultCodec(SamlValidateResponse.class, new MessageCodec<SamlValidateResponse, SamlValidateResponse>() {
+//
+//      @Override
+//      public void encodeToWire (Buffer buffer, SamlValidateResponse s) {
+//        
+//        // Encode to buffer first.
+//        final Buffer buff = Json.encodeToBuffer(s);
+//
+//        // Get length of buffer so we know how much to read when decoding.
+//        final int length = buff.length();
+//
+//        // Write data into given buffer, starting with the length as an int.
+//        buffer.appendInt(length); // ints are 4 bytes.
+//        buffer.appendBuffer(buff);
+//      }
+//
+//      @Override
+//      public SamlValidateResponse decodeFromWire (final int pos, final Buffer buffer) {
+//        
+//        // Read int length first.
+//        final int length = buffer.getInt(pos);
+//        
+//        // BytePosition increases by 4 as getInt reads 4 bytes as an integer.
+//        return Json.decodeValue(buffer.getBuffer(pos+4, pos+length+4), SamlValidateResponse.class);
+//      }
+//
+//      @Override
+//      public SamlValidateResponse transform (final SamlValidateResponse s) {
+//        return s;
+//      }
+//
+//      @Override
+//      public String name () {
+//        return "json-" + SamlValidateResponse.class.getSimpleName();
+//      }
+//
+//      @Override
+//      public byte systemCodecID () {
+//        return -1;
+//      }
+//      
+//    });
 
     vertx.deployVerticle(new ServicesVerticle(), ar -> {
       log.debug("Deployed services verticle");

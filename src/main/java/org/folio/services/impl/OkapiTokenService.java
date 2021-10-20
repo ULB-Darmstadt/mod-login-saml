@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.services.AbstractOkapiHttpService;
 import org.folio.services.TokenService;
+import org.folio.util.ErrorHandlingUtil;
 import org.folio.util.model.OkapiHeaders;
 
 import io.vertx.core.Future;
@@ -59,7 +60,7 @@ public class OkapiTokenService extends AbstractOkapiHttpService implements Token
       ))
       .onComplete(handler);
       
-    }).recover(OkapiUserService::FAIL_WITH_SERVICE_EXCEPTION);
+    }).recover(ErrorHandlingUtil::FAIL_WITH_SERVICE_EXCEPTION);
   }
 
 }

@@ -39,10 +39,6 @@ public abstract class AbstractOkapiHttpService {
         ).filter(Objects::nonNull).findFirst().orElse("An unkown error occured"));
   });
   
-  public static <T> Future<T> FAIL_WITH_SERVICE_EXCEPTION (Throwable throwable) {
-    return Future.failedFuture(throwable instanceof ServiceException ? throwable : new ServiceException(-1, throwable.getMessage()));
-  };
-  
   public static ResponsePredicate SERVICE_SC_SUCCESS = ResponsePredicate.create(
     ResponsePredicate.SC_SUCCESS,
     RESPONSE_TO_SERVICE_EXCEPTION

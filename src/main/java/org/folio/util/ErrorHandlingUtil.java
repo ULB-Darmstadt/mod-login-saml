@@ -11,6 +11,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.serviceproxy.ServiceException;
 
 /**
  * Functional Utilities for moving common patterns to a more central and more
@@ -20,6 +21,10 @@ import io.vertx.ext.web.client.HttpResponse;
  *
  */
 public class ErrorHandlingUtil {
+  
+  public static <T> Future<T> FAIL_WITH_SERVICE_EXCEPTION (Throwable throwable) {
+    return Future.failedFuture(throwable instanceof ServiceException ? throwable : new ServiceException(-1, throwable.getMessage()));
+  };
   
   /**
    * Produce a future that fails if the handler throws any throwables. This is an improvement on the
