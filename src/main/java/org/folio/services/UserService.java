@@ -145,7 +145,34 @@ public interface UserService {
     return samlAttributeList.get(0).toString();
   }
   
+  
+  /**
+   * Attempt to lookup a user by an attribute/value pair
+   * 
+   * @param attributeName The attribute name
+   * @param attributeValue The value to match against
+   * @param headers Headers to be forwarded with the request
+   * @return A JSON document representing the user
+   */
   Future<JsonObject> findByAttribute( @NotNull final String attributeName, @NotNull final String attributeValue, @NotNull final Map<String, String> headers );
+  
+  
+  /**
+   * Attempt to create a user based opn the supplied JSON document
+   * 
+   * @param user JSON representation of the user
+   * @param headers Headers to be forwarded with the request
+   * @return The created user document that may have been mutated/extended by the target service
+   */
   Future<JsonObject> create( @NotNull final JsonObject user, @NotNull final Map<String, String> headers );
+  
+  
+  /**
+   * Create a token for the user
+   * 
+   * @param user JSON representation of the user
+   * @param headers Headers to be forwarded with the request
+   * @return The created token, if applicable
+   */
   Future<String> getToken( @NotNull final JsonObject user, @NotNull final Map<String, String> headers );
 }
