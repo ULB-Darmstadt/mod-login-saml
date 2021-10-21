@@ -16,5 +16,16 @@ import io.vertx.core.Future;
  */
 @ProxyGen
 public interface TokenService {
+  
+  
+  /**
+   * Create a token for a user id.
+   * 
+   * 
+   * @param subject Token subject
+   * @param userID User ID
+   * @param headers Headers that are forwarded
+   * @return The created token, if applicable
+   */
   public Future<String> create( String subject, String userID, Map<String, String> headers);
 }

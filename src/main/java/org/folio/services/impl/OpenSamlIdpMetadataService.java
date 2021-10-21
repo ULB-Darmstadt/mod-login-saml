@@ -33,6 +33,16 @@ import io.vertx.core.Vertx;
 import net.shibboleth.utilities.java.support.xml.ParserPool;
 
 /**
+ * Responsible for the initial validation and parse of the metadata.
+ * The initial results are cached (as files can be large) for 1 minute from
+ * last cache read. The cache is also invalidated based on the validity entry at
+ * the root of the downloaded metadata. So if the metadata is read from cache but
+ * the document specified it expired in 30 seconds it will be purged.
+ * 
+ * We use a different implementation for the PAC4J integration that
+ * automatically refreshes and keeps a file backing the MD. This is
+ * for validation and initial read only.
+ * 
  * @author Steve Osguthorpe
  *
  */
@@ -46,7 +56,7 @@ public class OpenSamlIdpMetadataService implements IdpMetadataService {
     return _parserPool;
   }
   
-  Cache<String, CacheVal> cache = Caffeine.newBuilder()
+  private Cache<String, CacheVal> cache = Caffeine.newBuilder()
     .maximumSize(5)
     .expireAfter(new Expiry<String, CacheVal>() {
       
@@ -89,6 +99,8 @@ public class OpenSamlIdpMetadataService implements IdpMetadataService {
     .build();
 
 
+  // Embeded class to use as a cache entry value. Stores the parsed expiry along with the
+  // desired return type.
   private static final class CacheVal {
     SamlValidateResponse resp;
     long cacheExpire = 0;
@@ -143,6 +155,9 @@ public class OpenSamlIdpMetadataService implements IdpMetadataService {
     });
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Future<SamlValidateResponse> parse (@NotNull String url, List<String> langs) {
     

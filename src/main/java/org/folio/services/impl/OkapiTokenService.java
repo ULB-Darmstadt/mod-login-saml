@@ -37,6 +37,9 @@ public class OkapiTokenService extends AbstractOkapiHttpService implements Token
     RESPONSE_TO_SERVICE_EXCEPTION
   );
   
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Future<String> create (@NotNull final String subject, @NotNull final String userId, @NotNull Map<String, String> headers) {
     

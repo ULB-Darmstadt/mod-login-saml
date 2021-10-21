@@ -26,6 +26,9 @@ public class OkapiUserService extends AbstractOkapiHttpService implements UserSe
   private static final Logger log = LogManager.getLogger(OkapiUserService.class);
   private static final String BASE_PATH = "/users";
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Future<JsonObject> create ( @NotNull final JsonObject userData, @NotNull final Map<String, String> headers ) {
     
@@ -43,6 +46,9 @@ public class OkapiUserService extends AbstractOkapiHttpService implements UserSe
     }).recover(ErrorHandlingUtil::FAIL_WITH_SERVICE_EXCEPTION);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Future<JsonObject> findByAttribute ( @NotNull final String attributeName, @NotNull String attributeValue, @NotNull final Map<String, String> headers ) {
         
@@ -64,6 +70,9 @@ public class OkapiUserService extends AbstractOkapiHttpService implements UserSe
     }).recover(ErrorHandlingUtil::FAIL_WITH_SERVICE_EXCEPTION);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Future<String> getToken (@NotNull JsonObject user,
       @NotNull Map<String, String> headers) {
