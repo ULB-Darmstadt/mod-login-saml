@@ -334,6 +334,11 @@ public class ModuleConfig implements Configuration {
             
             updateMapsForJsonEntry(requestBody);
             
+            // Change in URL should cause a refresh.
+            if (IDP_URL.equals(code)) {
+              Client.forceReinit(okapiHeaders.getTenant());
+            }
+            
             // We may need to also invalidate the metadata.
             if (this.invalidating_keys.contains(code)) {
               
@@ -341,7 +346,6 @@ public class ModuleConfig implements Configuration {
               // That result for the success.
               updateEntry(METADATA_INVALIDATED, "true")
                 .onSuccess( h -> {
-                  Client.forceReinit(okapiHeaders.getTenant());
                   result.complete();
                 })
                 .onFailure(t -> {
