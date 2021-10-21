@@ -7,6 +7,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import io.vertx.core.*;
+import io.vertx.core.eventbus.ReplyException;
+import io.vertx.core.eventbus.ReplyFailure;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.serviceproxy.ServiceException;
 
@@ -82,7 +84,7 @@ public class ErrorHandlingUtil {
     // We assume anything getting this far is unexpected or at least a variable error.
     // Specific errors should be caught within the bodies of the Deltas and handled on a case
     // by case basis.
-    log.error("Unexpected error ", t);
+    log.error("Unexpected error: {}", t.getMessage());
   }
   
   /**
@@ -198,15 +200,22 @@ public class ErrorHandlingUtil {
     // Else do nothing :)
   }
   
-  public static class CriticalDependencyException extends RuntimeException {
-    private static final long serialVersionUID = 7675771235867415725L;
+  public static class CriticalDependencyException extends ReplyException {
 
-    public CriticalDependencyException (String message) {
-      this(message, null);
+    private static final long serialVersionUID = 7675771235867415725L;
+    private static final ReplyFailure type = ReplyFailure.RECIPIENT_FAILURE; 
+    
+    public CriticalDependencyException(String message) {
+      super(type, message);
+    }
+
+    public CriticalDependencyException (int failureCode, String message) {
+      super(type, failureCode, message);
+    }
+
+    public CriticalDependencyException () {
+      super(type);
     }
     
-    public CriticalDependencyException (String message, Throwable cause) {
-      super(message, cause, true, false);
-    }
   }
 }
