@@ -161,7 +161,9 @@ public class OpenSamlIdpMetadataService implements IdpMetadataService {
   @Override
   public Future<SamlValidateResponse> parse (@NotNull String url, List<String> langs) {
     
-    CacheVal cachedResponse = cache.getIfPresent(url);
+    final String cacheKey = url + (langs != null ? String.join(",", langs) : "");
+    
+    CacheVal cachedResponse = cache.getIfPresent(cacheKey);
     if (cachedResponse != null) return Future.succeededFuture(cachedResponse.resp);
     
     return ErrorHandlingUtil.checkedFuture((Promise<Resource> handler) -> {
@@ -170,7 +172,7 @@ public class OpenSamlIdpMetadataService implements IdpMetadataService {
       
     })
       .compose(theResource -> parse(theResource, langs))
-      .onSuccess(val -> cache.put(url, val))
+      .onSuccess(val -> cache.put(cacheKey, val))
       .compose(val -> Future.succeededFuture(val.resp), throwable -> Future.succeededFuture(
         new SamlValidateResponse()
         .withValid(false)
