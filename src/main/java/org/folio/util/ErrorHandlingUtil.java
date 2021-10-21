@@ -154,18 +154,6 @@ public class ErrorHandlingUtil {
    *  
    * @param handler
    * @param body
-   */
-  public static <D> Future<D> handleThrowables (ThrowingSupplier<Future<D>> body) {
-    return handleThrowables(body, ErrorHandlingUtil::ERROR_CONVERTER);
-  }
-  
-  /**
-   * Handles exceptions in the supplied function by returning a failed future.
-   * Or the results of the body if successful. Helps for cleaner traditional try catch
-   * type code, while making testing easier.
-   *  
-   * @param handler
-   * @param body
    * @param errorConverter Takes in the exception and allows for creation of a new exception that will be used to fail the handler.
    */
   public static <D> Future<D> handleThrowables (ThrowingSupplier<Future<D>> body, Function<Throwable, Throwable> errorConverter) {
