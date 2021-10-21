@@ -10,10 +10,7 @@ import org.folio.services.impl.OkapiUserService;
 import org.folio.services.impl.OpenSamlIdpMetadataService;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.eventbus.MessageCodec;
 import io.vertx.core.eventbus.MessageConsumer;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.ServiceBinder;
 
