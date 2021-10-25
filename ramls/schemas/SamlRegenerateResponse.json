@@ -1,11 +1,11 @@
 {
-  "$schema": "http://json-schema.org/draft-03/schema#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "description": "Wraps SP (service provider) metadata XML content (base64 encoded) in JSON.",
+  "required": ["fileContent"],
   "properties": {
     "fileContent": {
       "description": "SP (service provider) metadata",
-      "required": true,
       "type": "string"
     }
   }

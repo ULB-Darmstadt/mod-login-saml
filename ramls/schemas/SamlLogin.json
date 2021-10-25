@@ -1,11 +1,11 @@
 {
-  "$schema": "http://json-schema.org/draft-03/schema#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "description": "Payload response from the POST /saml/login endpoint",
+  "required": ["bindingMethod", "location"],
   "properties": {
     "bindingMethod": {
       "description": "the HTTP method binding to use",
-      "required": true,
       "type": "string",
       "enum": [
         "POST",
@@ -14,17 +14,14 @@
     },
     "location": {
       "description": "Disco URL when GET (even for single IDPs using passive) or POST location for single IDPs",
-      "required": true,
       "type": "string"
     },
     "samlRequest": {
       "description": "the generated SAML request to be submitted when using the POST binding",
-      "required": false,
       "type": "string"
     },
     "relayState": {
       "description": "data that the IdP will echo back unchanged along with the SAML response",
-      "required": false,
       "type": "string"
     }
   }
