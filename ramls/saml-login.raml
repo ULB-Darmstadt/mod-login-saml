@@ -36,9 +36,9 @@ types:
           body:
             text/plain:
               example: "Internal server error"
-    /idps-all:
+    /idps-allowed:
       get:
-        description: List of all IDPs present in the metadata file
+        description: List of IDPs configured as allowed in the system.
         responses:
           200:
             body:
