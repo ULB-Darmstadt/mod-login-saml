@@ -468,7 +468,7 @@ public class SamlAPI implements Saml {
   }
 
   @Override
-  public void getSamlConfigurationIdpsAll (RoutingContext routingContext, Map<String, String> okapiHeaders,
+  public void getSamlMetadataIdpsAll (RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     
     // Off the event loop.
@@ -487,7 +487,7 @@ public class SamlAPI implements Saml {
           final FederationIdentityProviderMetadataResolver provider = 
               (FederationIdentityProviderMetadataResolver) client.getIdentityProviderMetadataResolver();
           
-          return (Response)GetSamlConfigurationIdpsAllResponse.respond200WithApplicationJson(
+          return (Response)GetSamlMetadataIdpsAllResponse.respond200WithApplicationJson(
               provider.getKnownIDPs(langs));
         })
         .onComplete(blockingCode);

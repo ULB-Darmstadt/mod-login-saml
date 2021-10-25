@@ -102,10 +102,8 @@
           "methods": [
             "GET"
           ],
-          "pathPattern": "/saml/configuration/*",
-          "permissionsRequired": [
-            "login-saml.configuration.get"
-          ],
+          "pathPattern": "/saml/metadata/*",
+          "permissionsRequired": [],
           "modulePermissions": [
             "configuration.entries.collection.get"
           ]
