@@ -267,6 +267,58 @@ public class SamlAPI implements Saml {
       HeadersFor302 headers302 = PostSamlCallbackResponse.headersFor302().withSetCookie(cookie).withXOkapiToken(token).withLocation(location);
       return Future.succeededFuture( PostSamlCallbackResponse.respond302(headers302) );
   }
+  
+  public static void getTokenForUser(Handler<AsyncResult<Response>> asyncResultHandler, OkapiHeaders parsedHeaders, JsonObject userObject, URI originalUrl, URI stripesBaseUrl) {
+    String userId = userObject.getString("id");
+    if (!userObject.getBoolean("active")) {
+      asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond403WithTextPlain("Inactive user account!")));
+    } else {
+
+      // Current token to headers.
+      final Map<String, String> defaultHeaders = new HashMap<>();
+      defaultHeaders.put(OkapiHeaders.OKAPI_TOKEN_HEADER, parsedHeaders.getToken());
+      
+      final JsonObject payload = new JsonObject().put("payload", new JsonObject().put("sub", userObject.getString("username")).put("user_id", userId));
+
+
+      HttpClientInterface tokenClient = HttpClientFactory.getHttpClient(parsedHeaders.getUrl(), parsedHeaders.getTenant());
+      tokenClient.setDefaultHeaders(defaultHeaders);
+      try {
+        tokenClient.request(HttpMethod.POST, payload, "/token", null)
+          .whenComplete((tokenResponse, tokenError) -> {
+            if (!org.folio.rest.tools.client.Response.isSuccess(tokenResponse.getCode())) {
+              asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(tokenResponse.getError().toString())));
+            } else {
+              String candidateAuthToken = null;
+              if(tokenResponse.getCode() == 200) {
+                candidateAuthToken = tokenResponse.getHeaders().get(OkapiHeaders.OKAPI_TOKEN_HEADER);
+              } else { //mod-authtoken v2.x returns 201, with token in JSON response body
+                try {
+                  candidateAuthToken = tokenResponse.getBody().getString("token");
+                } catch(Exception e) {
+                  asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(e.getMessage())));
+                }
+              }
+              final String authToken = candidateAuthToken;
+
+              final String location = UriBuilder.fromUri(stripesBaseUrl)
+                .path("sso-landing")
+                .queryParam("ssoToken", authToken)
+                .queryParam("fwd", originalUrl.getPath())
+                .build()
+                .toString();
+
+              final String cookie = new NewCookie("ssoToken", authToken, "", originalUrl.getHost(), "", 3600, false).toString();
+
+              HeadersFor302 headers302 = PostSamlCallbackResponse.headersFor302().withSetCookie(cookie).withXOkapiToken(authToken).withLocation(location);
+              asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond302(headers302)));
+            }
+          });
+      } catch (Exception httpClientEx) {
+        asyncResultHandler.handle(Future.succeededFuture(PostSamlCallbackResponse.respond500WithTextPlain(httpClientEx.getMessage())));
+      }
+    }
+  }
 
   @Override
   public void getSamlConfiguration(RoutingContext rc, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
@@ -388,6 +440,22 @@ public class SamlAPI implements Saml {
    */
   private void registerFakeSession(RoutingContext routingContext) {
     routingContext.setSession(new NoopSession());
+  }
+  
+  private SamlDefaultUser configExtractDefaultUser(SamlConfiguration config) {
+    
+    if (!config.hasDefaultUserData()) return null;
+    
+    SamlDefaultUser defaultUser = new SamlDefaultUser()
+      .withEmailAttribute(config.getUserDefaultEmailAttribute())
+      .withFirstNameAttribute(config.getUserDefaultFirstNameAttribute())
+      .withFirstNameDefault(config.getUserDefaultFirstNameDefault())
+      .withLastNameAttribute(config.getUserDefaultLastNameAttribute())
+      .withLastNameDefault(config.getUserDefaultLastNameDefault())
+      .withPatronGroup(config.getUserDefaultPatronGroup())
+      .withUsernameAttribute(config.getUserDefaultUsernameAttribute())
+    ;
+    return defaultUser;
   }
 
   @Override
