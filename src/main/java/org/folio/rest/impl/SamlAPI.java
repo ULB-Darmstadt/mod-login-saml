@@ -241,7 +241,7 @@ public class SamlAPI implements Saml {
           // Only update once both parts of the Composite have succeeded.
           return config.updateEntry(Config.METADATA_INVALIDATED, "false")
             .compose(_void -> {
-              return Base64Util.encode(vertxContext, metadata)
+              return Base64Util.encode(metadata)
                 .map(base64Result -> {
                   SamlRegenerateResponse responseEntity = new SamlRegenerateResponse()
                       .withFileContent(base64Result.toString(StandardCharsets.UTF_8));
@@ -254,7 +254,7 @@ public class SamlAPI implements Saml {
     });
   }
   
-  private static Future<Response> respondWithToken( @NotNull final URI allowedOrigin, @NotNull final URI returUrl, @NotNull final String token) {
+  private static Future<Response> respondWithToken( @NotNull final URI allowedOrigin, @NotNull final URI returUrl, @NotNull final String token ) {
     final String location = UriBuilder.fromUri(allowedOrigin)
         .path("sso-landing")
         .queryParam("ssoToken", token)
@@ -289,7 +289,6 @@ public class SamlAPI implements Saml {
         .compose(config -> {
           final SamlDefaultUser sdu = updatedConfig.getSamlDefaultUser();
           final HomeInstitution hi = updatedConfig.getHomeInstitution();
-          
           
           @SuppressWarnings("rawtypes")
           final List<Future> futures = new ArrayList<>(Arrays.asList(new Future[] {

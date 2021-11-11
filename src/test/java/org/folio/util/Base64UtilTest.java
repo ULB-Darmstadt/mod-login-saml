@@ -24,7 +24,7 @@ public class Base64UtilTest {
   @Test
   public void encode(TestContext context) {
 
-    Base64Util.encode(rule.vertx().getOrCreateContext(), HELLO)
+    Base64Util.encode(HELLO)
       .onComplete(context.asyncAssertSuccess(result -> context.assertEquals(HELLO_AS_BASE64, result.toString(StandardCharsets.UTF_8))));
 
   }
