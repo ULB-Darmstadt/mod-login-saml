@@ -1,11 +1,10 @@
 package org.folio.util;
 
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import io.vertx.core.buffer.Buffer;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+
+import io.vertx.core.Future;
+import io.vertx.core.buffer.Buffer;
 
 /**
  * @author rsass
