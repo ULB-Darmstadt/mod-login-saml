@@ -36,9 +36,12 @@ public class RequestScopedMetadataResolver implements SAML2MetadataResolver {
 
     try {
       entityDescriptor = fullMetadata.resolve().resolveSingle(new CriteriaSet(new EntityIdCriterion(requestIdpId)));
+      if (entityDescriptor == null) throw new TechnicalException("Metadata cannot be retrieved because entityID could not be matched against known IDP entities");
     } catch (ResolverException e) {
       throw new TechnicalException("Metadata cannot be retrieved because entityID could not be matched against known IDP entities", e);
     }
+    
+    log.debug("Resolved IDP Entity from with ID: " + getEntityId());
   }
 
   @Override
