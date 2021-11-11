@@ -11,6 +11,7 @@ import org.folio.config.JsonReponseSaml2RedirectActionBuilder;
 import org.folio.sso.saml.Constants.Config;
 import org.folio.sso.saml.metadata.DiscoAwareServiceProviderMetadataResolver;
 import org.folio.sso.saml.metadata.FederationIdentityProviderMetadataResolver;
+import org.folio.sso.saml.metadata.FederationSAML2ContextProvider;
 import org.folio.util.ErrorHandlingUtil;
 import org.folio.util.OkapiHelper;
 import org.folio.util.model.OkapiHeaders;
@@ -347,5 +348,14 @@ public class Client extends SAML2Client {
         computeFinalCallbackUrl(null),
         this.credentialProvider);
     this.spMetadataResolver.resolve();
+  }
+  
+  @Override
+  protected void initSAMLContextProvider() {
+    // Build the contextProvider
+    this.contextProvider = new FederationSAML2ContextProvider(
+        this.idpMetadataResolver,
+        this.spMetadataResolver,
+        this.configuration.getSamlMessageStoreFactory());
   }
 }

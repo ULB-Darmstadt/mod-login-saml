@@ -12,6 +12,7 @@ import javax.annotation.Nullable;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.folio.rest.jaxrs.model.SamlIdpList;
@@ -139,6 +140,7 @@ public class FederationIdentityProviderMetadataResolver implements SAML2Metadata
     return totalNumOfIdps > 1;
   }
 
+  // TODO: Probably don't need idpEntityId here so might be able to reinstate single resolver and Client caching.
   public FederationIdentityProviderMetadataResolver(final Resource idpMetadataResource, @Nullable final String idpEntityId, final String instanceName) {
     CommonHelper.assertNotNull("idpMetadataResource", idpMetadataResource);
     CommonHelper.assertNotNull("namePrefix", instanceName);
@@ -170,12 +172,10 @@ public class FederationIdentityProviderMetadataResolver implements SAML2Metadata
    */
   @Override
   public String getEntityId() {
-    final XMLObject md = getEntityDescriptorElement();
-    if (md instanceof EntityDescriptor) {
-      return ((EntityDescriptor) md).getEntityID();
-    }
+
+    throw new NotImplementedException("Calling getEntityId for possible multiple IDPs is not valid");
     
-    throw new SAMLException("Invalid IDP selection made");
+//    throw new SAMLException("Invalid IDP selection made");
   }
 
   
