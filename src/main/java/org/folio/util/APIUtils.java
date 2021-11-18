@@ -7,6 +7,8 @@ import io.vertx.core.*;
 
 /**
  * Some boiler plate and conventional behaviour for the way RMB constructs APIs.
+ * Allows us to write code that repeats less in the API implementations, and
+ * gives us single entry points to test behaviour. 
  * 
  * @author Steve Osguthorpe
  *
@@ -67,12 +69,45 @@ public class APIUtils {
   }
 
   private static Future<Response> throwableToResponseFuture (Throwable throwable) {
+    
+    if (throwable instanceof CodedHttpApiException) {
+      // Special cases we can foresee and use a simple throw to trigger in the implementation.
+      CodedHttpApiException codedEx = (CodedHttpApiException) throwable;
+      return Future.succeededFuture(Response
+          .status(codedEx.code)
+          .header("Content-Type", "text/plain")
+          .entity(codedEx.getMessage())
+        .build()
+      );
+    }
+    
     final String text = throwable.getMessage();
     return Future.succeededFuture(Response
         .status(500)
         .header("Content-Type", "text/plain")
         .entity(text)
-        .build()
-        );
+      .build()
+    );
+  }
+  
+
+  /**
+   * Special exception that when caught via the other utility methods will cause a text and code response
+   * to be sent to the client instead of a general 500. 
+   * 
+   * @author Steve Osguthorpe
+   */
+  public static class CodedHttpApiException extends VertxException {
+    private static final long serialVersionUID = 2096339694399530059L;
+    final int code;
+
+    public CodedHttpApiException (int code, String message) {
+      this(code, message, null);
+    }
+    
+    public CodedHttpApiException (int code, String message, Throwable cause) {
+      super(message, cause, true);
+      this.code = code;
+    }
   }
 }

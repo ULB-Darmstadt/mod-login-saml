@@ -20,7 +20,6 @@ import io.restassured.RestAssured;
 import io.restassured.http.Header;
 
 /**
- * @author rsass
  * @author Steve Osguthorpe
  */
 @FixMethodOrder(MethodSorters.JVM) // Preserve the ordering of declared tests.

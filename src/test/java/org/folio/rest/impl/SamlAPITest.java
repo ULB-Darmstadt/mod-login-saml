@@ -439,10 +439,10 @@ public class SamlAPITest {
         .body("{\"stripesUrl\":\"" + STRIPES_URL + testPath + "\"}")
         .post("/saml/login")
         .then()
+        .statusCode(200)
         .contentType(ContentType.JSON)
         .body(matchesJsonSchemaInClasspath("ramls/schemas/SamlLogin.json"))
         .body("bindingMethod", Matchers.equalTo("POST"))
-        .statusCode(200)
         .extract();
 
     String cookie = resp.cookie(COOKIE_RELAY_STATE);

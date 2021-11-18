@@ -13,7 +13,7 @@
       ]
     },
     "location": {
-      "description": "Disco URL when GET (even for single IDPs using passive) or POST location for single IDPs",
+      "description": "Location of the requested IDPs login initiator",
       "type": "string"
     },
     "samlRequest": {

@@ -82,8 +82,7 @@ public class ErrorHandlingUtil {
     }
 
     // We assume anything getting this far is unexpected or at least a variable error.
-    // Specific errors should be caught within the bodies of the Deltas and handled on a case
-    // by case basis.
+    // Specific errors should be caught and handled on a case by case basis.
     log.error("Unexpected error: {}", t.getMessage());
   }
   

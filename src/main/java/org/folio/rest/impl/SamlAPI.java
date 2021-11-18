@@ -85,9 +85,9 @@ public class SamlAPI implements Saml {
       
     respondWith(asyncResultHandler, response -> {
       
-      String stripesUrl = requestEntity.getStripesUrl();
+      final String stripesUrl = requestEntity.getStripesUrl();
 
-      UriBuilder uri = UriBuilder.fromUri(stripesUrl)
+      final UriBuilder uri = UriBuilder.fromUri(stripesUrl)
         .queryParam(QUERY_PARAM_CSRF_TOKEN, UUID.randomUUID().toString());
       
       String relayState = uri.build().toASCIIString();
@@ -162,12 +162,20 @@ public class SamlAPI implements Saml {
         
         final ModuleConfig config = (ModuleConfig)configAndClient.resultAt(0);
         final Client client = (Client)configAndClient.resultAt(1);
+
+        final VertxWebContext webContext = VertxUtils.createWebContext(routingContext);
+        final String targetEntityID = client.getContextProvider().buildContext(webContext).getSAMLPeerEntityContext().getEntityId();
+        final SAML2Credentials credentials = client.getCredentials(webContext).orElseThrow();
+        final String issuer = credentials.getIssuerId();
+        
+        
+        // Issuer isn't mandatory in a response. We should fail if it's present and doesn't match 
+        if (issuer != null && !targetEntityID.equals(issuer)) {
+          return Future.succeededFuture(PostSamlCallbackResponse.respond400WithTextPlain("Issuer and IDP from context do not match"));
+        }
         
         final String userPropertyName = config.getUserProperty() == null ? "externalSystemId" : config.getUserProperty();
         final String samlAttributeName = config.getSamlAttribute() == null ? "UserID" : config.getSamlAttribute();
-
-        final VertxWebContext webContext = VertxUtils.createWebContext(routingContext);
-        final SAML2Credentials credentials = client.getCredentials(webContext).orElseThrow();
 
         // Get SAML Attributes.
         List<?> samlAttributeList = (List<?>) credentials.getUserProfile().extractAttributeValues(samlAttributeName);
