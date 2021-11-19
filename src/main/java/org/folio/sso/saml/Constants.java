@@ -37,7 +37,7 @@ public interface Constants {
     public static final String USER_CREATE_MISSING = "user.createMissing";
     public static final String METADATA_INVALIDATED = "metadata.invalidated";
     public static final String OKAPI_URL= "okapi.url";
-    public static final String PATRON_GRP = ".patronGroup";
+    public static final String PATRON_GRP = "patronGroup";
 
     public static final String DU_UN_ATT = DEFAULT_USER + ".usernameAttribute";
     public static final String DU_EMAIL_ATT = DEFAULT_USER + ".emailAttribute";
@@ -45,15 +45,14 @@ public interface Constants {
     public static final String DU_LAST_NM_ATT = DEFAULT_USER + ".lastNameAttribute";
     public static final String DU_FIRST_NM_DEFAULT = DEFAULT_USER + ".firstNameDefault";
     public static final String DU_LAST_NM_DEFAULT = DEFAULT_USER + ".lastNameDefault";
-    public static final String DU_PATRON_GRP = DEFAULT_USER + PATRON_GRP;
+    public static final String DU_PATRON_GRP = DEFAULT_USER + "." + PATRON_GRP;
     
-    public static final String HOME_INSTITUTION = "homeInstitution";
-    public static final String INST_ID = ".id";
+    public static final String HOME_INSTITUTION = "homeInstitution.";
+    public static final String INST_ID = "id";
     public static final String HI_ID = HOME_INSTITUTION + INST_ID;
     public static final String HI_PATRON_GRP = HOME_INSTITUTION + PATRON_GRP;
 
     public static final String SELECTED_IDPS = "selectedIdentityProviders";
-    public static final String SELECTED_IDP_ID_REGEX = SELECTED_IDPS + "\\[(\\d+)\\]\\" + INST_ID;
     
     public static final Period CERTIFICATE_VALIDITY = Period.ofYears(3);
   }

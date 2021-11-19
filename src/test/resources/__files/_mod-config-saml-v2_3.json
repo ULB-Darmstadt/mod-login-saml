@@ -74,16 +74,9 @@
       "id": "a1b1968c-2cf6-11ec-8194-03f5bb5b9c7d",
       "module": "LOGIN-SAML",
       "configName": "saml",
-      "code": "selectedIdentityProviders[0].id",
-      "value": "http://inst2.id"
-    },
-    {
-      "id": "a1f6f2f4-2cf6-11ec-8c0d-db1b59a5cfff",
-      "module": "LOGIN-SAML",
-      "configName": "saml",
-      "code": "selectedIdentityProviders[0].patronGroup",
-      "value": "a2393a42-2cf6-11ec-87bc-d7e122947a20"
+      "code": "selectedIdentityProviders",
+      "value": "[{ \"id\": \"http://inst2.id\", \"patronGroup\": \"a2393a42-2cf6-11ec-87bc-d7e122947a20\" }]"
     }
   ],
-  "totalRecords": 12
+  "totalRecords": 11
 }

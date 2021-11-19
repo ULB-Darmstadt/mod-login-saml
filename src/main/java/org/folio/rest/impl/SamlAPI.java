@@ -49,6 +49,7 @@ import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.PRNG;
 import io.vertx.ext.web.RoutingContext;
@@ -325,17 +326,8 @@ public class SamlAPI implements Saml {
           }));
           
           // Also add the futures for the configured IDPs
-          List<HomeInstitution> providers = updatedConfig.getSelectedIdentityProviders();
-          for (int i=0; i<providers.size(); i++) {
-            final HomeInstitution sidp = providers.get(i);
-            final String prefix = String.format("%s[%d]", SELECTED_IDPS, i);
-            
-            final String instId = prefix + INST_ID;
-            final String patronGrp = prefix + PATRON_GRP; 
-            
-            futures.add(config.updateEntry(instId, sidp.getId()));
-            futures.add(config.updateEntry(patronGrp, sidp.getPatronGroup()));
-          }
+          final JsonArray idpJson = new JsonArray(updatedConfig.getSelectedIdentityProviders());
+          futures.add(config.updateEntry(SELECTED_IDPS, idpJson.encode()));
           
           return CompositeFuture.all(futures)
             .map(allUpdates -> (Response)PutSamlConfigurationResponse.respond200WithApplicationJson(config.getSamlConfig()));

@@ -11,8 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.validation.constraints.NotNull;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.HomeInstitution;
@@ -230,10 +228,12 @@ public class ModuleConfig implements Configuration {
   public String getUserProperty () {
     return getConfig().get(USER_PROPERTY);
   }
-  
-  private HomeInstitution attributesToInstitution(@NotNull final String keyPrefix) {
-    final String instId = getConfig().get(keyPrefix + INST_ID);
-    final String patronGrp = getConfig().get(keyPrefix + PATRON_GRP);    
+   
+  @Override
+  public HomeInstitution getHomeInstitution () {
+    
+    final String instId = getConfig().get(HOME_INSTITUTION + INST_ID);
+    final String patronGrp = getConfig().get(HOME_INSTITUTION + PATRON_GRP);    
     
     if (instId == null || patronGrp == null) {
       return null;
@@ -243,22 +243,19 @@ public class ModuleConfig implements Configuration {
       .withId(instId)
       .withPatronGroup(patronGrp);
   }
-  
-  @Override
-  public HomeInstitution getHomeInstitution () {
-    return attributesToInstitution(HOME_INSTITUTION);
-  }
 
   @Override
   public List<HomeInstitution> getSelectedIdentityProviders () {
-    return getConfig().keySet()
-      .stream().filter( entry -> {
-        return entry.matches(SELECTED_IDP_ID_REGEX);
-      })
-      .map(entry -> Integer.valueOf(entry.replaceAll(SELECTED_IDP_ID_REGEX, "$1")))
+    final String idps_json = getConfig().get(SELECTED_IDPS);
+    if (idps_json == null) return Collections.emptyList();
+    
+    return new JsonArray(idps_json)
+      .stream()
       .sorted()
-      .map(idx -> String.format("%s[%d]", SELECTED_IDPS, idx))
-      .map(this::attributesToInstitution)
+      .map(obj -> (JsonObject)obj)
+      .map(jsonObj -> new HomeInstitution()
+        .withId(jsonObj.getString(INST_ID))
+        .withPatronGroup(jsonObj.getString(PATRON_GRP)))
       .filter( Objects::nonNull )
       .collect(Collectors.toUnmodifiableList());
   }
