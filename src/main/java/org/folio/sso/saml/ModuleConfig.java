@@ -251,12 +251,11 @@ public class ModuleConfig implements Configuration {
     
     return new JsonArray(idps_json)
       .stream()
-      .sorted()
       .map(obj -> (JsonObject)obj)
+      .filter( Objects::nonNull )
       .map(jsonObj -> new HomeInstitution()
         .withId(jsonObj.getString(INST_ID))
         .withPatronGroup(jsonObj.getString(PATRON_GRP)))
-      .filter( Objects::nonNull )
       .collect(Collectors.toUnmodifiableList());
   }
   

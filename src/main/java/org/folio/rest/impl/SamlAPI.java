@@ -3,8 +3,6 @@ package org.folio.rest.impl;
 import static io.vertx.core.http.HttpHeaders.*;
 import static org.folio.sso.saml.Constants.COOKIE_RELAY_STATE;
 import static org.folio.sso.saml.Constants.QUERY_PARAM_CSRF_TOKEN;
-import static org.folio.sso.saml.Constants.Config.INST_ID;
-import static org.folio.sso.saml.Constants.Config.PATRON_GRP;
 import static org.folio.sso.saml.Constants.Config.SELECTED_IDPS;
 import static org.folio.util.APIUtils.blockingRespondWith;
 import static org.folio.util.APIUtils.respondWith;
@@ -17,6 +15,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -80,8 +79,9 @@ public class SamlAPI implements Saml {
     });
   }
 
+  
   @Override
-  public void postSamlLogin(SamlLoginRequest requestEntity, RoutingContext routingContext, Map<String, String> okapiHeaders,
+  public void postSamlLogin(@QueryParam("entityID") String entityID, SamlLoginRequest requestEntity, RoutingContext routingContext, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
       
     respondWith(asyncResultHandler, response -> {
@@ -450,19 +450,6 @@ public class SamlAPI implements Saml {
         })
         .map(xmlString -> (Response)GetSamlMetadataResponse.respond200WithApplicationXml(xmlString))
         .onComplete(blockingCode);
-    });
-  }
-
-  @Override
-  public void getSamlDiscoInit (String entityID,
-      SamlDiscoInitGetReturnIDParam returnIDParam, String policy,
-      boolean isPassive, Map<String, String> okapiHeaders,
-      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    // TODO Implement!
-    respondWith(asyncResultHandler, handler -> {
-      
-      handler.complete(GetSamlDiscoInitResponse.respond403WithTextPlain("OK"));
-      
     });
   }
 
