@@ -224,9 +224,8 @@ public class SamlAPI implements Saml {
                 // break;
                
               default:
-                // < 0 results, shouldn't ever happen... but lets be good citizen.
-                final String message = recordCount > 1 ? "More than one user record found!" :
-                  String.format("Invalid count of %d returned from lookup" + recordCount);
+                // < 0 or > 1 results, shouldn't ever happen... but lets be good citizen.
+                final String message = String.format("Invalid count of %d returned from lookup" + recordCount);
                 
                 return Future.succeededFuture((Response)PostSamlCallbackResponse.respond400WithTextPlain(message));   
             }

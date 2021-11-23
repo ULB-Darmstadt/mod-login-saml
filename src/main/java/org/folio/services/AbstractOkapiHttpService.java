@@ -29,6 +29,11 @@ import io.vertx.serviceproxy.ServiceException;
  */
 public abstract class AbstractOkapiHttpService {
   
+  
+  /**
+   * Error converter to use with the predicates for HTTP calls. Converts the response to a service
+   * exception that includes the message and return code.
+   */
   public static ErrorConverter RESPONSE_TO_SERVICE_EXCEPTION = ErrorConverter.createFullBody(result -> {
     return new ServiceException(
       result.response().statusCode(),
@@ -38,6 +43,10 @@ public abstract class AbstractOkapiHttpService {
         ).filter(Objects::nonNull).findFirst().orElse("An unkown error occured"));
   });
   
+  
+  /**
+   * Custom response predicate that raises an exception for a none 2xx response.
+   */
   public static ResponsePredicate SERVICE_SC_SUCCESS = ResponsePredicate.create(
     ResponsePredicate.SC_SUCCESS,
     RESPONSE_TO_SERVICE_EXCEPTION

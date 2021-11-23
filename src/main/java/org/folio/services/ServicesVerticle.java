@@ -43,8 +43,7 @@ public class ServicesVerticle extends AbstractVerticle {
   public void stop() {
     if (binder != null) {
       // Remove each consumer as cleanup.
-      consumers.stream()
-        .forEach(binder::unregister);
+      consumers.forEach(binder::unregister);
       binder = null;
       consumers = null;
     }
