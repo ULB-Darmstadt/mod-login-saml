@@ -451,6 +451,7 @@ public class SamlAPITest {
         .header(TOKEN_HEADER)
         .header(OKAPI_URL_HEADER)
         .header(JSON_CONTENT_TYPE_HEADER)
+        .queryParam("entityID", "https://idp.ssocircle.com")
         .body("{\"stripesUrl\":\"" + STRIPES_URL + testPath + "\"}")
         .post("/saml/login")
         .then()

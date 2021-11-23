@@ -42,14 +42,22 @@ public class RequestScopedMetadataResolver implements SAML2MetadataResolver {
     // RelayState could contain idp to use.
     final String requestIdpId = idpId
       .map((val) -> {
-        final JsonObject relayStateFromForm = new JsonObject( val );
-        return relayStateFromForm.getString("entityID");
+        final JsonObject relayStateFromSession = new JsonObject( val );
+        return relayStateFromSession.getString("entityID");
       })
-          
+      
       .orElseGet(() -> {
-        return webContext.getRequestParameter("entityID").orElseThrow(() -> {
-          return new AmbiguousTargetIDPException("Metadata cannot be retrieved because entityID is null");
-        });
+        return webContext.getRequestParameter("RelayState")
+          .map((val) -> {
+            final JsonObject relayStateFromRequest = new JsonObject( val );
+            return relayStateFromRequest.getString("entityID");
+          })
+            
+          .orElseGet(() -> {
+            return webContext.getRequestParameter("entityID").orElseThrow(() -> {
+              return new AmbiguousTargetIDPException("Metadata cannot be retrieved because entityID is null");
+            });
+          });
       });
 
     try {

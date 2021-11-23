@@ -169,7 +169,7 @@ public class SamlAPI implements Saml {
         return;
       }
       
-      // COokie and form parameter match. Continue...
+      // Cookie and form parameter match. Continue...
       
       // Stripes URL (return url)
       final URI relayStateUrl;

@@ -68,11 +68,10 @@ public class Client extends SAML2Client {
       assert(context.getRequestParameter("SAMLResponse").isPresent());
 
       NameID nameId = new NameIDBuilder().buildObject();
-      String issuerId = this.getClass().getName();
       List<Attribute> samlAttributes = new ArrayList<>();
       Conditions conditions = new ConditionsBuilder().buildObject();
       List<String> authnContexts = new ArrayList<>();
-      SAML2Credentials cred = new SAML2Credentials(nameId, issuerId, samlAttributes, conditions, "1", authnContexts);
+      SAML2Credentials cred = new SAML2Credentials(nameId, null, samlAttributes, conditions, "1", authnContexts);
 
       CommonProfile userProfile = new CommonProfile();
       userProfile.addAttribute("UserID", Arrays.asList(SAML_USER_ID));
