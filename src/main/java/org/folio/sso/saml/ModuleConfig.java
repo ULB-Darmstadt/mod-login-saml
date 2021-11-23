@@ -261,7 +261,8 @@ public class ModuleConfig implements Configuration {
   
   /**
    * Send an entry to the configuration module if it's value has changed.
-   * Return a future that completes to true if the configuration 
+   * Return a future that completes to true either if the config was updated
+   * or no change necessary.
    * 
    * @param code The Code key for the config entry
    * @param value The value of the config entry
