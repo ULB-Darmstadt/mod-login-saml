@@ -99,7 +99,7 @@ public class OpenSamlIdpMetadataService implements IdpMetadataService {
     .build();
 
 
-  // Embeded class to use as a cache entry value. Stores the parsed expiry along with the
+  // Embedded class to use as a cache entry value. Stores the parsed expiration along with the
   // desired return type.
   private static final class CacheVal {
     SamlValidateResponse resp;
