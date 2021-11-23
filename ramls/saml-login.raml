@@ -81,6 +81,11 @@ types:
           body:
             application/json:
               type: SamlLogin
+        400:
+          description: Bad request - Used when target IDP cannot be identified.
+          body:
+            text/plain:
+              example: "Bad request"
         500:
           description: "Internal server error"
           body:

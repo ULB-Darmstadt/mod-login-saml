@@ -3,6 +3,8 @@
  */
 package org.folio.sso.saml.metadata;
 
+import java.util.Optional;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.opensaml.core.criterion.EntityIdCriterion;
@@ -12,8 +14,10 @@ import org.opensaml.saml.saml2.metadata.EntityDescriptor;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.saml.metadata.SAML2MetadataResolver;
+import org.pac4j.saml.state.SAML2StateGenerator;
 import org.pac4j.saml.util.Configuration;
 
+import io.vertx.core.json.JsonObject;
 import net.shibboleth.utilities.java.support.resolver.CriteriaSet;
 import net.shibboleth.utilities.java.support.resolver.ResolverException;
 
@@ -30,15 +34,29 @@ public class RequestScopedMetadataResolver implements SAML2MetadataResolver {
   public RequestScopedMetadataResolver(SAML2MetadataResolver fullMetadata, final WebContext webContext) {
     this.fullMetadata = fullMetadata;
     
-    final String requestIdpId = webContext.getRequestParameter("entityID").orElseThrow(() -> {
-      return new TechnicalException("Metadata cannot be retrieved because entityID is null");
-    });
+//    SAML_RELAY_STATE_ATTRIBUTE
+    
+    @SuppressWarnings("unchecked")
+    Optional<String> idpId = webContext.getSessionStore().get(webContext, SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUTE);
+    
+    // RelayState could contain idp to use.
+    final String requestIdpId = idpId
+      .map((val) -> {
+        final JsonObject relayStateFromForm = new JsonObject( val );
+        return relayStateFromForm.getString("entityID");
+      })
+          
+      .orElseGet(() -> {
+        return webContext.getRequestParameter("entityID").orElseThrow(() -> {
+          return new AmbiguousTargetIDPException("Metadata cannot be retrieved because entityID is null");
+        });
+      });
 
     try {
       entityDescriptor = fullMetadata.resolve().resolveSingle(new CriteriaSet(new EntityIdCriterion(requestIdpId)));
       if (entityDescriptor == null) throw new TechnicalException("Metadata cannot be retrieved because entityID could not be matched against known IDP entities");
     } catch (ResolverException e) {
-      throw new TechnicalException("Metadata cannot be retrieved because entityID could not be matched against known IDP entities", e);
+      throw new AmbiguousTargetIDPException("Metadata cannot be retrieved because entityID could not be matched against known IDP entities", e);
     }
     
     log.debug("Resolved IDP Entity from with ID: " + getEntityId());

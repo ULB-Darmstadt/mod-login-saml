@@ -11,7 +11,9 @@ import static org.junit.Assert.assertNotEquals;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import javax.ws.rs.core.UriBuilder;
@@ -303,13 +305,25 @@ public class SamlAPITest {
   public void loginEndpointTestsBad() {
     // empty body
     given()
-    .header(TENANT_HEADER)
-    .header(TOKEN_HEADER)
-    .header(OKAPI_URL_HEADER)
-    .header(JSON_CONTENT_TYPE_HEADER)
-    .post("/saml/login")
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .header(JSON_CONTENT_TYPE_HEADER)
+      .post("/saml/login")
     .then()
-    .statusCode(400);
+      .statusCode(400);
+    
+
+    // Missing entitiyID
+    given()
+      .header(TENANT_HEADER)
+      .header(TOKEN_HEADER)
+      .header(OKAPI_URL_HEADER)
+      .header(JSON_CONTENT_TYPE_HEADER)
+      .body("{\"stripesUrl\":\"" + STRIPES_URL + "\"}")
+      .post("/saml/login")
+    .then()
+      .statusCode(400);
   }
 
   @Test
@@ -320,6 +334,7 @@ public class SamlAPITest {
         .header(TOKEN_HEADER)
         .header(OKAPI_URL_HEADER)
         .header(JSON_CONTENT_TYPE_HEADER)
+        .queryParam("entityID", "https://idp.ssocircle.com")
         .body("{\"stripesUrl\":\"" + STRIPES_URL + "\"}")
         .post("/saml/login")
         .then()
@@ -329,7 +344,7 @@ public class SamlAPITest {
         .statusCode(200)
         .extract();
 
-    String cookie = resp.cookie(COOKIE_RELAY_STATE);
+    String cookie = URLDecoder.decode( resp.cookie(COOKIE_RELAY_STATE), StandardCharsets.UTF_8);
     String relayState = resp.body().jsonPath().getString(COOKIE_RELAY_STATE);
     assertEquals(cookie, relayState);
 
@@ -339,6 +354,7 @@ public class SamlAPITest {
         .header(TOKEN_HEADER)
         .header(OKAPI_URL_HEADER)
         .header(JSON_CONTENT_TYPE_HEADER)
+        .queryParam("entityID", "https://idp.ssocircle.com")
         .body("{\"stripesUrl\":\"" + STRIPES_URL + "?foo=bar\"}")
         .post("/saml/login")
         .then()
@@ -348,7 +364,7 @@ public class SamlAPITest {
         .statusCode(200)
         .extract();
 
-    cookie = resp.cookie(COOKIE_RELAY_STATE);
+    cookie = URLDecoder.decode( resp.cookie(COOKIE_RELAY_STATE), StandardCharsets.UTF_8 );
     relayState = resp.body().jsonPath().getString("relayState");
     assertEquals(cookie, relayState);
 
@@ -359,13 +375,12 @@ public class SamlAPITest {
     .header(TOKEN_HEADER)
     .header(OKAPI_URL_HEADER)
     .header(JSON_CONTENT_TYPE_HEADER)
+    .queryParam("entityID", "https://idp.ssocircle.com")
     .body("{\"stripesUrl\":\"" + STRIPES_URL + "\"}")
     .post("/saml/login")
     .then()
     .statusCode(401);
   }
-
-
 
   @Test
   public void regenerateEndpointTests() throws IOException {

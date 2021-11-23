@@ -10,6 +10,8 @@ import static org.pac4j.saml.state.SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUT
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,6 +34,7 @@ import org.folio.session.NoopSession;
 import org.folio.sso.saml.Client;
 import org.folio.sso.saml.Constants.Config;
 import org.folio.sso.saml.ModuleConfig;
+import org.folio.sso.saml.metadata.AmbiguousTargetIDPException;
 import org.folio.sso.saml.metadata.DiscoAwareServiceProviderMetadataResolver;
 import org.folio.sso.saml.metadata.FederationIdentityProviderMetadataResolver;
 import org.folio.util.*;
@@ -47,6 +50,7 @@ import io.vertx.core.*;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -91,9 +95,18 @@ public class SamlAPI implements Saml {
       final UriBuilder uri = UriBuilder.fromUri(stripesUrl)
         .queryParam(QUERY_PARAM_CSRF_TOKEN, UUID.randomUUID().toString());
       
-      String relayState = uri.build().toASCIIString();
-      Cookie relayStateCookie = Cookie.cookie(COOKIE_RELAY_STATE, relayState)
-          .setPath("/").setHttpOnly(true).setSecure(true);
+      // Serialize as JSON string..
+      final String relayState = new JsonObject()
+          .put("stripesUrl", uri.build().toASCIIString())
+          .put("entityID", entityID)
+          // Stringify
+          .encode();
+
+      // Encode and add the cookie.
+      Cookie relayStateCookie = Cookie.cookie(COOKIE_RELAY_STATE, URLEncoder.encode(relayState, StandardCharsets.UTF_8))
+        .setPath("/")
+        .setHttpOnly(true)
+        .setSecure(true);
       routingContext.addCookie(relayStateCookie);
   
       // register non-persistent session (this request only) to overWrite relayState
@@ -107,7 +120,7 @@ public class SamlAPI implements Saml {
             .getRedirectionAction(VertxUtils.createWebContext(routingContext))
             .orElse(null);
           
-          if (! (redirectionAction instanceof OkAction)) {
+          if (redirectionAction == null || ! (redirectionAction instanceof OkAction)) {
             throw new IllegalStateException("redirectionAction must be OkAction: " + redirectionAction);
           }
           
@@ -117,8 +130,12 @@ public class SamlAPI implements Saml {
           addCredentialsAndOriginHeaders(routingContext);
           return (Response)PostSamlLoginResponse.respond200WithApplicationJson(dto);
         })
-        
         .recover(throwable -> {
+          if (throwable instanceof AmbiguousTargetIDPException) {
+            return Future.succeededFuture(PostSamlLoginResponse.respond400WithTextPlain(throwable.getMessage()));
+          }
+          
+          // HttpAction is a throwable
           if (throwable instanceof HttpAction) {
             return Future.succeededFuture(HttpActionMapper.toResponse((HttpAction) throwable));
           }
@@ -136,23 +153,38 @@ public class SamlAPI implements Saml {
     respondWith(asyncResultHandler, response -> {
       registerFakeSession(routingContext);
       
-      // Form parameters "RelayState" is not part webContext.
-      final String relayState = routingContext.request().getFormAttribute("RelayState");
-      final URI relayStateUrl;
-      try {
-        relayStateUrl = new URI(relayState);
-      } catch (URISyntaxException e1) {
-        response.complete(PostSamlCallbackResponse.respond400WithTextPlain("Invalid relay state url: " + relayState));
-        return;
-      }
+      // Grab the posted form value.
+      final String relayStateString = routingContext.request().getFormAttribute("RelayState");
       
-      Cookie relayStateCookie = routingContext.getCookie(COOKIE_RELAY_STATE);
-      if (relayStateCookie == null || !relayState.contentEquals(relayStateCookie.getValue())) {
+      // The value from the cookie.
+      final Cookie relayStateCookie = routingContext.getCookie(COOKIE_RELAY_STATE);
+      if (relayStateCookie == null) {
         response.complete(PostSamlCallbackResponse.respond403WithTextPlain("CSRF attempt detected"));
         return;
       }
       
-      final URI stripesBaseUrl = UrlUtil.parseBaseUrl(relayStateUrl);
+      // Check that the 2 values have string equality.
+      if (!relayStateString.contentEquals(URLDecoder.decode( relayStateCookie.getValue(), StandardCharsets.UTF_8 ))) {
+        response.complete(PostSamlCallbackResponse.respond403WithTextPlain("CSRF attempt detected"));
+        return;
+      }
+      
+      // COokie and form parameter match. Continue...
+      
+      // Stripes URL (return url)
+      final URI relayStateUrl;
+      try {
+        // Parse the relay state as JSON.
+        final JsonObject relayStateFromForm = new JsonObject( URLDecoder.decode(relayStateString, StandardCharsets.UTF_8) );
+        
+        relayStateUrl = new URI(relayStateFromForm.getString("stripesUrl"));
+        
+      } catch (NullPointerException | IllegalArgumentException | DecodeException | URISyntaxException e1) {
+        
+        // The relay state is invalid, so we need to 400 in this case.
+        response.complete(PostSamlCallbackResponse.respond400WithTextPlain("Invalid relay state: " + relayStateString));
+        return;
+      }
       
       // Grab the ModuleConfig and the Saml client 
       CompositeFuture.all(
@@ -189,6 +221,9 @@ public class SamlAPI implements Saml {
         // Grab a proxy to talk to a user service implementation.
         final UserService userService = Services.proxyFor(vertxContext.owner(), UserService.class);
         
+        // Strip to only the base host URI. We need this for the Allow origins header.
+        final URI stripesBaseUrl = UrlUtil.parseBaseUrl(relayStateUrl);
+                
         return userService.findByAttribute(userPropertyName, samlAttributeValue, okapiHeaders)
           .compose (resultObject -> {
             final int recordCount = resultObject.getInteger("totalRecords");
@@ -262,6 +297,8 @@ public class SamlAPI implements Saml {
     });
   }
   
+  // TODO: Ideally the whole return URL should be passed in by the initiator, and validated against an allowed
+  // host pattern. This ties us to a single return.
   private static Future<Response> respondWithToken( @NotNull final URI allowedOrigin, @NotNull final URI returUrl, @NotNull final String token ) {
     final String location = UriBuilder.fromUri(allowedOrigin)
         .path("sso-landing")
@@ -290,7 +327,7 @@ public class SamlAPI implements Saml {
 
   @Override
   public void putSamlConfiguration(SamlConfigRequest updatedConfig, RoutingContext rc, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    
+    // TODO: This could be much better. The whole config storage needs work. 
     respondWith(asyncResultHandler, response -> {
       
       ModuleConfig.get(rc)
